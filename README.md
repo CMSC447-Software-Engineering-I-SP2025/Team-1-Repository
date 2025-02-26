@@ -14,16 +14,22 @@ Make sure you have Node.js and npm installed on your computer. You can download 
 
 1. Clone the repository
 
-2. Install the dependencies:
+2. Navigate to the Frontend Directory:
+
+   ```sh
+   cd Frontend
+   ```
+
+3. Install the dependencies:
 
    ```sh
    npm install
    ```
 
-3. Start the development server:
+4. Start the development server:
 
    ```sh
    npm run dev
    ```
 
-4. Navigate to `http://localhost:3000` to see the website running.
+5. Navigate to `http://localhost:3000` to see the website running.
