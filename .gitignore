@@ -1,2 +1,17 @@
 # Ignore node_modules directory
 node_modules/
+
+# Ignore visual studio temp files
+.vs/
+
+# Ignore C# build/debug related files
+[Dd]ebug/
+[Rr]elease/
+x64/
+[Bb]in/
+[Oo]bj/
+
+# Ignore VS user-specific files
+*.suo
+*.user
+*.sln.docstates
