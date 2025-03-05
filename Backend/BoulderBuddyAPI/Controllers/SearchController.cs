@@ -1,4 +1,5 @@
 using BoulderBuddyAPI.Models;
+using BoulderBuddyAPI.Models.OpenBetaModels;
 using BoulderBuddyAPI.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,15 +18,13 @@ public class SearchController : ControllerBase
         _openBetaQuerySvc = openBetaQuerySvc;
     }
 
+    //POST /Search/Location
     [HttpPost("Location")]
-    public async Task<IEnumerable<SearchByLocationParameters>> PostLocation(SearchByLocationParameters locAndRadius)
+    public async Task<IEnumerable<Area>> SearchByLocation(SearchByLocationParameters locAndRadius)
     {
-        return Enumerable.Range(1, 5).Select(index => new SearchByLocationParameters
-        {
-            Lat = 39.093266, //usg BSE front door
-            Lng = -77.201558, //usg BSE front door
-            Miles = 50
-        })
-        .ToArray();
+        var subareas = await _openBetaQuerySvc.QueryClimbsInArea("Delaware");
+
+
+        return null;
     }
 }
