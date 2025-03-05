@@ -18,13 +18,43 @@ public class SearchController : ControllerBase
         _openBetaQuerySvc = openBetaQuerySvc;
     }
 
-    //POST /Search/Location
+    //POST /Search/Location - performs OpenBeta API query to find climbs in Maryland
     [HttpPost("Location")]
     public async Task<IEnumerable<Area>> SearchByLocation(SearchByLocationParameters locAndRadius)
     {
-        var subareas = await _openBetaQuerySvc.QuerySubAreasInArea("Delaware");
+        var subareas = await _openBetaQuerySvc.QuerySubAreasInArea("Maryland");
+        var leafAreasWithClimbs = GetLeafAreasWithClimbs(subareas);
+        return leafAreasWithClimbs;
+    }
 
+    //finds all areas within list of trees (areas) that have no subareas but do have climbs associated with them. DFS
+    private List<Area> GetLeafAreasWithClimbs(IEnumerable<Area> areas)
+    {
+        var haveChildren = new Stack<Area>();
+        var leavesWithClimbs = new List<Area>();
 
-        return null;
+        //add all areas to DFS stack, in reverse order to preserve alphabetical order (by original ancestor area) by end
+        foreach (var area in areas)
+            haveChildren.Push(area);
+
+        //push area's children if it has children, or remove to list if it doesn't - DFS
+        while (haveChildren.Count > 0)
+        {
+            var thisArea = haveChildren.Pop();
+
+            //push children if it has children
+            if (thisArea.children.Count > 0)
+            {
+                //thisArea.children.Reverse();
+                foreach (var child in thisArea.children)
+                    haveChildren.Push(child);
+            }
+
+            //remove area to list of leaves if it has associated climbs
+            else if (thisArea.climbs.Count > 0)
+                leavesWithClimbs.Add(thisArea);
+        }
+
+        return leavesWithClimbs;
     }
 }
