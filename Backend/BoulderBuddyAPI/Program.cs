@@ -1,3 +1,4 @@
+using BoulderBuddyAPI.Services;
 
 namespace BoulderBuddyAPI
 {
@@ -12,6 +13,11 @@ namespace BoulderBuddyAPI
             //Swagger/OpenAPI developer UI page (see https://aka.ms/aspnetcore/swashbuckle)
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+
+            builder.Services.AddHttpClient<IOpenBetaQueryService, OpenBetaQueryService>(client =>
+            {
+                client.BaseAddress = new Uri(builder.Configuration["OpenBetaEndpoint"]);
+            });
 
             var app = builder.Build();
 

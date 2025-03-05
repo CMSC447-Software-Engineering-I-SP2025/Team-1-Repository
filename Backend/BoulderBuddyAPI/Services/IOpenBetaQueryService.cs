@@ -4,6 +4,6 @@ namespace BoulderBuddyAPI.Services
 {
     public interface IOpenBetaQueryService
     {
-        public Task<SearchByLocationRootObj> GetAreaClimbs(string rootArea);
+        public Task<List<Area>> QueryClimbsInArea(string rootArea);
     }
 }
