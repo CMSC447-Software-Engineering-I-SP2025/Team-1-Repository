@@ -18,11 +18,11 @@ public class SearchController : ControllerBase
         _openBetaQuerySvc = openBetaQuerySvc;
     }
 
-    //POST /Search/Location - performs OpenBeta API query to find climbs in Maryland
-    [HttpPost("Location")]
-    public async Task<IEnumerable<Area>> SearchByLocation(SearchByLocationParameters locAndRadius)
+    //POST /Search/State - performs OpenBeta API query to find climbs in given state
+    [HttpPost("State")]
+    public async Task<IEnumerable<Area>> SearchByLocation(string state)
     {
-        var subareas = await _openBetaQuerySvc.QuerySubAreasInArea("Maryland");
+        var subareas = await _openBetaQuerySvc.QuerySubAreasInArea(state);
         var leafAreasWithClimbs = GetLeafAreasWithClimbs(subareas);
         return leafAreasWithClimbs;
     }
