@@ -22,7 +22,7 @@ public class SearchController : ControllerBase
     [HttpPost("Location")]
     public async Task<IEnumerable<Area>> SearchByLocation(SearchByLocationParameters locAndRadius)
     {
-        var subareas = await _openBetaQuerySvc.QueryClimbsInArea("Delaware");
+        var subareas = await _openBetaQuerySvc.QuerySubAreasInArea("Delaware");
 
 
         return null;

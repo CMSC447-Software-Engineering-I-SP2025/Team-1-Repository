@@ -22,7 +22,7 @@ namespace BoulderBuddyAPI.Services
             _httpClient = httpClient;
         }
 
-        public async Task<List<Area>> QueryClimbsInArea(string rootArea)
+        public async Task<List<Area>> QuerySubAreasInArea(string rootArea)
         {
             if (!_supportedRootAreas.Contains(rootArea))
                 throw new ArgumentException("given area is not supported");
