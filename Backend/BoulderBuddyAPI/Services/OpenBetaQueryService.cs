@@ -1,4 +1,5 @@
-﻿using BoulderBuddyAPI.Models.OpenBetaModels;
+﻿using BoulderBuddyAPI.Models;
+using BoulderBuddyAPI.Models.OpenBetaModels;
 
 namespace BoulderBuddyAPI.Services
 {
@@ -7,19 +8,13 @@ namespace BoulderBuddyAPI.Services
         private readonly ILogger<OpenBetaQueryService> _logger;
         private readonly HttpClient _httpClient;
 
-        private readonly string[] _supportedRootAreas = [
-            "USA", "Alabama", "Arkansas", "Alaska", "Arizona", "California", "Colorado", "Connecticut", "Delaware",
-            "Florida", "Georgia", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine",
-            "Maryland", "Massachusetts", "Michigan", "Minnesota", "Missouri", "Montana", "Nebraska", "Nevada",
-            "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio",
-            "Oklahoma", "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota", "Tennessee",
-            "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming"
-            ]; //TODO: inject this in appsettings
+        private readonly string[] _supportedRootAreas;
 
-        public OpenBetaQueryService(ILogger<OpenBetaQueryService> logger, HttpClient httpClient)
+        public OpenBetaQueryService(ILogger<OpenBetaQueryService> logger, HttpClient httpClient, OpenBetaConfig config)
         {
             _logger = logger;
             _httpClient = httpClient;
+            _supportedRootAreas = config.SupportedRootAreas;
         }
 
         public async Task<List<Area>> QuerySubAreasInArea(string rootArea)

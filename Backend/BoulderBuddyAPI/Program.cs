@@ -1,3 +1,4 @@
+using BoulderBuddyAPI.Models;
 using BoulderBuddyAPI.Services;
 
 namespace BoulderBuddyAPI
@@ -14,9 +15,14 @@ namespace BoulderBuddyAPI
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
+            //direct inject "OpenBetaConfig" section from appsettings
+            builder.Services.AddSingleton(builder.Configuration.GetSection("OpenBetaConfig")
+                .Get<OpenBetaConfig>());
+
+            //direct inject connection service for making queries to OpenBeta API
             builder.Services.AddHttpClient<IOpenBetaQueryService, OpenBetaQueryService>(client =>
             {
-                client.BaseAddress = new Uri(builder.Configuration["OpenBetaEndpoint"]);
+                client.BaseAddress = new Uri(builder.Configuration.GetSection("OpenBetaConfig")["OpenBetaEndpoint"]);
             });
 
             var app = builder.Build();

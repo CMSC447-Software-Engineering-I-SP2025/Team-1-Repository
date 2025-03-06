@@ -1,4 +1,3 @@
-using BoulderBuddyAPI.Models;
 using BoulderBuddyAPI.Models.OpenBetaModels;
 using BoulderBuddyAPI.Services;
 using Microsoft.AspNetCore.Mvc;
