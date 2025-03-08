@@ -21,6 +21,9 @@ public class SearchController : ControllerBase
     [HttpPost("State")]
     public async Task<IActionResult> SearchByLocation(string state)
     {
+        if (state is null)
+            return BadRequest("Null root area (state or country)."); //HTTP 400 (BadRequest) response with error msg
+
         try
         {
             var subareas = await _openBetaQuerySvc.QuerySubAreasInArea(state);
