@@ -19,11 +19,17 @@ public class SearchController : ControllerBase
 
     //POST /Search/State - performs OpenBeta API query to find climbs in given state
     [HttpPost("State")]
-    public async Task<IEnumerable<Area>> SearchByLocation(string state)
+    public async Task<IActionResult> SearchByLocation(string state)
     {
-        var subareas = await _openBetaQuerySvc.QuerySubAreasInArea(state);
-        var leafAreasWithClimbs = GetLeafAreasWithClimbs(subareas);
-        return leafAreasWithClimbs;
+        try
+        {
+            var subareas = await _openBetaQuerySvc.QuerySubAreasInArea(state);
+            var leafAreasWithClimbs = GetLeafAreasWithClimbs(subareas);
+            return Ok(leafAreasWithClimbs); //HTTP 200 (Ok) response with content
+        } catch (ArgumentException)
+        {
+            return BadRequest("Invalid root area (state or country)."); //HTTP 400 (BadRequest) response with error msg
+        }
     }
 
     //finds all areas within list of trees (areas) that have no subareas but do have climbs associated with them. DFS
