@@ -17,6 +17,7 @@ namespace BoulderBuddyAPI.Services
             _supportedRootAreas = config.SupportedRootAreas;
         }
 
+        //query OpenBeta API for subareas in given root area
         public async Task<List<Area>> QuerySubAreasInArea(string rootArea)
         {
             if (!_supportedRootAreas.Contains(rootArea))
