@@ -5,7 +5,6 @@ using BoulderBuddyAPI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
-using Moq.Protected;
 using RichardSzalay.MockHttp;
 using System.Text.Json;
 
