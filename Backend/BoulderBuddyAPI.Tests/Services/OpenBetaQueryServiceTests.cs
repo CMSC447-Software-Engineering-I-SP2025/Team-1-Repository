@@ -21,6 +21,19 @@ namespace BoulderBuddyAPI.Tests.Services
             Assert.Equal(2, subareas.Count(a => a.climbs.Count > 0)); //expected to have at least one area with climbs
         }
 
+        [Fact]
+        public async Task QuerySubAreasInArea_GivenInvalidRootArea_ThrowsArgumentException()
+        {
+            var service = ArrangeTestableObject("Services/ClimbsByStateResponse.json"); //arrange
+            
+            //example invalid inputs
+            await Assert.ThrowsAsync<ArgumentException>(() => service.QuerySubAreasInArea("Mississippi"));
+            await Assert.ThrowsAsync<ArgumentException>(() => service.QuerySubAreasInArea("Hawaii"));
+            await Assert.ThrowsAsync<ArgumentException>(() => service.QuerySubAreasInArea(""));
+            await Assert.ThrowsAsync<ArgumentException>(() => service.QuerySubAreasInArea("DELAWARE")); //case sensitive
+            await Assert.ThrowsAsync<ArgumentException>(() => service.QuerySubAreasInArea(null));
+        }
+
         //create OpenBetaQueryService object using a mocked HttpClient that returns json content read from given file path
         private OpenBetaQueryService ArrangeTestableObject(string queryResponseJsonFilePath)
         {
