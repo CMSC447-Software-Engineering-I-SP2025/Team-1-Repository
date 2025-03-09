@@ -16,9 +16,6 @@ const Header = () => {
           <a href="#" className="px-3">
             Contact
           </a>
-          <a href="#" className="px-3">
-            Create Account
-          </a>
         </nav>
       </div>
     </header>
