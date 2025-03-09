@@ -1,4 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
+//import { BrowserRouter as Router, Route, Switch } from "react-router-dom"; //NEW
+//import MakeAccount from "./components/MakeAccount"; // The new Make Account page
 import Header from "./components/Header";
 import HeroSection from "./components/HeroSection";
 import WorldMap from "./components/WorldMap";

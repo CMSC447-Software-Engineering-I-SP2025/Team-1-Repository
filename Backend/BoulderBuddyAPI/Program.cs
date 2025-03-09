@@ -1,4 +1,7 @@
 
+using Microsoft.EntityFrameworkCore;
+using UserApi.Data;
+
 namespace BoulderBuddyAPI
 {
     public class Program
@@ -6,6 +9,10 @@ namespace BoulderBuddyAPI
         public static void Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
+
+            // Register DbContext with dependency injection container
+            builder.Services.AddDbContext<ApplicationDbContext>(options =>
+                options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
             builder.Services.AddControllers();
 
