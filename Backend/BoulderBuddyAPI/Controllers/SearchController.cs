@@ -41,7 +41,7 @@ public class SearchController : ControllerBase
         var haveChildren = new Stack<Area>();
         var leavesWithClimbs = new List<Area>();
 
-        //add all areas to DFS stack, in reverse order to preserve alphabetical order (by original ancestor area) by end
+        //add all areas to DFS stack, in reverse order to preserve order (by original ancestor area) by end
         foreach (var area in areas)
             haveChildren.Push(area);
 
