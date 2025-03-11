@@ -25,7 +25,8 @@ namespace BoulderBuddyAPI.Services
                         name TEXT NOT NULL,
                         email TEXT,
                         password TEXT NOT NULL,
-                        accountType TEXT NOT NULL
+                        accountType TEXT NOT NULL,
+                        CHECK (accountType IN (""public"", ""private""))
                     );
                     CREATE TABLE IF NOT EXISTS Routes (
                         id TEXT PRIMARY KEY,
@@ -57,7 +58,8 @@ namespace BoulderBuddyAPI.Services
                         requestDate TEXT NOT NULL,
                         friendSince TEXT NOT NULL,
                         FOREIGN KEY (userId) REFERENCES User(id),
-                        FOREIGN KEY (friendId) REFERENCES User(id)
+                        FOREIGN KEY (friendId) REFERENCES User(id),
+                        CHECK (relationType IN (""friends"", ""user1_blocked"", ""user2_blocked"", ""both_blocked"", ""pending_user1"", ""pending_user2""))
                     );
                     CREATE TABLE IF NOT EXISTS ClimbGroup (
                         id INTEGER PRIMARY KEY,
@@ -68,7 +70,9 @@ namespace BoulderBuddyAPI.Services
                         groupType TEXT NOT NULL,
                         groupOwner TEXT NOT NULL,
                         groupImage BLOB,
-                        FOREIGN KEY (groupOwner) REFERENCES User(id)
+                        FOREIGN KEY (groupOwner) REFERENCES User(id),
+                        CHECK (joinRequirements IN (""invite_only"", ""paid"", ""open"")),
+                        CHECK (groupType IN (""public"", ""private""))
                     );
                     CREATE TABLE IF NOT EXISTS ClimbGroupRelation (
                         groupId TEXT NOT NULL,
@@ -78,7 +82,8 @@ namespace BoulderBuddyAPI.Services
                         memberSince TEXT,
                         PRIMARY KEY (groupId, userId),
                         FOREIGN KEY (groupId) REFERENCES ClimbGroup(id),
-                        FOREIGN KEY (userId) REFERENCES User(id)
+                        FOREIGN KEY (userId) REFERENCES User(id),
+                        CHECK (relationType IN (""member"", ""owner"", ""admin"", ""banned""))
                     );
                     CREATE TABLE IF NOT EXISTS ClimbGroupEvent (
                         id INTEGER PRIMARY KEY,
@@ -97,7 +102,8 @@ namespace BoulderBuddyAPI.Services
                         badgeDescription TEXT,
                         badgeRequirement TEXT NOT NULL,
                         badgeRarity TEXT NOT NULL,
-                        badgeImage BLOB
+                        badgeImage BLOB,
+                        CHECK (badgeRarity IN (""common"", ""uncommon"", ""rare""))
                     );
                     CREATE TABLE IF NOT EXISTS BadgeRelation (
                         userId TEXT NOT NULL,
