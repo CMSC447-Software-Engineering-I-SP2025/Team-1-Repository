@@ -55,8 +55,8 @@ namespace BoulderBuddyAPI.Services
                         user1Id TEXT NOT NULL,
                         user2Id TEXT NOT NULL,
                         relationType TEXT NOT NULL,
-                        requestDate TEXT NOT NULL,
-                        friendSince TEXT NOT NULL,
+                        requestDate TEXT NOT NULL DEFAULT current_timestamp,
+                        friendSince TEXT,
                         FOREIGN KEY (user1Id) REFERENCES User(id),
                         FOREIGN KEY (user2Id) REFERENCES User(id),
                         CHECK (relationType IN (""friends"", ""user1_blocked"", ""user2_blocked"", ""both_blocked"", ""pending_user1"", ""pending_user2""))
@@ -78,12 +78,12 @@ namespace BoulderBuddyAPI.Services
                         groupId TEXT NOT NULL,
                         userId TEXT NOT NULL,
                         relationType TEXT NOT NULL,
-                        requestDate TEXT NOT NULL,
+                        inviteDate TEXT,
                         memberSince TEXT,
                         PRIMARY KEY (groupId, userId),
                         FOREIGN KEY (groupId) REFERENCES ClimbGroup(id),
                         FOREIGN KEY (userId) REFERENCES User(id),
-                        CHECK (relationType IN (""member"", ""owner"", ""admin"", ""banned""))
+                        CHECK (relationType IN (""member"", ""owner"", ""admin"", ""banned"", ""invited""))
                     );
                     CREATE TABLE IF NOT EXISTS ClimbGroupEvent (
                         id INTEGER PRIMARY KEY,
