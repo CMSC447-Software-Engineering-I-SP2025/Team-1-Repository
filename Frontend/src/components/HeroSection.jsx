@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
 import SearchBar from "./SearchBar";
+import RecommendationTab from "./RecommendationTab";
 import climbs from "../data/climbs";
 
-const HeroSection = ({ onSearch, mapRef }) => {
+
+const HeroSection = ({ onSearch, mapRef, recommendedClimbs }) => {
   const [randomClimbs, setRandomClimbs] = useState([]);
   const [filteredClimbs, setFilteredClimbs] = useState([]);
 
@@ -57,6 +59,7 @@ const HeroSection = ({ onSearch, mapRef }) => {
             ))}
           </ul>
         </div>
+        <RecommendationTab recommendedClimbs={recommendedClimbs} />
       </div>
     </section>
   );
