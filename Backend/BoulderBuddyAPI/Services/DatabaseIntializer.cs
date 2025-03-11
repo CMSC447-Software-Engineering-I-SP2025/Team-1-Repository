@@ -52,13 +52,13 @@ namespace BoulderBuddyAPI.Services
                     );
                     CREATE TABLE IF NOT EXISTS UserRelation (
                         id INTEGER PRIMARY KEY,
-                        userId TEXT NOT NULL,
-                        friendId TEXT NOT NULL,
+                        user1Id TEXT NOT NULL,
+                        user2Id TEXT NOT NULL,
                         relationType TEXT NOT NULL,
                         requestDate TEXT NOT NULL,
                         friendSince TEXT NOT NULL,
-                        FOREIGN KEY (userId) REFERENCES User(id),
-                        FOREIGN KEY (friendId) REFERENCES User(id),
+                        FOREIGN KEY (user1Id) REFERENCES User(id),
+                        FOREIGN KEY (user2Id) REFERENCES User(id),
                         CHECK (relationType IN (""friends"", ""user1_blocked"", ""user2_blocked"", ""both_blocked"", ""pending_user1"", ""pending_user2""))
                     );
                     CREATE TABLE IF NOT EXISTS ClimbGroup (

@@ -59,8 +59,8 @@ namespace BoulderBuddyAPI.Services
 
         public Task InsertIntoUserRelationTable(object parameters) =>
             ExecuteInsertCommand(@"
-                INSERT INTO UserRelation (userId, friendId, relationType, requestDate, friendSince) 
-                VALUES (@UserId, @FriendId, @RelationType, @RequestDate, @FriendSince);", parameters);
+                INSERT INTO UserRelation (user1Id, user2Id, relationType, requestDate, friendSince) 
+                VALUES (@User1Id, @User2Id, @RelationType, @RequestDate, @FriendSince);", parameters);
 
         public Task InsertIntoClimbGroupTable(object parameters) =>
             ExecuteInsertCommand(@"
