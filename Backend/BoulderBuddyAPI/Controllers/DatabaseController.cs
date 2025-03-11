@@ -52,7 +52,7 @@ namespace BoulderBuddyAPI.Controllers
 
             try
             {
-                await _databaseService.InsertIntoRoutesTable(route);
+                await _databaseService.InsertIntoRouteTable(route);
                 return Ok(new { message = "Route created successfully" });
             }
             catch (Exception ex)
@@ -71,7 +71,7 @@ namespace BoulderBuddyAPI.Controllers
 
             try
             {
-                await _databaseService.InsertIntoReviewsTable(review);
+                await _databaseService.InsertIntoReviewTable(review);
                 return Ok(new { message = "Review created successfully" });
             }
             catch (Exception ex)
@@ -90,7 +90,7 @@ namespace BoulderBuddyAPI.Controllers
 
             try
             {
-                await _databaseService.InsertIntoRecommendationsTable(recommendation);
+                await _databaseService.InsertIntoRecommendationTable(recommendation);
                 return Ok(new { message = "Recommendation created successfully" });
             }
             catch (Exception ex)
@@ -108,13 +108,13 @@ namespace BoulderBuddyAPI.Controllers
         [HttpGet("route")]
         public async Task<IActionResult> GetRoutes()
         {
-            return await HandleGetRequest<Route>("SELECT * FROM Routes");
+            return await HandleGetRequest<Route>("SELECT * FROM Route");
         }
 
         [HttpGet("review")]
         public async Task<IActionResult> GetReviews()
         {
-            return await HandleGetRequest<Review>("SELECT * FROM Reviews");
+            return await HandleGetRequest<Review>("SELECT * FROM Review");
         }
 
         [HttpGet("userRelation")]

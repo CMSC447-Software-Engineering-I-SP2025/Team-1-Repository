@@ -28,7 +28,7 @@ namespace BoulderBuddyAPI.Services
                         accountType TEXT NOT NULL,
                         CHECK (accountType IN (""public"", ""private""))
                     );
-                    CREATE TABLE IF NOT EXISTS Routes (
+                    CREATE TABLE IF NOT EXISTS Route (
                         id TEXT PRIMARY KEY,
                         name TEXT NOT NULL,
                         grade TEXT NOT NULL,
@@ -36,19 +36,19 @@ namespace BoulderBuddyAPI.Services
                         latitude TEXT NOT NULL,
                         picture BLOB 
                     );
-                    CREATE TABLE IF NOT EXISTS Reviews (
+                    CREATE TABLE IF NOT EXISTS Review (
                         id INTEGER PRIMARY KEY,
                         userId TEXT NOT NULL,
                         routeId TEXT NOT NULL,
                         rating TEXT NOT NULL,
                         review TEXT,
                         FOREIGN KEY (userId) REFERENCES User(id),
-                        FOREIGN KEY (routeId) REFERENCES Routes(id)
+                        FOREIGN KEY (routeId) REFERENCES Route(id)
                     );
-                    CREATE TABLE IF NOT EXISTS Recommendations (
+                    CREATE TABLE IF NOT EXISTS Recommendation (
                         id INTEGER PRIMARY KEY,
                         routeId TEXT NOT NULL,
-                        FOREIGN KEY (routeId) REFERENCES Routes(id)
+                        FOREIGN KEY (routeId) REFERENCES Route(id)
                     );
                     CREATE TABLE IF NOT EXISTS UserRelation (
                         id INTEGER PRIMARY KEY,
