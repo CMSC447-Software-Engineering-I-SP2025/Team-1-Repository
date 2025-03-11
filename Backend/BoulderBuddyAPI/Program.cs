@@ -31,6 +31,13 @@ namespace BoulderBuddyAPI
 
             var app = builder.Build();
 
+            // Initialize the database
+            using (var scope = app.Services.CreateScope())
+            {
+                var dbInitializer = scope.ServiceProvider.GetRequiredService<DatabaseInitializer>();
+                dbInitializer.Initialize();
+            }
+
             //add Swagger middleware for development environment
             if (app.Environment.IsDevelopment())
             {
