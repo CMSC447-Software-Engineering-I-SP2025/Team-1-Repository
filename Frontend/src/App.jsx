@@ -1,39 +1,51 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import Header from "./components/Header";
 import HeroSection from "./components/HeroSection";
 import WorldMap from "./components/WorldMap";
-import "tailwindcss/tailwind.css";
+import ClimbPage from "./components/ClimbPage";
 
 const App = () => {
-  // State to store the selected climb
   const [selectedClimb, setSelectedClimb] = useState(null);
-  // Reference to the WorldMap component
-  const mapRef = useRef(null);
+  const [currentPage, setCurrentPage] = useState("home");
 
-  // Effect to recenter the map when selectedClimb changes
+  const handleHomeClick = () => {
+    setCurrentPage("home");
+    setSelectedClimb(null);
+  };
+
   useEffect(() => {
-    if (mapRef.current && selectedClimb) {
-      mapRef.current.recenterMap();
+    if (selectedClimb) {
+      setCurrentPage("climb");
     }
   }, [selectedClimb]);
 
-  const handleSearch = (climb) => {
-    setSelectedClimb(climb);
-  };
-
   return (
     <div>
-      <Header />
-      <div>
-        <div className="flex">
-          <div className="w-2/4">
-            <HeroSection onSearch={handleSearch} mapRef={mapRef} />
-          </div>
-          <div className="w-3/4">
-            <WorldMap ref={mapRef} climb={selectedClimb} />
-          </div>
-        </div>
-      </div>
+      <Header onHomeClick={handleHomeClick} />
+      {(() => {
+        if (currentPage === "home") {
+          return (
+            <div className="flex">
+              <div className="w-2/4">
+                <HeroSection
+                  setCurrentPage={setCurrentPage}
+                  setSelectedClimb={setSelectedClimb}
+                />
+              </div>
+              <div className="w-3/4">
+                <WorldMap
+                  climb={selectedClimb}
+                  setSelectedClimb={setSelectedClimb}
+                />
+              </div>
+            </div>
+          );
+        } else if (currentPage === "climb") {
+          return <ClimbPage currentClimb={selectedClimb} />;
+        } else {
+          return null;
+        }
+      })()}
     </div>
   );
 };

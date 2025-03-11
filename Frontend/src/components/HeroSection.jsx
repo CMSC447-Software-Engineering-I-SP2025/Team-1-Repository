@@ -2,29 +2,24 @@ import React, { useState, useEffect } from "react";
 import SearchBar from "./SearchBar";
 import climbs from "../data/climbs";
 
-const HeroSection = ({ onSearch, mapRef }) => {
-  const [randomClimbs, setRandomClimbs] = useState([]);
+const HeroSection = ({ setSelectedClimb }) => {
   const [filteredClimbs, setFilteredClimbs] = useState([]);
 
   useEffect(() => {
     // Select up to 15 random climbs once when the component mounts
     const selectedClimbs = climbs.sort(() => 0.5 - Math.random()).slice(0, 15);
-    setRandomClimbs(selectedClimbs);
     setFilteredClimbs(selectedClimbs);
   }, []);
 
-  const handleClimbClick = (climb) => {
-    onSearch(climb);
-    if (mapRef.current) {
-      mapRef.current.recenterMap();
-    }
+  const handleClimbClick = (currentClimb) => {
+    setSelectedClimb(currentClimb);
   };
 
   const handleInputChange = (searchTerm) => {
-    const filtered = randomClimbs.filter((climb) =>
+    const filtered = climbs.filter((climb) =>
       climb.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
-    setFilteredClimbs(filtered);
+    setFilteredClimbs(filtered.slice(0, 15));
   };
 
   return (
@@ -35,9 +30,7 @@ const HeroSection = ({ onSearch, mapRef }) => {
         </h1>
         <p className="mb-6 text-xl">Your ultimate climbing companion</p>
         <SearchBar
-          placeholder="Search for a climb"
-          onSearch={onSearch}
-          mapRef={mapRef}
+          placeholder="Search for a climb by name"
           onInputChange={handleInputChange}
         />
         <div className="mt-6">

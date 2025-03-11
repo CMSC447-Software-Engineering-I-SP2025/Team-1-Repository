@@ -1,9 +1,10 @@
-import React, { useEffect, useImperativeHandle, forwardRef } from "react";
+import React, { useEffect } from "react";
+import ReactDOMServer from "react-dom/server";
 import climbs from "../data/climbs";
+import ClimbInfoBox from "./ClimbInfoBox";
 
-const WorldMap = forwardRef(({ climb }, ref) => {
+const WorldMap = ({ climb, setSelectedClimb }) => {
   useEffect(() => {
-    // Function to load the Google Maps script
     const loadScript = (url) => {
       const existingScript = document.querySelector(`script[src="${url}"]`);
       if (!existingScript) {
@@ -24,20 +25,57 @@ const WorldMap = forwardRef(({ climb }, ref) => {
       }
     };
 
-    // Function to initialize the map
+    // when the map is initialized
     const initMap = () => {
+      // initialize the map
       const map = new window.google.maps.Map(document.getElementById("map"), {
         center: { lat: 0, lng: 0 },
         zoom: 2,
       });
 
-      // Center map to user's location if available
-      if (navigator.geolocation) {
+      // Create a marker for each climb
+      climbs.forEach((climb) => {
+        const marker = new window.google.maps.Marker({
+          position: { lat: climb.latitude, lng: climb.longitude },
+          map,
+          title: climb.name,
+        });
+
+        const infoWindow = new window.google.maps.InfoWindow({
+          content: ReactDOMServer.renderToString(
+            <ClimbInfoBox name={climb.name} location={climb.location} />
+          ),
+        });
+
+        let timeoutId;
+
+        marker.addListener("mouseover", () => {
+          if (timeoutId) {
+            clearTimeout(timeoutId);
+          }
+          infoWindow.open(map, marker);
+        });
+
+        marker.addListener("mouseout", () => {
+          timeoutId = setTimeout(() => {
+            infoWindow.close();
+          }, 200);
+        });
+
+        marker.addListener("click", () => {
+          setSelectedClimb(climb);
+        });
+      });
+
+      if (climb) {
+        map.setCenter({ lat: climb.latitude, lng: climb.longitude });
+        map.setZoom(12);
+      } else if (navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(
           (position) => {
             const { latitude, longitude } = position.coords;
             map.setCenter({ lat: latitude, lng: longitude });
-            map.setZoom(12);
+            map.setZoom(4);
           },
           () => {
             map.setCenter({ lat: 0, lng: 0 });
@@ -45,35 +83,15 @@ const WorldMap = forwardRef(({ climb }, ref) => {
           }
         );
       }
-
-      // Center map to the selected climb if available
-      if (climb) {
-        map.setCenter({ lat: climb.latitude, lng: climb.longitude });
-        map.setZoom(12);
-      }
     };
 
-    // Assign initMap to the global window object
     window.initMap = initMap;
-    // Load the Google Maps script
     loadScript(
       `https://maps.googleapis.com/maps/api/js?key=AIzaSyAwR8VfIU19NHVjF1mMR2cInjKNG9OLFzQ&callback=initMap`
     );
   }, [climb]);
 
-  // Expose recenterMap method to parent component
-  useImperativeHandle(ref, () => ({
-    recenterMap: () => {
-      if (window.google && climb) {
-        const map = new window.google.maps.Map(document.getElementById("map"), {
-          center: { lat: climb.latitude, lng: climb.longitude },
-          zoom: 12,
-        });
-      }
-    },
-  }));
-
   return <div id="map" className="w-full h-screen"></div>;
-});
+};
 
 export default WorldMap;
