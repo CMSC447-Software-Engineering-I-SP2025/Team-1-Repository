@@ -23,7 +23,7 @@ namespace BoulderBuddyAPI.Services
                     CREATE TABLE IF NOT EXISTS User (
                         id TEXT PRIMARY KEY,
                         name TEXT NOT NULL,
-                        email TEXT NOT NULL,
+                        email TEXT,
                         password TEXT NOT NULL,
                         accountType TEXT NOT NULL
                     );
@@ -40,7 +40,7 @@ namespace BoulderBuddyAPI.Services
                         userId TEXT NOT NULL,
                         routeId TEXT NOT NULL,
                         rating TEXT NOT NULL,
-                        review TEXT NOT NULL,
+                        review TEXT,
                         FOREIGN KEY (userId) REFERENCES User(id),
                         FOREIGN KEY (routeId) REFERENCES Routes(id)
                     );
@@ -62,7 +62,7 @@ namespace BoulderBuddyAPI.Services
                     CREATE TABLE IF NOT EXISTS ClimbGroup (
                         id INTEGER PRIMARY KEY,
                         groupName TEXT NOT NULL,
-                        groupDescription TEXT NOT NULL,
+                        groupDescription TEXT,
                         joinRequirements TEXT NOT NULL,
                         price TEXT,
                         groupType TEXT NOT NULL,
@@ -75,7 +75,7 @@ namespace BoulderBuddyAPI.Services
                         userId TEXT NOT NULL,
                         relationType TEXT NOT NULL,
                         requestDate TEXT NOT NULL,
-                        memberSince TEXT NOT NULL,
+                        memberSince TEXT,
                         PRIMARY KEY (groupId, userId),
                         FOREIGN KEY (groupId) REFERENCES ClimbGroup(id),
                         FOREIGN KEY (userId) REFERENCES User(id)
@@ -84,7 +84,7 @@ namespace BoulderBuddyAPI.Services
                         id INTEGER PRIMARY KEY,
                         groupId TEXT NOT NULL,
                         eventName TEXT NOT NULL,
-                        eventDescription TEXT NOT NULL,
+                        eventDescription TEXT,
                         eventDate TEXT NOT NULL,
                         eventTime TEXT NOT NULL,
                         eventLocation TEXT NOT NULL,
@@ -94,7 +94,7 @@ namespace BoulderBuddyAPI.Services
                     CREATE TABLE IF NOT EXISTS Badge (
                         id INTEGER PRIMARY KEY,
                         badgeName TEXT NOT NULL,
-                        badgeDescription TEXT NOT NULL,
+                        badgeDescription TEXT,
                         badgeRequirement TEXT NOT NULL,
                         badgeRarity TEXT NOT NULL,
                         badgeImage BLOB
