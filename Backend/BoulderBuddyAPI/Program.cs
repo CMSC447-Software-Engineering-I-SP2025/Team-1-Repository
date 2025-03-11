@@ -25,6 +25,10 @@ namespace BoulderBuddyAPI
                 client.BaseAddress = new Uri(builder.Configuration.GetSection("OpenBetaConfig")["OpenBetaEndpoint"]);
             });
 
+            //Add database service
+            builder.Services.AddSingleton<DatabaseInitializer>();
+            builder.Services.AddScoped<DatabaseService>();
+
             var app = builder.Build();
 
             //add Swagger middleware for development environment
