@@ -42,25 +42,25 @@ namespace BoulderBuddyAPI.Services
                 INSERT INTO User (id, name, email, password, accountType) 
                 VALUES (@UserId, @Name, @Email, @Password, @AccountType);", parameters);
 
-        public Task InsertIntoRoutesTable(object parameters) =>
+        public Task InsertIntoRouteTable(object parameters) =>
             ExecuteInsertCommand(@"
-                INSERT INTO Routes (id, name, grade, longitude, latitude, picture) 
+                INSERT INTO Route (id, name, grade, longitude, latitude, picture) 
                 VALUES (@RouteId, @Name, @Grade, @Longitude, @Latitude, @Picture);", parameters);
 
-        public Task InsertIntoReviewsTable(object parameters) =>
+        public Task InsertIntoReviewTable(object parameters) =>
             ExecuteInsertCommand(@"
-                INSERT INTO Reviews (userId, routeId, rating, review) 
+                INSERT INTO Review (userId, routeId, rating, review) 
                 VALUES (@UserId, @RouteId, @Rating, @Text);", parameters);
 
-        public Task InsertIntoRecommendationsTable(object parameters) =>
+        public Task InsertIntoRecommendationTable(object parameters) =>
             ExecuteInsertCommand(@"
-                INSERT INTO Recommendations (routeId) 
+                INSERT INTO Recommendation (routeId) 
                 VALUES (@RouteId);", parameters);
 
         public Task InsertIntoUserRelationTable(object parameters) =>
             ExecuteInsertCommand(@"
-                INSERT INTO UserRelation (userId, friendId, relationType, requestDate, friendSince) 
-                VALUES (@UserId, @FriendId, @RelationType, @RequestDate, @FriendSince);", parameters);
+                INSERT INTO UserRelation (user1Id, user2Id, relationType, requestDate, friendSince) 
+                VALUES (@User1Id, @User2Id, @RelationType, @RequestDate, @FriendSince);", parameters);
 
         public Task InsertIntoClimbGroupTable(object parameters) =>
             ExecuteInsertCommand(@"
@@ -69,8 +69,8 @@ namespace BoulderBuddyAPI.Services
 
         public Task InsertIntoClimbGroupRelationTable(object parameters) =>
             ExecuteInsertCommand(@"
-                INSERT INTO ClimbGroupRelation (groupId, userId, relationType, requestDate, memberSince) 
-                VALUES (@GroupId, @UserId, @RelationType, @RequestDate, @MemberSince);", parameters);
+                INSERT INTO ClimbGroupRelation (groupId, userId, relationType, inviteDate, memberSince) 
+                VALUES (@GroupId, @UserId, @RelationType, @InviteDate, @MemberSince);", parameters);
 
         public Task InsertIntoClimbGroupEventTable(object parameters) =>
             ExecuteInsertCommand(@"

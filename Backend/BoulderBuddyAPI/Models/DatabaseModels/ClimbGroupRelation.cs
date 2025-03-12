@@ -8,7 +8,7 @@ public class ClimbGroupRelation
     public required String UserId { get; set; }
     [JsonPropertyName("RelationType")]
     public required string RelationType { get; set; }
-    [JsonPropertyName("RequestDate")]
+    [JsonPropertyName("InviteDate")]
     public required string RequestDate { get; set; }
     [JsonPropertyName("MemberSince")]
     public required string MemberSince { get; set; }
