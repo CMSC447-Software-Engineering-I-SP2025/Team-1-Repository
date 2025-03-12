@@ -61,5 +61,11 @@ namespace BoulderBuddyAPI.Tests.Services
             var service = new OpenBetaQueryService(mockLogger.Object, injectedHttpClient, config);
             return service;
         }
+
+        [Fact]
+        public async Task Failing_Test()
+        {
+            Assert.NotNull(null);
+        }
     }
 }
