@@ -1,29 +1,25 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import "./css/LoginPage.css";
 
 const LoginPage = ({ onLogin }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const navigate = useNavigate();
 
   const handleLogin = (e) => {
     e.preventDefault();
     onLogin(username.toLowerCase(), password);
   };
 
-  const goToCreateAccount = () => {
-    navigate('/create-account');
-  };
-
   return (
     <div className="login-container">
       <form className="login-form" onSubmit={handleLogin}>
-        <h2>Login</h2>
+        <div className="website-title">Boulder Buddy</div>
+        <h2>Welcome Back</h2>
+        <p>Log in to continue</p>
         <div className="form-group">
-          <label htmlFor="username">Username:</label>
           <input
             type="text"
+            placeholder="Username"
             id="username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
@@ -31,9 +27,9 @@ const LoginPage = ({ onLogin }) => {
           />
         </div>
         <div className="form-group">
-          <label htmlFor="password">Password:</label>
           <input
             type="password"
+            placeholder="Password"
             id="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -43,7 +39,7 @@ const LoginPage = ({ onLogin }) => {
         <button type="submit">Login</button>
         <div className="info-box">
           <p>
-            Don't have an account? <a href="#" onClick={goToCreateAccount}>Sign up</a>
+            Don't have an account? <a href="/create-account">Sign up</a>
           </p>
           <p>
             <a href="/forgot-password">Forgot Password?</a>

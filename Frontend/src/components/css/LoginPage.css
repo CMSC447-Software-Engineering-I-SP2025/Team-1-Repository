@@ -7,23 +7,44 @@
   }
   
   .login-form {
-    background: white;
+    background: rgb(255, 255, 255);
+    height: 500px;
+    width: 500px;
     padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 0 10px #777777;
+  }
+
+  .website-title {
+    font-size: 30px;
+    font-weight: bold;
+    font-family: 'Montserrat', sans-serif;
+    color: #ff5c5c;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 20px;
   }
   
   .login-form h2 {
+    font-size: 24px;
+    font-weight: bold;
     margin-bottom: 10px;
+  }
+
+  .login-form p {
+    margin-bottom: 20px;
+    color: #b0b3b8;
+    font-weight: bold;
   }
   
   .form-group {
-    margin-bottom: 10px;
+    margin-bottom: 20px;
   }
   
   .form-group label {
     display: block;
-    margin-bottom: 10px;
+    margin-bottom: 20px;
   }
   
   .form-group input {
@@ -37,20 +58,20 @@
   button {
     width: 100%;
     padding: 10px;
-    background-color: #00ff62;
-    color: white;
-    border: none;
+    background-color: #ff5c5c;
     border-radius: 4px;
     cursor: pointer;
+    box-shadow: inset 0 0 10px #777777;
+    
   }
-  
+
   button:hover {
-    background-color: #b3009b;
+    background-color: #ff5c5c;
   }
 
   .info-box {
-    margin-top: 20px;
-    padding: 10px;
+    margin-top: 40px;
+    padding: 8px;
     background-color: #e0e0e0c4;
     border-radius: 4px;
     text-align: center;
