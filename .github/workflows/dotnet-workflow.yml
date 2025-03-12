@@ -1,0 +1,48 @@
+name: .NET Backend Workflow
+
+on:
+  push:
+    paths:
+      - backend/**
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    # Install the base .NET workload
+    - name: Install .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+
+    # Add  MSBuild to the PATH: https://github.com/microsoft/setup-msbuild
+    - name: Setup MSBuild.exe
+      uses: microsoft/setup-msbuild@v2
+
+    # Setup global dotnet tools
+    - name: Setup Tools
+      run: |
+        dotnet tool install -g dotnet-reportgenerator-globaltool
+        dotnet tool install -g 
+
+    # Execute all unit tests in the solution
+    - name: Execute unit tests
+      run: dotnet test --collect:"XPlat Code Coverage" -v d
+
+    # Create html coverage report artifact
+    - name: Generate HTML code coverage report
+      run: reportgenerator -reports:"../**/*.cobertura.xml" -targetdir:"coveragereport" -reporttypes:Html
+      
+    # Generate artifact for the coverage report
+    - name: Upload test code coverage report artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: Coverage Report
+        path: coveragereport
