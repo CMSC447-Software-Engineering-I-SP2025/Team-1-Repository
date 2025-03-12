@@ -8,7 +8,7 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
+  UnitTests:
     runs-on: windows-latest
     steps:
     - name: Checkout
@@ -28,12 +28,13 @@ jobs:
 
     # Setup global dotnet tools
     - name: Setup Tools
-      run: |
-        dotnet tool install -g dotnet-reportgenerator-globaltool
+      run: dotnet tool install -g dotnet-reportgenerator-globaltool
 
     # Execute all unit tests in the solution
     - name: Execute unit tests
-      run: dotnet test --collect:"XPlat Code Coverage" -v d
+      run: |
+        cd Backend/BoulderBuddyAPI/
+        dotnet test --collect:"XPlat Code Coverage" -v d
 
     # Create html coverage report artifact
     - name: Generate HTML code coverage report
