@@ -1,39 +1,105 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect, use } from "react";
 import Header from "./components/Header";
 import HeroSection from "./components/HeroSection";
 import WorldMap from "./components/WorldMap";
-import "tailwindcss/tailwind.css";
+import ClimbPage from "./components/ClimbPage";
+import AreaPage from "./components/AreaPage";
 
 const App = () => {
-  // State to store the selected climb
   const [selectedClimb, setSelectedClimb] = useState(null);
-  // Reference to the WorldMap component
-  const mapRef = useRef(null);
+  const [currentPage, setCurrentPage] = useState("home");
+  const [selectedArea, setSelectedArea] = useState(null);
+  const [areas, setAllAreas] = useState([]);
+  const [allClimbs, setAllClimbs] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Effect to recenter the map when selectedClimb changes
   useEffect(() => {
-    if (mapRef.current && selectedClimb) {
-      mapRef.current.recenterMap();
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetch("/Search/State?state=Maryland", {
+          method: "POST",
+        });
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        setAllAreas(data);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const handleHomeClick = () => {
+    setCurrentPage("home");
+    setSelectedClimb(null);
+    setSelectedArea(null);
+  };
+
+  useEffect(() => {
+    if (selectedClimb) {
+      setCurrentPage("climb");
     }
   }, [selectedClimb]);
 
-  const handleSearch = (climb) => {
-    setSelectedClimb(climb);
-  };
+  useEffect(() => {
+    if (selectedArea) {
+      setCurrentPage("area");
+    }
+  }, [selectedArea]);
+
+  useEffect(() => {
+    setAllClimbs(
+      areas.flatMap((area) =>
+        area.climbs.map((climb) => ({ ...climb, area: area }))
+      )
+    );
+    console.log("All climbs:", allClimbs);
+  }, [areas]);
 
   return (
     <div>
-      <Header />
-      <div>
-        <div className="flex">
-          <div className="w-2/4">
-            <HeroSection onSearch={handleSearch} mapRef={mapRef} />
-          </div>
-          <div className="w-3/4">
-            <WorldMap ref={mapRef} climb={selectedClimb} />
-          </div>
-        </div>
-      </div>
+      <Header onHomeClick={handleHomeClick} />
+      {(() => {
+        if (currentPage === "home") {
+          return (
+            <div className="flex">
+              <div className="w-2/4">
+                <HeroSection
+                  setCurrentPage={setCurrentPage}
+                  setSelectedClimb={setSelectedClimb}
+                  allClimbs={allClimbs}
+                  isLoading={isLoading}
+                />
+              </div>
+              <div className="w-3/4">
+                <WorldMap
+                  areas={areas}
+                  area={selectedArea}
+                  setSelectedArea={setSelectedArea}
+                  isLoading={isLoading}
+                />
+              </div>
+            </div>
+          );
+        } else if (currentPage === "climb") {
+          return <ClimbPage selectedClimb={selectedClimb} />;
+        } else if (currentPage === "area") {
+          return (
+            <AreaPage
+              selectedArea={selectedArea}
+              setSelectedClimb={setSelectedClimb}
+            />
+          );
+        } else {
+          return null;
+        }
+      })()}
     </div>
   );
 };
