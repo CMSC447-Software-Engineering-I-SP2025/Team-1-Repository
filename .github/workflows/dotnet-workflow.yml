@@ -3,7 +3,7 @@ name: .NET Backend Workflow
 on:
   push:
     paths:
-      - backend/**
+      - Backend/**
   pull_request:
     branches: [ "main" ]
 
