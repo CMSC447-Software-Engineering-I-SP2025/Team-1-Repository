@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - Backend/**
+      - .gitignore 
   pull_request:
     branches: [ "main" ]
 
