@@ -30,8 +30,8 @@ jobs:
     - name: Setup Tools
       run: dotnet tool install -g dotnet-reportgenerator-globaltool
 
-    # Execute all unit tests in the solution
-    - name: Execute unit tests
+    # Execute all unit tests in the solution (note: workflow fails if any unit test fails)
+    - name: Run unit tests
       run: |
         cd Backend/BoulderBuddyAPI/
         dotnet test --collect:"XPlat Code Coverage"
@@ -43,6 +43,7 @@ jobs:
       
     # Generate artifact for the coverage report
     - name: Upload test code coverage report artifact
+      if: success() || failure() # run even when a unit test fails
       uses: actions/upload-artifact@v4
       with:
         name: Coverage Report
