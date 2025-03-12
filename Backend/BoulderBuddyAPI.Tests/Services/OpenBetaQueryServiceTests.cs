@@ -66,6 +66,7 @@ namespace BoulderBuddyAPI.Tests.Services
         public async Task Failing_Test()
         {
             Assert.NotNull(null);
+            //another random line
         }
     }
 }
