@@ -34,7 +34,7 @@ jobs:
     - name: Execute unit tests
       run: |
         cd Backend/BoulderBuddyAPI/
-        dotnet test --collect:"XPlat Code Coverage" -v d
+        dotnet test --collect:"XPlat Code Coverage"
 
     # Create html coverage report artifact
     - name: Generate HTML code coverage report
