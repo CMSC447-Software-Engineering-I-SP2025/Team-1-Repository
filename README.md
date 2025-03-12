@@ -64,7 +64,7 @@ If using Visual Studio, open the Visual Studio Installer application, click the 
 
 With the project open in Visual Studio, enter the "View" menu on the top of the window, then click "Terminal" (or use Ctrl+\`). Enter this command into the console: `dotnet tool install -g dotnet-reportgenerator-globaltool`
 
-### Generating code coverage reports (manually)
+### Locally generating code coverage reports (manually)
 
 1. Open the Visual Studio Developer Terminal (as described above).
 
@@ -77,3 +77,18 @@ With the project open in Visual Studio, enter the "View" menu on the top of the 
 4. Delete the directory `/Backend/BoulderAPI.Tests/TestResults` so it doesn't interfere with your next coverage report.
 
 5. In your File Explorer or Visual Studio, locate the file `/Backend/BoulderBuddyAPI.Tests/coveragereport/index.html` and open it in your browser of choice.
+
+### Automatically generated code coverage reports (GitHub pushes/pull requests)
+
+1. The automated code coverage report generation triggers off one of three cases:
+	1. git push to the `Backend` directory
+	2. git push that updates `.gitignore`
+	3. pull request to `main` branch
+
+2. When you trigger the automated report, click the ✔, ❌, or 🔴 icon that displays next to the push/pull request on GitHub
+
+3. Open the `Upload test code coverage report artifact` step. Open the `Artifact download URL` displayed at the bottom of the console output
+
+4. Unzip the downloaded artifact folder
+
+5. Use your browser of choice to open the `index.html` file from inside the unzipped folder
