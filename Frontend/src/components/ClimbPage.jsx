@@ -1,29 +1,33 @@
 import React from "react";
-import climbs from "../data/climbs";
 
-const ClimbPage = ({ currentClimb }) => {
-  if (!currentClimb) {
-    return (
-      <div className="mt-10 text-center text-gray-500">No Climb Selected</div>
-    );
-  }
-
-  const climb = climbs.find((climb) => climb.id === currentClimb.id);
-
-  if (!climb) {
-    return (
-      <div className="mt-10 text-center text-gray-500">Climb not found</div>
-    );
+const ClimbPage = ({ selectedClimb }) => {
+  if (!selectedClimb) {
+    return <div className="text-center text-gray-500">No climb selected</div>;
   }
 
   return (
-    <div className="container p-6 mx-auto mt-10 bg-white rounded-lg shadow-lg">
-      <h1 className="text-4xl font-bold text-blue-600">{climb.name}</h1>
-      <p className="mt-4 text-lg text-gray-700">{climb.location}</p>
-      <div className="mt-6">
-        <h2 className="text-2xl font-bold text-blue-600">Details</h2>
-        <p className="mt-2 text-gray-700">Latitude: {climb.latitude}</p>
-        <p className="mt-2 text-gray-700">Longitude: {climb.longitude}</p>
+    <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-gradient-to-r from-blue-100 to-blue-200">
+      <h1 className="text-5xl font-extrabold text-center text-gray-900">
+        {selectedClimb.name}
+      </h1>
+      <p className="mt-2 text-lg text-center text-gray-700">
+        Area: {selectedClimb.area.areaName}
+      </p>
+      <p className="mt-2 text-lg text-center text-gray-700">
+        Location: {selectedClimb.metadata.lat}, {selectedClimb.metadata.lng}
+      </p>
+      <div className="mt-8">
+        <h2 className="text-3xl font-semibold text-center text-gray-800">
+          Grade
+        </h2>
+        <div className="flex justify-center mt-4">
+          <span className="inline-block px-4 py-2 text-lg text-center bg-gray-200 rounded">
+            {selectedClimb.grades.yds},{" "}
+            {selectedClimb.grades.french
+              ? selectedClimb.grades.french
+              : selectedClimb.grades.font}
+          </span>
+        </div>
       </div>
     </div>
   );

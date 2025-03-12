@@ -1,9 +1,16 @@
 import React, { useEffect } from "react";
 import ReactDOMServer from "react-dom/server";
-import climbs from "../data/climbs";
 import ClimbInfoBox from "./ClimbInfoBox";
 
-const WorldMap = ({ climb, setSelectedClimb }) => {
+const WorldMap = ({ areas, area, setSelectedArea, isLoading }) => {
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="w-32 h-32 border-t-2 border-b-2 border-blue-500 rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
   useEffect(() => {
     const loadScript = (url) => {
       const existingScript = document.querySelector(`script[src="${url}"]`);
@@ -33,17 +40,39 @@ const WorldMap = ({ climb, setSelectedClimb }) => {
         zoom: 2,
       });
 
-      // Create a marker for each climb
-      climbs.forEach((climb) => {
+      // Create a marker for each area
+      areas.forEach((area) => {
         const marker = new window.google.maps.Marker({
-          position: { lat: climb.latitude, lng: climb.longitude },
+          position: { lat: area.metadata.lat, lng: area.metadata.lng },
           map,
-          title: climb.name,
+          title: area.areaName,
         });
+
+        if (area) {
+          map.setCenter({ lat: area.metadata.lat, lng: area.metadata.lng });
+          map.setZoom(12);
+        } else if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              const { latitude, longitude } = position.coords;
+              map.setCenter({ lat: latitude, lng: longitude });
+              map.setZoom(12);
+            },
+            () => {
+              map.setCenter({ lat: 0, lng: 0 });
+              map.setZoom(2);
+            }
+          );
+        }
 
         const infoWindow = new window.google.maps.InfoWindow({
           content: ReactDOMServer.renderToString(
-            <ClimbInfoBox name={climb.name} location={climb.location} />
+            <ClimbInfoBox
+              name={area.areaName}
+              location={
+                "lat: " + area.metadata.lat + " lng: " + area.metadata.lng
+              }
+            />
           ),
         });
 
@@ -63,33 +92,16 @@ const WorldMap = ({ climb, setSelectedClimb }) => {
         });
 
         marker.addListener("click", () => {
-          setSelectedClimb(climb);
+          setSelectedArea(area);
         });
       });
-
-      if (climb) {
-        map.setCenter({ lat: climb.latitude, lng: climb.longitude });
-        map.setZoom(12);
-      } else if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          (position) => {
-            const { latitude, longitude } = position.coords;
-            map.setCenter({ lat: latitude, lng: longitude });
-            map.setZoom(4);
-          },
-          () => {
-            map.setCenter({ lat: 0, lng: 0 });
-            map.setZoom(2);
-          }
-        );
-      }
     };
 
     window.initMap = initMap;
     loadScript(
       `https://maps.googleapis.com/maps/api/js?key=AIzaSyAwR8VfIU19NHVjF1mMR2cInjKNG9OLFzQ&callback=initMap`
     );
-  }, [climb]);
+  }, [area]);
 
   return <div id="map" className="w-full h-screen"></div>;
 };

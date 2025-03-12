@@ -1,16 +1,44 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, use } from "react";
 import Header from "./components/Header";
 import HeroSection from "./components/HeroSection";
 import WorldMap from "./components/WorldMap";
 import ClimbPage from "./components/ClimbPage";
+import AreaPage from "./components/AreaPage";
 
 const App = () => {
   const [selectedClimb, setSelectedClimb] = useState(null);
   const [currentPage, setCurrentPage] = useState("home");
+  const [selectedArea, setSelectedArea] = useState(null);
+  const [areas, setAllAreas] = useState([]);
+  const [allClimbs, setAllClimbs] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetch("/Search/State?state=Maryland", {
+          method: "POST",
+        });
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        setAllAreas(data);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const handleHomeClick = () => {
     setCurrentPage("home");
     setSelectedClimb(null);
+    setSelectedArea(null);
   };
 
   useEffect(() => {
@@ -18,6 +46,21 @@ const App = () => {
       setCurrentPage("climb");
     }
   }, [selectedClimb]);
+
+  useEffect(() => {
+    if (selectedArea) {
+      setCurrentPage("area");
+    }
+  }, [selectedArea]);
+
+  useEffect(() => {
+    setAllClimbs(
+      areas.flatMap((area) =>
+        area.climbs.map((climb) => ({ ...climb, area: area }))
+      )
+    );
+    console.log("All climbs:", allClimbs);
+  }, [areas]);
 
   return (
     <div>
@@ -30,18 +73,29 @@ const App = () => {
                 <HeroSection
                   setCurrentPage={setCurrentPage}
                   setSelectedClimb={setSelectedClimb}
+                  allClimbs={allClimbs}
+                  isLoading={isLoading}
                 />
               </div>
               <div className="w-3/4">
                 <WorldMap
-                  climb={selectedClimb}
-                  setSelectedClimb={setSelectedClimb}
+                  areas={areas}
+                  area={selectedArea}
+                  setSelectedArea={setSelectedArea}
+                  isLoading={isLoading}
                 />
               </div>
             </div>
           );
         } else if (currentPage === "climb") {
-          return <ClimbPage currentClimb={selectedClimb} />;
+          return <ClimbPage selectedClimb={selectedClimb} />;
+        } else if (currentPage === "area") {
+          return (
+            <AreaPage
+              selectedArea={selectedArea}
+              setSelectedClimb={setSelectedClimb}
+            />
+          );
         } else {
           return null;
         }

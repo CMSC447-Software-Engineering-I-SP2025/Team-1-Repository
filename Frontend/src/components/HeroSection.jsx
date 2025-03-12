@@ -1,47 +1,56 @@
 import React, { useState, useEffect } from "react";
 import SearchBar from "./SearchBar";
-import climbs from "../data/climbs";
+import { FaSpinner } from "react-icons/fa";
 
-const HeroSection = ({ setSelectedClimb }) => {
+const HeroSection = ({ setSelectedClimb, allClimbs, isLoading }) => {
   const [filteredClimbs, setFilteredClimbs] = useState([]);
 
   useEffect(() => {
     // Select up to 15 random climbs once when the component mounts
-    const selectedClimbs = climbs.sort(() => 0.5 - Math.random()).slice(0, 15);
+    const selectedClimbs = allClimbs
+      .sort(() => 0.5 - Math.random())
+      .slice(0, 15);
     setFilteredClimbs(selectedClimbs);
+  }, [allClimbs]);
 
-    const fetchData = async () => {
-      try {
-        const response = await fetch("/Search/State?state=Maryland", {
-          method: "POST",
-        });
-        console.log(response);
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
-        console.log(data);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  const handleClimbClick = (currentClimb) => {
-    setSelectedClimb(currentClimb);
+  const handleClimbClick = (climb) => {
+    setSelectedClimb(climb);
+    console.log("Climb selected:", climb);
   };
 
   const handleInputChange = (searchTerm) => {
-    const filtered = climbs.filter((climb) =>
+    const filtered = allClimbs.filter((climb) =>
       climb.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
     setFilteredClimbs(filtered.slice(0, 15));
   };
 
+  if (isLoading) {
+    return (
+      <section className="h-screen px-4 py-20 pb-10 text-gray-900 bg-gradient-to-r from-blue-100 to-blue-200">
+        <div className="container mx-auto text-center">
+          <h1 className="mb-6 text-6xl font-extrabold">
+            Welcome to Boulder Buddy
+          </h1>
+          <p className="mb-6 text-xl">Your ultimate climbing companion</p>
+          <SearchBar
+            placeholder="Search for a climb by name"
+            onInputChange={handleInputChange}
+          />
+          <div className="mt-6">
+            <h2 className="mb-4 text-2xl font-bold">Current Climbs</h2>
+            <div className="flex items-center justify-center">
+              <FaSpinner className="text-4xl animate-spin" />
+              <h2 className="ml-4 text-2xl font-bold">Loading...</h2>
+            </div>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
-    <section className="h-screen px-4 py-20 pb-10 text-white bg-gradient-to-r from-blue-500 to-green-500">
+    <section className="h-screen px-4 py-20 pb-10 text-gray-900 bg-gradient-to-r from-blue-100 to-blue-200">
       <div className="container mx-auto text-center">
         <h1 className="mb-6 text-6xl font-extrabold">
           Welcome to Boulder Buddy
@@ -62,7 +71,7 @@ const HeroSection = ({ setSelectedClimb }) => {
               >
                 <div className="font-bold truncate">{climb.name}</div>
                 <div className="text-sm text-gray-600 truncate">
-                  {climb.location}
+                  {climb.area.areaName}
                 </div>
               </li>
             ))}

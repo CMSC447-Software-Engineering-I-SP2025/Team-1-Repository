@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import climbs from "../data/climbs";
 
 const SearchBar = ({ placeholder, onInputChange }) => {
   const [searchTerm, setSearchTerm] = useState("");
