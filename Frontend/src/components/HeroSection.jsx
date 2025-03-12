@@ -9,6 +9,24 @@ const HeroSection = ({ setSelectedClimb }) => {
     // Select up to 15 random climbs once when the component mounts
     const selectedClimbs = climbs.sort(() => 0.5 - Math.random()).slice(0, 15);
     setFilteredClimbs(selectedClimbs);
+
+    const fetchData = async () => {
+      try {
+        const response = await fetch("/Search/State?state=Maryland", {
+          method: "POST",
+        });
+        console.log(response);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        console.log(data);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    fetchData();
   }, []);
 
   const handleClimbClick = (currentClimb) => {
