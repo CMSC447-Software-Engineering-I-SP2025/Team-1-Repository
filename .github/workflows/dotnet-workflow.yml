@@ -38,6 +38,7 @@ jobs:
 
     # Create html coverage report artifact
     - name: Generate HTML code coverage report
+      if: success() || failure() # run even when a unit test fails
       run: reportgenerator -reports:"../**/*.cobertura.xml" -targetdir:"coveragereport" -reporttypes:Html
       
     # Generate artifact for the coverage report
