@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.13.35806.99 d17.13
+VisualStudioVersion = 17.13.35806.99
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BoulderBuddyAPI", "BoulderBuddyAPI.csproj", "{435AB438-6CC2-456A-8257-E1DD302F62D8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BoulderBuddyAPI.Tests", "..\BoulderBuddyAPI.Tests\BoulderBuddyAPI.Tests.csproj", "{E6F057BF-62CC-485F-86B1-03AF12DCFF83}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{435AB438-6CC2-456A-8257-E1DD302F62D8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{435AB438-6CC2-456A-8257-E1DD302F62D8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{435AB438-6CC2-456A-8257-E1DD302F62D8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E6F057BF-62CC-485F-86B1-03AF12DCFF83}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E6F057BF-62CC-485F-86B1-03AF12DCFF83}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E6F057BF-62CC-485F-86B1-03AF12DCFF83}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E6F057BF-62CC-485F-86B1-03AF12DCFF83}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

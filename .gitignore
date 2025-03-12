@@ -15,3 +15,7 @@ x64/
 *.suo
 *.user
 *.sln.docstates
+
+# Ignore Coverlet unit test code coverage reports
+Backend/BoulderBuddyAPI.Tests/TestResults/*
+Backend/BoulderBuddyAPI.Tests/coveragereport/*
