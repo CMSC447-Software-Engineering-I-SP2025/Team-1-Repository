@@ -1,0 +1,41 @@
+.recommendations-container {
+  position: relative;
+}
+
+/* Panel styling */
+.recommendation-list {
+  position: fixed; /* Use fixed positioning to hover over the map */
+  top: 0;
+  right: -320px; /* Hidden position */
+  width: 300px; /* Adjust based on your layout */
+  height: 100vh; /* Full height */
+  background-color: white;
+  padding: 30px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: right 0.3s ease-in-out;
+  overflow-y: auto;
+  z-index: 1000; /* Ensure it hovers over the map */
+  color: black;
+}
+
+.recommendation-list.collapsed {
+  right: -320px; /* Hidden position */
+}
+
+.recommendation-list:not(.collapsed) {
+  right: 0; /* Visible position */
+}
+
+.climb-card {
+  padding: 10px;
+  margin: 10px 0;
+  background: white;
+  border-radius: 5px;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+  transition: 0.2s;
+}
+
+.climb-card:hover {
+  background: #f0f0f0;
+}

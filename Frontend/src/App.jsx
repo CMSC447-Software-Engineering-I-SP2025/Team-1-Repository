@@ -1,4 +1,8 @@
 import React, { useState, useEffect, use } from "react";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import LoginPage from "./components/LoginPage";
+/*import RecommendationsTab from "./components/RecommendationsTab";*/
+import CreateAccountPage from "./components/CreateAccountPage";
 import Header from "./components/Header";
 import HeroSection from "./components/HeroSection";
 import WorldMap from "./components/WorldMap";
@@ -17,7 +21,7 @@ const App = () => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch("/Search/State?state=Maryland", {
+        const response = await fetch("/Search/State?state=Maryland", { 
           method: "POST",
         });
         if (!response.ok) {
@@ -63,44 +67,52 @@ const App = () => {
   }, [areas]);
 
   return (
-    <div>
-      <Header onHomeClick={handleHomeClick} />
-      {(() => {
-        if (currentPage === "home") {
-          return (
-            <div className="flex">
-              <div className="w-2/4">
-                <HeroSection
-                  setCurrentPage={setCurrentPage}
-                  setSelectedClimb={setSelectedClimb}
-                  allClimbs={allClimbs}
-                  isLoading={isLoading}
-                />
-              </div>
-              <div className="w-3/4">
-                <WorldMap
-                  areas={areas}
-                  area={selectedArea}
-                  setSelectedArea={setSelectedArea}
-                  isLoading={isLoading}
-                />
-              </div>
-            </div>
-          );
-        } else if (currentPage === "climb") {
-          return <ClimbPage selectedClimb={selectedClimb} />;
-        } else if (currentPage === "area") {
-          return (
-            <AreaPage
-              selectedArea={selectedArea}
-              setSelectedClimb={setSelectedClimb}
-            />
-          );
-        } else {
-          return null;
-        }
-      })()}
-    </div>
+    <Router>
+      <div>
+        <Header onHomeClick={handleHomeClick} />
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/create-account" element={<CreateAccountPage />} />
+          <Route path="/" element={
+            (() => {
+              if (currentPage === "home") {
+                return (
+                  <div className="flex">
+                    <div className="w-2/4">
+                      <HeroSection
+                        setCurrentPage={setCurrentPage}
+                        setSelectedClimb={setSelectedClimb}
+                        allClimbs={allClimbs}
+                        isLoading={isLoading}
+                      />
+                    </div>
+                    <div className="w-3/4">
+                      <WorldMap
+                        areas={areas}
+                        area={selectedArea}
+                        setSelectedArea={setSelectedArea}
+                        isLoading={isLoading}
+                      />
+                    </div>
+                  </div>
+                );
+              } else if (currentPage === "climb") {
+                return <ClimbPage selectedClimb={selectedClimb} />;
+              } else if (currentPage === "area") {
+                return (
+                  <AreaPage
+                    selectedArea={selectedArea}
+                    setSelectedClimb={setSelectedClimb}
+                  />
+                );
+              } else {
+                return null;
+              }
+            })()
+          } />
+        </Routes>
+      </div>
+    </Router>
   );
 };
 
