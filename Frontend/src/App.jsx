@@ -1,4 +1,4 @@
-import React, { useState, useEffect, use } from "react";
+import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import LoginPage from "./components/LoginPage";
 import CreateAccountPage from "./components/CreateAccountPage";
@@ -15,14 +15,7 @@ const App = () => {
   const [areas, setAllAreas] = useState([]);
   const [allClimbs, setAllClimbs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  
-  const recommendedClimbs = [
-    { name: "Climb A", location: "Location A" },
-    { name: "Climb B", location: "Location B" },
-    { name: "Climb C", location: "Location C" },
-    { name: "Climb D", location: "Location D" },
-    { name: "Climb E", location: "Location E" },
-  ];
+  const [recommendedClimbs, setRecommendedClimbs] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -45,6 +38,14 @@ const App = () => {
 
     fetchData();
   }, []);
+
+  useEffect(() => {
+    if (areas.length > 0) {
+      const allClimbs = areas.flatMap(area => area.climbs);
+      const selectedClimbs = allClimbs.sort(() => 0.5 - Math.random()).slice(0, 10);
+      setRecommendedClimbs(selectedClimbs);
+    }
+  }, [areas]);
 
   const handleHomeClick = () => {
     setCurrentPage("home");

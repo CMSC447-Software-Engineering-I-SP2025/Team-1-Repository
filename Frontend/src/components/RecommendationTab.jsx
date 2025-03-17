@@ -1,8 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './css/RecommendationTab.css';
 
-const RecommendationTab = ({ recommendedClimbs }) => {
+const RecommendationTab = ({ recommendedClimbs = [] }) => { // Add default value
   const [isCollapsed, setIsCollapsed] = useState(true);
+  const [randomClimbs, setRandomClimbs] = useState([]);
+
+  useEffect(() => {
+    // Select up to 10 random climbs when the component mounts or recommendedClimbs changes
+    const selectedClimbs = recommendedClimbs
+      .sort(() => 0.5 - Math.random())
+      .slice(0, 10);
+    setRandomClimbs(selectedClimbs);
+  }, [recommendedClimbs]);
 
   const toggleCollapse = () => {
     setIsCollapsed(!isCollapsed);
@@ -16,7 +25,7 @@ const RecommendationTab = ({ recommendedClimbs }) => {
       </button>
       {!isCollapsed && (
         <div className="recommendation-list">
-          {recommendedClimbs.map((climb, index) => (
+          {randomClimbs.map((climb, index) => (
             <div key={index} className="climb-card mb-4">
               <h3 className="font-bold">{climb.name}</h3>
               <p>{climb.location}</p>
