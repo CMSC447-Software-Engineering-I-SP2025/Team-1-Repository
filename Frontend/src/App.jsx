@@ -1,7 +1,6 @@
 import React, { useState, useEffect, use } from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import LoginPage from "./components/LoginPage";
-/*import RecommendationsTab from "./components/RecommendationsTab";*/
 import CreateAccountPage from "./components/CreateAccountPage";
 import Header from "./components/Header";
 import HeroSection from "./components/HeroSection";
@@ -16,6 +15,14 @@ const App = () => {
   const [areas, setAllAreas] = useState([]);
   const [allClimbs, setAllClimbs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  
+  const recommendedClimbs = [
+    { name: "Climb A", location: "Location A" },
+    { name: "Climb B", location: "Location B" },
+    { name: "Climb C", location: "Location C" },
+    { name: "Climb D", location: "Location D" },
+    { name: "Climb E", location: "Location E" },
+  ];
 
   useEffect(() => {
     const fetchData = async () => {
@@ -84,6 +91,7 @@ const App = () => {
                         setSelectedClimb={setSelectedClimb}
                         allClimbs={allClimbs}
                         isLoading={isLoading}
+                        recommendedClimbs={recommendedClimbs} 
                       />
                     </div>
                     <div className="w-3/4">
