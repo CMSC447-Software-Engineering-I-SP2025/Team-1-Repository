@@ -21,96 +21,96 @@ namespace BoulderBuddyAPI.Services
 
                 string createTables = @"
                     CREATE TABLE IF NOT EXISTS User (
-                        id TEXT PRIMARY KEY,
-                        name TEXT NOT NULL,
-                        email TEXT,
-                        password TEXT NOT NULL,
-                        accountType TEXT NOT NULL,
-                        CHECK (accountType IN (""public"", ""private""))
+                        UserId TEXT PRIMARY KEY,
+                        Name TEXT NOT NULL,
+                        Email TEXT,
+                        Password TEXT NOT NULL,
+                        AccountType TEXT NOT NULL,
+                        CHECK (AccountType IN (""public"", ""private""))
                     );
                     CREATE TABLE IF NOT EXISTS Route (
-                        id TEXT PRIMARY KEY,
-                        name TEXT NOT NULL,
-                        grade TEXT NOT NULL,
-                        longitude TEXT NOT NULL,
-                        latitude TEXT NOT NULL,
-                        picture BLOB 
+                        RouteId TEXT PRIMARY KEY,
+                        Name TEXT NOT NULL,
+                        Grade TEXT NOT NULL,
+                        Longitude TEXT NOT NULL,
+                        Latitude TEXT NOT NULL,
+                        Picture BLOB 
                     );
                     CREATE TABLE IF NOT EXISTS Review (
-                        id INTEGER PRIMARY KEY,
-                        userId TEXT NOT NULL,
-                        routeId TEXT NOT NULL,
-                        rating TEXT NOT NULL,
-                        review TEXT,
-                        FOREIGN KEY (userId) REFERENCES User(id),
-                        FOREIGN KEY (routeId) REFERENCES Route(id)
+                        ReviewId INTEGER PRIMARY KEY,
+                        UserId TEXT NOT NULL,
+                        RouteId TEXT NOT NULL,
+                        Rating TEXT NOT NULL,
+                        Text TEXT,
+                        FOREIGN KEY (UserId) REFERENCES User(UserId),
+                        FOREIGN KEY (RouteId) REFERENCES Route(RouteId)
                     );
                     CREATE TABLE IF NOT EXISTS Recommendation (
-                        id INTEGER PRIMARY KEY,
-                        routeId TEXT NOT NULL,
-                        FOREIGN KEY (routeId) REFERENCES Route(id)
+                        RecommendationId INTEGER PRIMARY KEY,
+                        RouteId TEXT NOT NULL,
+                        FOREIGN KEY (RouteId) REFERENCES Route(RouteId)
                     );
                     CREATE TABLE IF NOT EXISTS UserRelation (
-                        id INTEGER PRIMARY KEY,
-                        user1Id TEXT NOT NULL,
-                        user2Id TEXT NOT NULL,
-                        relationType TEXT NOT NULL,
-                        requestDate TEXT NOT NULL DEFAULT current_timestamp,
-                        friendSince TEXT,
-                        FOREIGN KEY (user1Id) REFERENCES User(id),
-                        FOREIGN KEY (user2Id) REFERENCES User(id),
-                        CHECK (relationType IN (""friends"", ""user1_blocked"", ""user2_blocked"", ""both_blocked"", ""pending_user1"", ""pending_user2""))
+                        UserRelationId INTEGER PRIMARY KEY,
+                        User1Id TEXT NOT NULL,
+                        User2Id TEXT NOT NULL,
+                        RelationType TEXT NOT NULL,
+                        RequestDate TEXT NOT NULL DEFAULT current_timestamp,
+                        FriendSince TEXT,
+                        FOREIGN KEY (User1Id) REFERENCES User(UserId),
+                        FOREIGN KEY (User2Id) REFERENCES User(UserId),
+                        CHECK (RelationType IN (""friends"", ""user1_blocked"", ""user2_blocked"", ""both_blocked"", ""pending_user1"", ""pending_user2""))
                     );
                     CREATE TABLE IF NOT EXISTS ClimbGroup (
-                        id INTEGER PRIMARY KEY,
-                        groupName TEXT NOT NULL,
-                        groupDescription TEXT,
-                        joinRequirements TEXT NOT NULL,
-                        price TEXT,
-                        groupType TEXT NOT NULL,
-                        groupOwner TEXT NOT NULL,
-                        groupImage BLOB,
-                        FOREIGN KEY (groupOwner) REFERENCES User(id),
-                        CHECK (joinRequirements IN (""invite_only"", ""paid"", ""open"")),
-                        CHECK (groupType IN (""public"", ""private""))
+                        GroupId INTEGER PRIMARY KEY,
+                        GroupName TEXT NOT NULL,
+                        GroupDescription TEXT,
+                        JoinRequirements TEXT NOT NULL,
+                        Price TEXT,
+                        GroupType TEXT NOT NULL,
+                        GroupOwner TEXT NOT NULL,
+                        GroupImage BLOB,
+                        FOREIGN KEY (GroupOwner) REFERENCES User(UserId),
+                        CHECK (JoinRequirements IN (""invite_only"", ""paid"", ""open"")),
+                        CHECK (GroupType IN (""public"", ""private""))
                     );
                     CREATE TABLE IF NOT EXISTS ClimbGroupRelation (
-                        groupId TEXT NOT NULL,
-                        userId TEXT NOT NULL,
-                        relationType TEXT NOT NULL,
-                        inviteDate TEXT,
-                        memberSince TEXT,
-                        PRIMARY KEY (groupId, userId),
-                        FOREIGN KEY (groupId) REFERENCES ClimbGroup(id),
-                        FOREIGN KEY (userId) REFERENCES User(id),
-                        CHECK (relationType IN (""member"", ""owner"", ""admin"", ""banned"", ""invited""))
+                        GroupId TEXT NOT NULL,
+                        UserId TEXT NOT NULL,
+                        RelationType TEXT NOT NULL,
+                        InviteDate TEXT,
+                        MemberSince TEXT,
+                        PRIMARY KEY (GroupId, UserId),
+                        FOREIGN KEY (GroupId) REFERENCES ClimbGroup(GroupId),
+                        FOREIGN KEY (UserId) REFERENCES User(UserId),
+                        CHECK (RelationType IN (""member"", ""owner"", ""admin"", ""banned"", ""invited""))
                     );
                     CREATE TABLE IF NOT EXISTS ClimbGroupEvent (
-                        id INTEGER PRIMARY KEY,
-                        groupId TEXT NOT NULL,
-                        eventName TEXT NOT NULL,
-                        eventDescription TEXT,
-                        eventDate TEXT NOT NULL,
-                        eventTime TEXT NOT NULL,
-                        eventLocation TEXT NOT NULL,
-                        eventImage BLOB,
-                        FOREIGN KEY (groupId) REFERENCES ClimbGroup(id)
+                        EventId INTEGER PRIMARY KEY,
+                        GroupId TEXT NOT NULL,
+                        EventName TEXT NOT NULL,
+                        EventDescription TEXT,
+                        EventDate TEXT NOT NULL,
+                        EventTime TEXT NOT NULL,
+                        EventLocation TEXT NOT NULL,
+                        EventImage BLOB,
+                        FOREIGN KEY (GroupId) REFERENCES ClimbGroup(GroupId)
                     );
                     CREATE TABLE IF NOT EXISTS Badge (
-                        id INTEGER PRIMARY KEY,
-                        badgeName TEXT NOT NULL,
-                        badgeDescription TEXT,
-                        badgeRequirement TEXT NOT NULL,
-                        badgeRarity TEXT NOT NULL,
-                        badgeImage BLOB,
-                        CHECK (badgeRarity IN (""common"", ""uncommon"", ""rare""))
+                        BadgeId INTEGER PRIMARY KEY,
+                        BadgeName TEXT NOT NULL,
+                        BadgeDescription TEXT,
+                        BadgeRequirement TEXT NOT NULL,
+                        BadgeRarity TEXT NOT NULL,
+                        BadgeImage BLOB,
+                        CHECK (BadgeRarity IN (""common"", ""uncommon"", ""rare""))
                     );
                     CREATE TABLE IF NOT EXISTS BadgeRelation (
-                        userId TEXT NOT NULL,
-                        badgeId TEXT NOT NULL,
-                        PRIMARY kEY (userId, badgeId),
-                        FOREIGN KEY (userId) REFERENCES User(id),
-                        FOREIGN KEY (badgeId) REFERENCES Badge(id)
+                        UserId TEXT NOT NULL,
+                        BadgeId TEXT NOT NULL,
+                        PRIMARY KEY (UserId, BadgeId),
+                        FOREIGN KEY (UserId) REFERENCES User(UserId),
+                        FOREIGN KEY (BadgeId) REFERENCES Badge(BadgeId)
                     );
                 ";
 

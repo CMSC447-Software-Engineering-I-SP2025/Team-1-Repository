@@ -28,6 +28,7 @@ namespace BoulderBuddyAPI
             //Add database service
             builder.Services.AddSingleton<DatabaseInitializer>();
             builder.Services.AddScoped<DatabaseService>();
+            builder.Services.AddScoped<IDatabaseService, DatabaseService>();
 
             var app = builder.Build();
 

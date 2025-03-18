@@ -14,13 +14,13 @@ namespace BoulderBuddyAPI.Controllers
     [Route("api/[controller]")]
     public class DatabaseController : ControllerBase
     {
-        private readonly DatabaseService _databaseService;
-        private readonly string connectionString;
+        private readonly IDatabaseService _databaseService;
+        private readonly IConfiguration _configuration;
 
-        public DatabaseController(DatabaseService databaseService, IConfiguration configuration)
+        public DatabaseController(IDatabaseService databaseService, IConfiguration configuration)
         {
             _databaseService = databaseService;
-            connectionString = configuration.GetConnectionString("DefaultConnection") ?? string.Empty;
+            _configuration = configuration;
         }
 
         [HttpPost("user")]
@@ -102,62 +102,148 @@ namespace BoulderBuddyAPI.Controllers
         [HttpGet("user")]
         public async Task<IActionResult> GetUsers()
         {
-            return await HandleGetRequest<User>("SELECT * FROM User");
+            try
+            {
+                var users = await _databaseService.GetUsers();
+                return Ok(users);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
         [HttpGet("route")]
         public async Task<IActionResult> GetRoutes()
         {
-            return await HandleGetRequest<Route>("SELECT * FROM Route");
+            try
+            {
+                var routes = await _databaseService.GetRoutes();
+                return Ok(routes);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
         [HttpGet("review")]
         public async Task<IActionResult> GetReviews()
         {
-            return await HandleGetRequest<Review>("SELECT * FROM Review");
+            try
+            {
+                var reviews = await _databaseService.GetReviews();
+                return Ok(reviews);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        [HttpGet("recommendation")]
+        public async Task<IActionResult> GetRecommendations()
+        {
+            try
+            {
+                var recommendations = await _databaseService.GetRecommendations();
+                return Ok(recommendations);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
         [HttpGet("userRelation")]
         public async Task<IActionResult> GetUserRelations()
         {
-            return await HandleGetRequest<UserRelation>("SELECT * FROM UserRelation");
+            try
+            {
+                var userRelations = await _databaseService.GetUserRelations();
+                return Ok(userRelations);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
         [HttpGet("climbGroup")]
         public async Task<IActionResult> GetClimbGroups()
         {
-            return await HandleGetRequest<ClimbGroup>("SELECT * FROM ClimbGroup");
+            try
+            {
+                var climbGroups = await _databaseService.GetClimbGroups();
+                return Ok(climbGroups);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
         [HttpGet("climbGroupRelation")]
         public async Task<IActionResult> GetClimbGroupRelations()
         {
-            return await HandleGetRequest<ClimbGroupRelation>("SELECT * FROM ClimbGroupRelation");
+            try
+            {
+                var climbGroupRelations = await _databaseService.GetClimbGroupRelations();
+                return Ok(climbGroupRelations);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
         [HttpGet("climbGroupEvent")]
         public async Task<IActionResult> GetClimbGroupEvents()
         {
-            return await HandleGetRequest<ClimbGroupEvent>("SELECT * FROM ClimbGroupEvent");
+            try
+            {
+                var climbGroupEvents = await _databaseService.GetClimbGroupEvents();
+                return Ok(climbGroupEvents);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
         [HttpGet("badge")]
         public async Task<IActionResult> GetBadges()
         {
-            return await HandleGetRequest<Badge>("SELECT * FROM Badge");
+            try
+            {
+                var badges = await _databaseService.GetBadges();
+                return Ok(badges);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
         [HttpGet("badgeRelation")]
         public async Task<IActionResult> GetBadgeRelations()
         {
-            return await HandleGetRequest<BadgeRelation>("SELECT * FROM BadgeRelation");
+            try
+            {
+                var badgeRelations = await _databaseService.GetBadgeRelations();
+                return Ok(badgeRelations);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
         }
 
         private async Task<IActionResult> HandleGetRequest<T>(string selectCommand)
         {
             try
             {
-                using (SqliteConnection connection = new SqliteConnection(connectionString))
+                using (SqliteConnection connection = new SqliteConnection(_configuration.GetConnectionString("DefaultConnection")))
                 {
                     await connection.OpenAsync();
                     using (SqliteCommand command = connection.CreateCommand())
@@ -191,5 +277,28 @@ namespace BoulderBuddyAPI.Controllers
                 property.SetValue(item, value == DBNull.Value ? null : value);
             }
         }
+    }
+}
+
+
+
+namespace BoulderBuddyAPI.Services
+{
+    public interface IDatabaseService
+    {
+        Task InsertIntoUserTable(object parameters);
+        Task InsertIntoRouteTable(object parameters);
+        Task InsertIntoReviewTable(object parameters);
+        Task InsertIntoRecommendationTable(object parameters);
+        Task<List<User>> GetUsers();
+        Task<List<Route>> GetRoutes();
+        Task<List<Review>> GetReviews();
+        Task<List<Recommendation>> GetRecommendations();
+        Task<List<UserRelation>> GetUserRelations();
+        Task<List<ClimbGroup>> GetClimbGroups();
+        Task<List<ClimbGroupRelation>> GetClimbGroupRelations();
+        Task<List<ClimbGroupEvent>> GetClimbGroupEvents();
+        Task<List<Badge>> GetBadges();
+        Task<List<BadgeRelation>> GetBadgeRelations();
     }
 }

@@ -1,0 +1,16 @@
+[
+  {
+    "id": "1",
+    "name": "Rib Cage",
+    "location": "Rockwood Park / Greenway Trail",
+    "difficulty": "V0-1",
+    "created_at": "2025-01-01T12:00:00Z"
+  },
+  {
+    "id": "2",
+    "name": "The South Face Indirect",
+    "location": "Ebright Azimuth",
+    "difficulty": "5.2",
+    "created_at": "2025-01-02T12:00:00Z"
+  }
+]
