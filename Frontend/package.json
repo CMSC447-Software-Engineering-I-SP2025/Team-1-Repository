@@ -10,6 +10,7 @@
     "serve": "vite preview"
   },
   "dependencies": {
+    "boulder-buddy": "file:",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "react-icons": "^5.5.0",
