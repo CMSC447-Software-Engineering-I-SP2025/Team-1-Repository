@@ -3,7 +3,7 @@ import SearchBar from "./SearchBar";
 import RecommendationTab from "./RecommendationTab";
 import { FaSpinner } from "react-icons/fa";
 
-const HeroSection = ({ setSelectedClimb, allClimbs, isLoading, recommendedClimbs }) => {
+const HeroSection = ({ setSelectedClimb, allClimbs, isLoading }) => {
   const [filteredClimbs, setFilteredClimbs] = useState([]);
 
   useEffect(() => {
@@ -78,7 +78,6 @@ const HeroSection = ({ setSelectedClimb, allClimbs, isLoading, recommendedClimbs
             ))}
           </ul>
         </div>
-         <RecommendationTab recommendedClimbs={recommendedClimbs} /> 
       </div>
     </section>
   );
