@@ -7,7 +7,6 @@ using BoulderBuddyAPI.Models;
 using BoulderBuddyAPI.Services; // Ensure this matches the namespace of the IDatabaseService used in the main project
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using BoulderBuddyAPI.Services;
 
 namespace BoulderBuddyAPI.Tests.Controllers
 {

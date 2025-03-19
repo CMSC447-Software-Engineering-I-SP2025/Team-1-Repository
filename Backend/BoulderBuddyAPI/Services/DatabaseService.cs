@@ -6,20 +6,31 @@ namespace BoulderBuddyAPI.Services
 {
     public class DatabaseService : IDatabaseService
     {
-        private readonly string _connectionString = string.Empty;
+        private readonly string _connectionString;
+        private readonly SqliteConnection _sqliteConnection; // Add this for testing
+        private readonly IConfiguration _configuration;
 
+        // Constructor for production use
         public DatabaseService(IConfiguration configuration)
         {
-            _connectionString = configuration?.GetConnectionString("DefaultConnection") ?? throw new ArgumentNullException(nameof(configuration), "Configuration cannot be null");
+            _connectionString = configuration?.GetConnectionString("DefaultConnection") 
+                ?? throw new ArgumentNullException(nameof(configuration), "Configuration cannot be null");
+            _configuration = configuration;
+        }
+
+        // Constructor for testing with an existing SQLite connection
+        public DatabaseService(SqliteConnection sqliteConnection)
+        {
+            _sqliteConnection = sqliteConnection ?? throw new ArgumentNullException(nameof(sqliteConnection));
         }
 
         //execute insert command
         public async Task ExecuteInsertCommand(string commandText, object parameters)
         {
-            using (SqliteConnection connection = new SqliteConnection(_connectionString))
+            using (var connection = _sqliteConnection ?? new SqliteConnection(_connectionString))
             {
                 await connection.OpenAsync();
-                using (SqliteCommand command = connection.CreateCommand())
+                using (var command = connection.CreateCommand())
                 {
                     AddParameters(command, parameters);
                     command.CommandText = commandText;
@@ -298,5 +309,25 @@ namespace BoulderBuddyAPI.Services
         //delete from badge relation table
         public Task DeleteFromBadgeRelationTable(object parameters) =>
             ExecuteDeleteCommand("DELETE FROM BadgeRelation WHERE userId = @UserId AND badgeId = @BadgeId;", parameters);
+
+        public async Task<T> ExecuteQueryCommand<T>(string query, object parameters)
+        {
+            using (var connection = _sqliteConnection ?? new SqliteConnection(_configuration["ConnectionStrings:DefaultConnection"]))
+            {
+                await connection.OpenAsync();
+                using (var command = connection.CreateCommand())
+                {
+                    command.CommandText = query;
+
+                    foreach (var property in parameters.GetType().GetProperties())
+                    {
+                        command.Parameters.AddWithValue($"@{property.Name}", property.GetValue(parameters));
+                    }
+
+                    var result = await command.ExecuteScalarAsync();
+                    return result == DBNull.Value ? default : (T)result;
+                }
+            }
+        }
     }
 }
