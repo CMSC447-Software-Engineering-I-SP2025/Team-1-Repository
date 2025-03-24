@@ -46,6 +46,7 @@ namespace BoulderBuddyAPI
                 app.UseSwaggerUI();
             }
 
+            app.UseCors(options => options.AllowAnyOrigin().AllowAnyMethod());
             app.UseHttpsRedirection();
             app.UseAuthorization();
 
