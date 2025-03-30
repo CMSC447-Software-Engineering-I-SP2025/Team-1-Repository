@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 const ClimbPage = ({ selectedClimb }) => {
   if (!selectedClimb) {
@@ -27,7 +28,10 @@ const ClimbPage = ({ selectedClimb }) => {
               ? selectedClimb.grades.french
               : selectedClimb.grades.font}
           </span>
-        </div>
+              </div>
+              <Link to="/create-review" className="px-3">
+                  Click me to create a review for this climb!
+              </Link>
       </div>
     </div>
   );

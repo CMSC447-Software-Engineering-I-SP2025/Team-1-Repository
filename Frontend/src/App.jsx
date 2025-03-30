@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import LoginPage from "./components/LoginPage";
+import CreateReview from "./components/CreateReview";
 import CreateAccountPage from "./components/CreateAccountPage";
 import Header from "./components/Header";
 import HeroSection from "./components/HeroSection";
@@ -79,7 +80,8 @@ const App = () => {
       <div>
         <Header onHomeClick={handleHomeClick} />
         <Routes>
-          <Route path="/login" element={<LoginPage />} />
+          <Route path="/login" element={<LoginPage />} /> {/*////////////////////////////////////*/}
+          <Route path="/create-review" element={<CreateReview selectedClimb={selectedClimb} />} /> {/*////////////////////////////////////*/}
           <Route path="/create-account" element={<CreateAccountPage />} />
           <Route path="/" element={
             (() => {
