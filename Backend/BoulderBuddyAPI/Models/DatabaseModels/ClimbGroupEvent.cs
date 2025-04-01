@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 public class ClimbGroupEvent
 {
     [JsonPropertyName("GroupId")]
-    public required String GroupId { get; set; }
+    public required long GroupId { get; set; }
     [JsonPropertyName("EventName")]
     public required String EventName { get; set; }
     [JsonPropertyName("EventDescription")]

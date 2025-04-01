@@ -21,52 +21,38 @@ namespace BoulderBuddyAPI.Services
 
                 string createTables = @"
                     CREATE TABLE IF NOT EXISTS User (
-                        UserId TEXT PRIMARY KEY,
+                        UserId INTEGER PRIMARY KEY AUTOINCREMENT,
                         Name TEXT NOT NULL,
                         Email TEXT,
                         Password TEXT NOT NULL,
                         AccountType TEXT NOT NULL,
                         CHECK (AccountType IN (""public"", ""private""))
                     );
-                    CREATE TABLE IF NOT EXISTS Route (
-                        RouteId TEXT PRIMARY KEY,
-                        Name TEXT NOT NULL,
-                        Grade TEXT NOT NULL,
-                        Longitude TEXT NOT NULL,
-                        Latitude TEXT NOT NULL,
-                        Picture BLOB 
-                    );
                     CREATE TABLE IF NOT EXISTS Review (
-                        ReviewId INTEGER PRIMARY KEY,
-                        UserId TEXT NOT NULL,
+                        ReviewId INTEGER PRIMARY KEY AUTOINCREMENT,
+                        UserId INTEGER NOT NULL,
                         RouteId TEXT NOT NULL,
-                        Rating TEXT NOT NULL,
+                        Rating INTEGER NOT NULL,
                         Text TEXT,
-                        FOREIGN KEY (UserId) REFERENCES User(UserId),
-                        FOREIGN KEY (RouteId) REFERENCES Route(RouteId)
-                    );
-                    CREATE TABLE IF NOT EXISTS Recommendation (
-                        RecommendationId INTEGER PRIMARY KEY,
-                        RouteId TEXT NOT NULL,
-                        FOREIGN KEY (RouteId) REFERENCES Route(RouteId)
+                        FOREIGN KEY (UserId) REFERENCES User(UserId)
                     );
                     CREATE TABLE IF NOT EXISTS UserRelation (
-                        UserRelationId INTEGER PRIMARY KEY,
-                        User1Id TEXT NOT NULL,
-                        User2Id TEXT NOT NULL,
+                        User1Id INTEGER NOT NULL,
+                        User2Id INTEGER NOT NULL,
                         RelationType TEXT NOT NULL,
                         RequestDate TEXT NOT NULL DEFAULT current_timestamp,
                         FriendSince TEXT,
+                        PRIMARY KEY (User1Id, User2Id),
                         FOREIGN KEY (User1Id) REFERENCES User(UserId),
                         FOREIGN KEY (User2Id) REFERENCES User(UserId),
                         CHECK (RelationType IN (""friends"", ""user1_blocked"", ""user2_blocked"", ""both_blocked"", ""pending_user1"", ""pending_user2""))
                     );
                     CREATE TABLE IF NOT EXISTS ClimbGroup (
-                        GroupId INTEGER PRIMARY KEY,
+                        GroupId INTEGER PRIMARY KEY AUTOINCREMENT,
                         GroupName TEXT NOT NULL,
                         GroupDescription TEXT,
                         JoinRequirements TEXT NOT NULL,
-                        Price TEXT,
+                        Price REAL,
                         GroupType TEXT NOT NULL,
                         GroupOwner TEXT NOT NULL,
                         GroupImage BLOB,
@@ -75,8 +61,8 @@ namespace BoulderBuddyAPI.Services
                         CHECK (GroupType IN (""public"", ""private""))
                     );
                     CREATE TABLE IF NOT EXISTS ClimbGroupRelation (
-                        GroupId TEXT NOT NULL,
-                        UserId TEXT NOT NULL,
+                        GroupId INTEGER NOT NULL,
+                        UserId INTEGER NOT NULL,
                         RelationType TEXT NOT NULL,
                         InviteDate TEXT,
                         MemberSince TEXT,
@@ -86,8 +72,8 @@ namespace BoulderBuddyAPI.Services
                         CHECK (RelationType IN (""member"", ""owner"", ""admin"", ""banned"", ""invited""))
                     );
                     CREATE TABLE IF NOT EXISTS ClimbGroupEvent (
-                        EventId INTEGER PRIMARY KEY,
-                        GroupId TEXT NOT NULL,
+                        EventId INTEGER PRIMARY KEY AUTOINCREMENT,
+                        GroupId INTEGER NOT NULL,
                         EventName TEXT NOT NULL,
                         EventDescription TEXT,
                         EventDate TEXT NOT NULL,
@@ -97,7 +83,7 @@ namespace BoulderBuddyAPI.Services
                         FOREIGN KEY (GroupId) REFERENCES ClimbGroup(GroupId)
                     );
                     CREATE TABLE IF NOT EXISTS Badge (
-                        BadgeId INTEGER PRIMARY KEY,
+                        BadgeId INTEGER PRIMARY KEY AUTOINCREMENT,
                         BadgeName TEXT NOT NULL,
                         BadgeDescription TEXT,
                         BadgeRequirement TEXT NOT NULL,
@@ -106,8 +92,8 @@ namespace BoulderBuddyAPI.Services
                         CHECK (BadgeRarity IN (""common"", ""uncommon"", ""rare""))
                     );
                     CREATE TABLE IF NOT EXISTS BadgeRelation (
-                        UserId TEXT NOT NULL,
-                        BadgeId TEXT NOT NULL,
+                        UserId INTEGER NOT NULL,
+                        BadgeId INTEGER NOT NULL,
                         PRIMARY KEY (UserId, BadgeId),
                         FOREIGN KEY (UserId) REFERENCES User(UserId),
                         FOREIGN KEY (BadgeId) REFERENCES Badge(BadgeId)

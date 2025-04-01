@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 public class User
 {
     [JsonPropertyName("UserId")]
-    public required string UserId { get; set; }
+    public required long UserId { get; set; }
 
     [JsonPropertyName("Name")]
     public required string Name { get; set; }

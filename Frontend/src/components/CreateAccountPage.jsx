@@ -1,14 +1,30 @@
 import React, { useState } from 'react';
 import "./css/CreateAccountPage.css";
+import axios from 'axios';
 
 const CreateAccountPage = () => {
   const [username, setUsername] = useState(''); // Add state for username
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
-  const handleCreateAccount = (e) => {
-    e.preventDefault();
-    alert(`Account created for ${username}`); // Update alert to include username
+    const handleCreateAccount = async (e) => {
+      e.preventDefault();
+
+      const accountData = {
+          UserId: 1,  // change this
+          Name: username,
+          Email: email,
+          Password: password,
+          AccountType: "private"
+      };
+
+      try {
+          const response = await axios.post('https://localhost:7195/api/Database/user', accountData);
+          console.log('Account created successfully:', response.data);
+          alert(`Account created for ${username}`); // Update alert to include username
+      } catch (error) {
+          console.error('Error creating account:', error);
+      }
   };
 
   return (

@@ -3,9 +3,9 @@ using System.Text.Json.Serialization;
 public class ClimbGroupRelation
 {
     [JsonPropertyName("GroupId")]
-    public required String GroupId { get; set; }
+    public required long GroupId { get; set; }
     [JsonPropertyName("UserId")]
-    public required String UserId { get; set; }
+    public required long UserId { get; set; }
     [JsonPropertyName("RelationType")]
     public required string RelationType { get; set; }
     [JsonPropertyName("InviteDate")]

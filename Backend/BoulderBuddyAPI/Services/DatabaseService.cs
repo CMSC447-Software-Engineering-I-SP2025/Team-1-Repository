@@ -52,8 +52,8 @@ namespace BoulderBuddyAPI.Services
         //insert into database
         public Task InsertIntoUserTable(object parameters) =>
             ExecuteInsertCommand(@"
-                INSERT INTO User (UserId, Name, Email, Password, AccountType) 
-                VALUES (@UserId, @Name, @Email, @Password, @AccountType);", parameters);
+                INSERT INTO User (Name, Email, Password, AccountType) 
+                VALUES (@Name, @Email, @Password, @AccountType);", parameters);
 
         public Task InsertIntoRouteTable(object parameters) =>
             ExecuteInsertCommand(@"

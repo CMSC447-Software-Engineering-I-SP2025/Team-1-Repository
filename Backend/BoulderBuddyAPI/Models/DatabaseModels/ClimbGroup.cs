@@ -9,11 +9,11 @@ public class ClimbGroup
     [JsonPropertyName("JoinRequirements")]
     public required string JoinRequirements { get; set; }
     [JsonPropertyName("Price")]
-    public string Price { get; set; }
+    public float Price { get; set; }
     [JsonPropertyName("GroupType")]
     public required string GroupType { get; set; }
     [JsonPropertyName("GroupOwner")]
-    public required string GroupOwner { get; set; }
+    public required long GroupOwner { get; set; }
     [JsonPropertyName("GroupImage")]
     public byte[]? GroupImage { get; set; }
 }
