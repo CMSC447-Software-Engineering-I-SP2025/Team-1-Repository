@@ -1,6 +1,6 @@
-namespace BoulderBuddyAPI.Models
+﻿namespace BoulderBuddyAPI.Models
 {
-    public class SearchByLocationParameters
+    public class DistanceFromCenterOptions
     {
         public double Lat { get; set; }
         public double Lng { get; set; }
