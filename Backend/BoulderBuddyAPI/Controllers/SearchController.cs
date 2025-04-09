@@ -1,3 +1,4 @@
+using BoulderBuddyAPI.Models;
 using BoulderBuddyAPI.Models.OpenBetaModels;
 using BoulderBuddyAPI.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -10,11 +11,13 @@ public class SearchController : ControllerBase
 {
     private readonly ILogger<SearchController> _logger;
     private readonly IOpenBetaQueryService _openBetaQuerySvc;
+    private readonly GradeRangesConfig _ranges;
 
-    public SearchController(ILogger<SearchController> logger, IOpenBetaQueryService openBetaQuerySvc)
+    public SearchController(ILogger<SearchController> logger, IOpenBetaQueryService openBetaQuerySvc, GradeRangesConfig ranges)
     {
         _logger = logger;
         _openBetaQuerySvc = openBetaQuerySvc;
+        _ranges = ranges;
     }
 
     //POST /Search/State - performs OpenBeta API query to find climbs in given state
@@ -33,6 +36,34 @@ public class SearchController : ControllerBase
         {
             return BadRequest("Invalid root area (state or country)."); //HTTP 400 (BadRequest) response with error msg
         }
+    }
+
+    //POST /Search/StateWithFilters - performs OpenBeta API query, then filters the response based on desired options
+    //note: if a grade filter is desired (like MinYDS), but an area has a null YDS specified, that area will be included
+    [HttpPost("StateWithFilters")]
+    public async Task<IActionResult> SearchByLocationWithFilters(SearchWithFiltersOptions options)
+    {
+        IEnumerable<Area> areas;
+        try
+        {
+            var subareas = await _openBetaQuerySvc.QuerySubAreasInArea(options.State);
+            areas = GetLeafAreasWithClimbs(subareas);
+        }
+        catch (ArgumentException)
+        {
+            return BadRequest("Invalid root area (state or country)."); //HTTP 400 (BadRequest) response with error msg
+        }
+
+        var climbFilter = BuildSearchFilterPredicate(options);
+
+        //filter climbs to climbs that meet filter options, then remove areas that had all their climbs filtered out
+        areas = areas.Where(a =>
+        {
+            a.climbs = a.climbs.Where(climbFilter).ToList();
+            return a.climbs.Count > 0;
+        });
+
+        return Ok(areas.ToList()); //HTTP 200 (Ok) response with content
     }
 
     //finds all areas within list of trees (areas) that have no subareas but do have climbs associated with them. DFS
@@ -64,5 +95,80 @@ public class SearchController : ControllerBase
         }
 
         return leavesWithClimbs;
+    }
+
+    //builds filter predicate that determines whether an area should be included based on all desired filter options
+    private Func<Climb, bool> BuildSearchFilterPredicate(SearchWithFiltersOptions options)
+    {
+        return c =>
+        {
+            if (ShouldTest(options.MinFont, c.grades.font) && !AboveMin(c.grades.font, options.MinFont, _ranges.Font))
+                return false;
+            if (ShouldTest(options.MaxFont, c.grades.font) && !BelowMax(c.grades.font, options.MaxFont, _ranges.Font))
+                return false;
+            /*TODO: TEST OTHER GRADE TYPES
+            if (options.MinFrench is not null)
+            if (options.MaxFrench is not null)
+            if (options.MinVscale is not null)
+            if (options.MaxVscale is not null)
+            if (options.MinYDS is not null) //sometimes has a -, which isn't valid. Need to strip last char if endswith "-"
+            if (options.MaxYDS is not null) //^
+            */
+
+            //TODO: distance predicate
+
+            return true;
+        };
+    }
+
+    //checks whether given filter needs to be ran (options entry and grade data are nonnull)
+    private bool ShouldTest(string? fromOptions, string? fromData)
+    {
+        return fromOptions is not null && fromData is not null && fromData != "";
+    }
+
+    //returns true when 'grade' is null/empty or at/above 'min' in the given gradeRange. False if grade is below min or if error
+    private bool AboveMin(string grade, string min, string[] gradeRange)
+    {
+        int minIndex = Array.IndexOf(gradeRange, min);
+        int targetIndex = Array.IndexOf(gradeRange, grade);
+
+        //logs when returning false due to invalid inputs
+        if (minIndex == -1)
+        {
+            _logger.LogError($"Cannot determine if grade '{grade}' is above min '{min}' because min is an unsupported value.");
+            return false;
+        }
+        else if (targetIndex == -1)
+        {
+            _logger.LogError($"Could not determine if grade '{grade}' is above min '{min}' because grade is an unsupported value.");
+            return false;
+        }
+
+        return targetIndex >= minIndex;
+    }
+
+    //returns true when 'grade' is null/empty or at/below 'max' in the given gradeRange. False if grade is above max or if error
+    private bool BelowMax(string grade, string max, string[] gradeRange)
+    {
+        if (grade is null || grade == "")
+            return true;
+
+        int maxIndex = Array.IndexOf(gradeRange, max);
+        int targetIndex = Array.IndexOf(gradeRange, grade);
+
+        //logs when returning false due to invalid inputs
+        if (maxIndex == -1)
+        {
+            _logger.LogError($"Cannot determine if grade '{grade}' is below max '{max}' because max is an unsupported value.");
+            return false;
+        }
+        else if (targetIndex == -1)
+        {
+            _logger.LogError($"Could not determine if grade '{grade}' is below max '{max}' because grade is an unsupported value.");
+            return false;
+        }
+
+        return targetIndex <= maxIndex;
     }
 }
