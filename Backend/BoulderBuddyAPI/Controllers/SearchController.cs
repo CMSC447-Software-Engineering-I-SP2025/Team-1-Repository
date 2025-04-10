@@ -123,7 +123,7 @@ public class SearchController : ControllerBase
                 if (!AboveMin(c.grades.yds, options.MinYDS, _ranges.Yds))
                     return false;
             }
-            if (options.MaxYDS is not null)
+            if (ShouldTest(options.MaxYDS, c.grades.yds))
             {
                 //sometimes OpenBeta data's YDS grade has a "-", which isn't valid for YDS format
                 if (c.grades.yds.EndsWith("-"))
