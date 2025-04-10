@@ -45,7 +45,42 @@ namespace BoulderBuddyAPI.Tests.Controllers
         [Fact]
         public async Task SearchByLocationState_GivenInvalidState_Returns400BadRequestWithErrorMsg()
         {
-            //setup OpenBetaQueryService with mocked HttpClient (so it doesn't actually ping OpenBeta)
+            var controller = SetupSearchController();
+            string[] invalidStatesToTry = ["Mississippi", "Hawaii", "", "DELAWARE", null];
+            foreach (var invalid in invalidStatesToTry)
+            {
+                var result = await controller.SearchByLocation(invalid); //act
+
+                Assert.IsType<BadRequestObjectResult>(result);
+                var resultAsObjectResult = (BadRequestObjectResult)result;
+
+                var errMsg = resultAsObjectResult.Value;
+                Assert.IsType<string>(errMsg);
+            }
+        }
+
+        [Fact]
+        public async Task SearchByLocationWithFilters_GivenInvalidState_Returns400BadRequestWithErrorMsg()
+        {
+            var controller = SetupSearchController();
+            string[] invalidStatesToTry = ["Mississippi", "Hawaii", "", "DELAWARE", null];
+            foreach (var invalid in invalidStatesToTry)
+            {
+                var options = new SearchWithFiltersOptions() { State = invalid };
+                var result = await controller.SearchByLocationWithFilters(options); //act
+
+                Assert.IsType<BadRequestObjectResult>(result);
+                var resultAsObjectResult = (BadRequestObjectResult)result;
+
+                var errMsg = resultAsObjectResult.Value;
+                Assert.IsType<string>(errMsg);
+            }
+        }
+
+        //create a SearchController for invalid state testing
+        private SearchController SetupSearchController()
+        {
+            //setup OpenBetaQueryService with mocked HttpClient (so it won't actually ping OpenBeta)
             var mockOBQSLogger = new Mock<ILogger<OpenBetaQueryService>>();
             var config = new OpenBetaConfig()
             {
@@ -59,18 +94,7 @@ namespace BoulderBuddyAPI.Tests.Controllers
             //create mock controller
             var mockLogger = new Mock<ILogger<SearchController>>();
             var controller = new SearchController(mockLogger.Object, openBetaQueryService, null);
-
-            string[] invalidStatesToTry = ["Mississippi", "Hawaii", "", "DELAWARE", null];
-            foreach (var invalid in invalidStatesToTry)
-            {
-                var result = await controller.SearchByLocation(invalid); //act
-
-                Assert.IsType<BadRequestObjectResult>(result);
-                var resultAsObjectResult = (BadRequestObjectResult)result;
-
-                var errMsg = resultAsObjectResult.Value;
-                Assert.IsType<string>(errMsg);
-            }
+            return controller;
         }
     }
 }
