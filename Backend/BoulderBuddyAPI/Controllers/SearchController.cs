@@ -106,17 +106,34 @@ public class SearchController : ControllerBase
                 return false;
             if (ShouldTest(options.MaxFont, c.grades.font) && !BelowMax(c.grades.font, options.MaxFont, _ranges.Font))
                 return false;
-            /*TODO: TEST OTHER GRADE TYPES
-            if (options.MinFrench is not null)
-            if (options.MaxFrench is not null)
-            if (options.MinVscale is not null)
-            if (options.MaxVscale is not null)
-            if (options.MinYDS is not null) //sometimes has a -, which isn't valid. Need to strip last char if endswith "-"
-            if (options.MaxYDS is not null) //^
-            */
+            if (ShouldTest(options.MinFrench, c.grades.french) && !AboveMin(c.grades.french, options.MinFrench, _ranges.French))
+                return false;
+            if (ShouldTest(options.MaxFrench, c.grades.french) && !BelowMax(c.grades.french, options.MaxFrench, _ranges.French))
+                return false;
+            if (ShouldTest(options.MinVscale, c.grades.french) && !AboveMin(c.grades.vscale, options.MinVscale, _ranges.Vscale))
+                return false;
+            if (ShouldTest(options.MaxVscale, c.grades.french) && !BelowMax(c.grades.vscale, options.MaxVscale, _ranges.Vscale))
+                return false;
+            if (ShouldTest(options.MinYDS, c.grades.yds))
+            {
+                //sometimes OpenBeta data's YDS grade has a "-", which isn't valid for YDS format
+                if (c.grades.yds.EndsWith("-"))
+                    c.grades.yds = c.grades.yds.TrimEnd('-');
 
-            //TODO: distance predicate
+                if (!AboveMin(c.grades.yds, options.MinYDS, _ranges.Yds))
+                    return false;
+            }
+            if (options.MaxYDS is not null)
+            {
+                //sometimes OpenBeta data's YDS grade has a "-", which isn't valid for YDS format
+                if (c.grades.yds.EndsWith("-"))
+                    c.grades.yds = c.grades.yds.TrimEnd('-');
 
+                if (!BelowMax(c.grades.yds, options.MaxYDS, _ranges.Yds))
+                    return false;
+            }
+
+            //TODO: distance test
             return true;
         };
     }
