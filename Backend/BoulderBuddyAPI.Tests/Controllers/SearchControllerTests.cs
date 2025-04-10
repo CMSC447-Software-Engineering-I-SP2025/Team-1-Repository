@@ -49,64 +49,6 @@ namespace BoulderBuddyAPI.Tests.Controllers
             }
         }
 
-        /*[Fact]
-        public async Task SearchByLocationWithFilters_GivenMinFont_FiltersCorrectly()
-        {
-            var controller = SetupSearchControllerForValidStateTests();
-            var options = new SearchWithFiltersOptions()
-            {
-                State = "Delaware",
-                MinFont = "5-"
-            };
-
-            var result = await controller.SearchByLocationWithFilters(options); //act
-
-            //verify HTTP status code 200 (response created via Ok() method)
-            Assert.IsType<OkObjectResult>(result);
-            var resultAsObjectResult = (OkObjectResult)result;
-            var resultEnumerable = (IEnumerable<Area>)resultAsObjectResult.Value;
-
-            //all areas should have climbs (if we filter out all an area's climbs, it should be removed)
-            Assert.DoesNotContain(resultEnumerable, a => a.climbs.Count == 0);
-
-            //all climbs should have null/empty font or be base of 5 or higher
-            foreach (var area in resultEnumerable)
-            {
-                foreach (var climb in area.climbs)
-                    Assert.True(climb.grades.font is null || climb.grades.font == ""
-                        || climb.grades.font.StartsWith("5") || climb.grades.font.StartsWith("6"));
-            }
-        }
-
-        [Fact]
-        public async Task SearchByLocationWithFilters_GivenMaxFont_FiltersCorrectly()
-        {
-            var controller = SetupSearchControllerForValidStateTests();
-            var options = new SearchWithFiltersOptions()
-            {
-                State = "Delaware",
-                MaxFont = "4+"
-            };
-
-            var result = await controller.SearchByLocationWithFilters(options); //act
-
-            //verify HTTP status code 200 (response created via Ok() method)
-            Assert.IsType<OkObjectResult>(result);
-            var resultAsObjectResult = (OkObjectResult)result;
-            var resultEnumerable = (IEnumerable<Area>)resultAsObjectResult.Value;
-
-            //all areas should have climbs (if we filter out all an area's climbs, it should be removed)
-            Assert.DoesNotContain(resultEnumerable, a => a.climbs.Count == 0);
-
-            //all climbs should have null/empty font or be base of 4 or lower
-            foreach (var area in resultEnumerable)
-            {
-                foreach (var climb in area.climbs)
-                    Assert.True(climb.grades.font is null || climb.grades.font == ""
-                        || climb.grades.font.StartsWith("3") || climb.grades.font.StartsWith("4"));
-            }
-        }*/
-
         [Fact]
         public async Task SearchByLocationWithFilters_GivenMinAndMaxFont_FiltersCorrectly()
         {
