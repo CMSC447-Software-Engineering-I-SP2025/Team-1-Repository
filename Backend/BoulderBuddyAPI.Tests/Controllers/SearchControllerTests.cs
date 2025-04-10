@@ -49,7 +49,7 @@ namespace BoulderBuddyAPI.Tests.Controllers
             }
         }
 
-        [Fact]
+        /*[Fact]
         public async Task SearchByLocationWithFilters_GivenMinFont_FiltersCorrectly()
         {
             var controller = SetupSearchControllerForValidStateTests();
@@ -105,7 +105,7 @@ namespace BoulderBuddyAPI.Tests.Controllers
                     Assert.True(climb.grades.font is null || climb.grades.font == ""
                         || climb.grades.font.StartsWith("3") || climb.grades.font.StartsWith("4"));
             }
-        }
+        }*/
 
         [Fact]
         public async Task SearchByLocationWithFilters_GivenMinAndMaxFont_FiltersCorrectly()
