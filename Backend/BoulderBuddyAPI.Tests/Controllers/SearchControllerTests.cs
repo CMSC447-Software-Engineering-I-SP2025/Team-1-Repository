@@ -15,21 +15,11 @@ namespace BoulderBuddyAPI.Tests.Controllers
         [Fact]
         public async Task SearchByLocationState_GivenValidState_Returns200OkWithListOfSubareas()
         {
-            //read subareas as OpenBetaQueryService would, but without actually pinging OpenBeta API
-            var jsonString = File.ReadAllText("TestResources/ClimbsByStateResponse.json");
-            var responseContent = JsonSerializer.Deserialize<SearchByLocationRootObj>(jsonString);
-            var subareas = responseContent.data.areas[0].children;
+            var controller = SetupSearchControllerForValidStateTests();
 
             //read expected output from file
-            jsonString = File.ReadAllText("TestResources/ClimbsByStateResponseLeafAreas.json");
+            var jsonString = File.ReadAllText("TestResources/ClimbsByStateResponseLeafAreas.json");
             var expectedReturn = JsonSerializer.Deserialize<List<Area>>(jsonString).AsEnumerable();
-
-            //setup mock SearchController
-            var mockLogger = new Mock<ILogger<SearchController>>();
-            var mockOBSQ = new Mock<IOpenBetaQueryService>();
-            mockOBSQ.Setup(m => m.QuerySubAreasInArea(It.IsAny<string>()))
-                .ReturnsAsync(subareas);
-            var controller = new SearchController(mockLogger.Object, mockOBSQ.Object, null);
 
             var result = await controller.SearchByLocation("Delaware"); //act
 
@@ -45,7 +35,7 @@ namespace BoulderBuddyAPI.Tests.Controllers
         [Fact]
         public async Task SearchByLocationState_GivenInvalidState_Returns400BadRequestWithErrorMsg()
         {
-            var controller = SetupSearchController();
+            var controller = SetupSearchControllerForInvalidStateTests();
             string[] invalidStatesToTry = ["Mississippi", "Hawaii", "", "DELAWARE", null];
             foreach (var invalid in invalidStatesToTry)
             {
@@ -60,9 +50,97 @@ namespace BoulderBuddyAPI.Tests.Controllers
         }
 
         [Fact]
+        public async Task SearchByLocationWithFilters_GivenMinFont_FiltersCorrectly()
+        {
+            var controller = SetupSearchControllerForValidStateTests();
+            var options = new SearchWithFiltersOptions()
+            {
+                State = "Delaware",
+                MinFont = "5-"
+            };
+
+            var result = await controller.SearchByLocationWithFilters(options); //act
+
+            //verify HTTP status code 200 (response created via Ok() method)
+            Assert.IsType<OkObjectResult>(result);
+            var resultAsObjectResult = (OkObjectResult)result;
+            var resultEnumerable = (IEnumerable<Area>)resultAsObjectResult.Value;
+
+            //all areas should have climbs (if we filter out all an area's climbs, it should be removed)
+            Assert.DoesNotContain(resultEnumerable, a => a.climbs.Count == 0);
+
+            //all climbs should have null/empty font or be base of 5 or higher
+            foreach (var area in resultEnumerable)
+            {
+                foreach (var climb in area.climbs)
+                    Assert.True(climb.grades.font is null || climb.grades.font == ""
+                        || climb.grades.font.StartsWith("5") || climb.grades.font.StartsWith("6"));
+            }
+        }
+
+        [Fact]
+        public async Task SearchByLocationWithFilters_GivenMaxFont_FiltersCorrectly()
+        {
+            var controller = SetupSearchControllerForValidStateTests();
+            var options = new SearchWithFiltersOptions()
+            {
+                State = "Delaware",
+                MaxFont = "4+"
+            };
+
+            var result = await controller.SearchByLocationWithFilters(options); //act
+
+            //verify HTTP status code 200 (response created via Ok() method)
+            Assert.IsType<OkObjectResult>(result);
+            var resultAsObjectResult = (OkObjectResult)result;
+            var resultEnumerable = (IEnumerable<Area>)resultAsObjectResult.Value;
+
+            //all areas should have climbs (if we filter out all an area's climbs, it should be removed)
+            Assert.DoesNotContain(resultEnumerable, a => a.climbs.Count == 0);
+
+            //all climbs should have null/empty font or be base of 4 or lower
+            foreach (var area in resultEnumerable)
+            {
+                foreach (var climb in area.climbs)
+                    Assert.True(climb.grades.font is null || climb.grades.font == ""
+                        || climb.grades.font.StartsWith("3") || climb.grades.font.StartsWith("4"));
+            }
+        }
+
+        [Fact]
+        public async Task SearchByLocationWithFilters_GivenMinAndMaxFont_FiltersCorrectly()
+        {
+            var controller = SetupSearchControllerForValidStateTests();
+            var options = new SearchWithFiltersOptions()
+            {
+                State = "Delaware",
+                MinFont = "5-",
+                MaxFont = "5+"
+            };
+
+            var result = await controller.SearchByLocationWithFilters(options); //act
+
+            //verify HTTP status code 200 (response created via Ok() method)
+            Assert.IsType<OkObjectResult>(result);
+            var resultAsObjectResult = (OkObjectResult)result;
+            var resultEnumerable = (IEnumerable<Area>)resultAsObjectResult.Value;
+
+            //all areas should have climbs (if we filter out all an area's climbs, it should be removed)
+            Assert.DoesNotContain(resultEnumerable, a => a.climbs.Count == 0);
+
+            //all climbs should have null/empty font or be base of 5
+            foreach (var area in resultEnumerable)
+            {
+                foreach (var climb in area.climbs)
+                    Assert.True(climb.grades.font is null || climb.grades.font == ""
+                        || climb.grades.font.StartsWith("5"));
+            }
+        }
+
+        [Fact]
         public async Task SearchByLocationWithFilters_GivenInvalidState_Returns400BadRequestWithErrorMsg()
         {
-            var controller = SetupSearchController();
+            var controller = SetupSearchControllerForInvalidStateTests();
             string[] invalidStatesToTry = ["Mississippi", "Hawaii", "", "DELAWARE", null];
             foreach (var invalid in invalidStatesToTry)
             {
@@ -77,8 +155,42 @@ namespace BoulderBuddyAPI.Tests.Controllers
             }
         }
 
-        //create a SearchController for invalid state testing
-        private SearchController SetupSearchController()
+        //create a SearchController for unit testing valid states
+        private SearchController SetupSearchControllerForValidStateTests()
+        {
+            //read subareas as OpenBetaQueryService would, but without actually pinging OpenBeta API
+            var jsonString = File.ReadAllText("TestResources/ClimbsByStateResponse.json");
+            var responseContent = JsonSerializer.Deserialize<SearchByLocationRootObj>(jsonString);
+            var subareas = responseContent.data.areas[0].children;
+
+            //setup mock SearchController
+            var mockLogger = new Mock<ILogger<SearchController>>();
+            var mockOBSQ = new Mock<IOpenBetaQueryService>();
+            mockOBSQ.Setup(m => m.QuerySubAreasInArea(It.IsAny<string>()))
+                .ReturnsAsync(subareas);
+
+            //actual ranges taken from appsettings
+            var ranges = new GradeRangesConfig()
+            {
+                Font = ["3", "4-", "4", "4+", "5-", "5", "5+", "6A", "6A+", "6B", "6B+", "6C", "6C+",
+                    "7A", "7A+", "7B", "7B+", "7C", "7C+", "8A", "8A+", "8B", "8B+", "8C", "8C+", "9A"],
+                French = ["1-", "1", "1+", "2-", "2", "2+", "3-", "3", "3+", "4a", "4a+", "4b", "4b+", "4c", "4c+",
+                    "5a", "5a+", "5b", "5b+", "5c", "5c+", "6a", "6a+", "6b", "6b+", "6c", "6c+",
+                    "7a", "7a+", "7b", "7b+", "7c", "7c+", "8a", "8a+", "8b", "8b+", "8c", "8c+",
+                    "9a", "9a+", "9b", "9b+", "9c", "9c+"],
+                Vscale = ["V0", "V1", "V2", "V3", "V4", "V5", "V6", "V7", "V8", "V9", "V10", "V11", "V12", "V13",
+                    "V14", "V15", "V16", "V17"],
+                Yds = ["5.0", "5.1", "5.2", "5.3", "5.4", "5.5", "5.6", "5.7", "5.8", "5.9", "5.10a", "5.10b", "5.10c",
+                    "5.10d", "5.11a", "5.11b", "5.11c", "5.11d", "5.12a", "5.12b", "5.12c", "5.12d", "5.13a", "5.13b",
+                    "5.13c", "5.13d", "5.14a", "5.14b", "5.14c", "5.14d", "5.15a", "5.15b", "5.15c", "5.15d"]
+            };
+
+            var controller = new SearchController(mockLogger.Object, mockOBSQ.Object, ranges);
+            return controller;
+        }
+
+        //create a SearchController for unit testing invalid states
+        private SearchController SetupSearchControllerForInvalidStateTests()
         {
             //setup OpenBetaQueryService with mocked HttpClient (so it won't actually ping OpenBeta)
             var mockOBQSLogger = new Mock<ILogger<OpenBetaQueryService>>();
