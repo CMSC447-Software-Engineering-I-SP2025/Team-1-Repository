@@ -2,9 +2,9 @@
 {
     public class Grades
     {
-        public string font { get; set; }
-        public string french { get; set; }
-        public string vscale { get; set; }
-        public string yds { get; set; }
+        public string? font { get; set; }
+        public string? french { get; set; }
+        public string? vscale { get; set; }
+        public string? yds { get; set; }
     }
 }
