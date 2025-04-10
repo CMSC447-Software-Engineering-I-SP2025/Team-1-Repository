@@ -29,7 +29,7 @@ namespace BoulderBuddyAPI.Tests.Controllers
             var mockOBSQ = new Mock<IOpenBetaQueryService>();
             mockOBSQ.Setup(m => m.QuerySubAreasInArea(It.IsAny<string>()))
                 .ReturnsAsync(subareas);
-            var controller = new SearchController(mockLogger.Object, mockOBSQ.Object);
+            var controller = new SearchController(mockLogger.Object, mockOBSQ.Object, null);
 
             var result = await controller.SearchByLocation("Delaware"); //act
 
@@ -58,7 +58,7 @@ namespace BoulderBuddyAPI.Tests.Controllers
 
             //create mock controller
             var mockLogger = new Mock<ILogger<SearchController>>();
-            var controller = new SearchController(mockLogger.Object, openBetaQueryService);
+            var controller = new SearchController(mockLogger.Object, openBetaQueryService, null);
 
             string[] invalidStatesToTry = ["Mississippi", "Hawaii", "", "DELAWARE", null];
             foreach (var invalid in invalidStatesToTry)
