@@ -102,6 +102,8 @@ public class SearchController : ControllerBase
     {
         return c =>
         {
+            if (c.grades is null)
+                return false;
             if (ShouldTest(options.MinFont, c.grades.font) && !AboveMin(c.grades.font, options.MinFont, _ranges.Font))
                 return false;
             if (ShouldTest(options.MaxFont, c.grades.font) && !BelowMax(c.grades.font, options.MaxFont, _ranges.Font))
