@@ -137,9 +137,13 @@ namespace BoulderBuddyAPI.Services
         //select from route table
         public Task<List<Route>> GetRoutes() =>
             ExecuteSelectCommand<Route>("SELECT * FROM Route", new object());
-            //select from review table
+        //select from review table
         public Task<List<Review>> GetReviews() =>
             ExecuteSelectCommand<Review>("SELECT * FROM Review", new object());
+
+        //select 10 random reviews for a specific climb
+        public Task<List<Review>> GetTenReviews(string RouteID) =>
+            ExecuteSelectCommand<Review>($"SELECT * FROM Review WHERE RouteID = \"{RouteID}\" ORDER BY RANDOM() LIMIT 10", new object());
 
         //select from recommendation table
         public Task<List<Recommendation>> GetRecommendations() =>

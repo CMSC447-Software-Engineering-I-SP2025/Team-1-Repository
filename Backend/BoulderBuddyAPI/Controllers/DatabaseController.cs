@@ -141,6 +141,20 @@ namespace BoulderBuddyAPI.Controllers
             }
         }
 
+        [HttpGet("ReviewsByClimbID")]
+        public async Task<IActionResult> GetReviewsByClimbID(string id)
+        {
+            try
+            {
+                var reviews = await _databaseService.GetTenReviews(id);
+                return Ok(reviews);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
         [HttpGet("recommendation")]
         public async Task<IActionResult> GetRecommendations()
         {
@@ -293,6 +307,7 @@ namespace BoulderBuddyAPI.Services
         Task<List<User>> GetUsers();
         Task<List<Route>> GetRoutes();
         Task<List<Review>> GetReviews();
+        Task<List<Review>> GetTenReviews(string RouteID);
         Task<List<Recommendation>> GetRecommendations();
         Task<List<UserRelation>> GetUserRelations();
         Task<List<ClimbGroup>> GetClimbGroups();
