@@ -200,6 +200,37 @@ namespace BoulderBuddyAPI.Tests.Controllers
         }
 
         [Fact]
+        public async Task SearchByLocationWithFilters_GivenDistOptions_FiltersCorrectly()
+        {
+            var controller = SetupSearchControllerForValidStateTests("TestResources/DelawareResponse.json");
+            var options = new SearchWithFiltersOptions()
+            {
+                State = "Delaware",
+                DistOptions = new DistanceFromCenterOptions()
+                {
+                    Miles = 23, //the Delaware dataset has climbs from 20-26 miles away. This filters some of them
+                    Lat = 39.9528, //coords to Philadelphia City Hall
+                    Lng = -75.1635
+                }
+            };
+
+            var result = await controller.SearchByLocationWithFilters(options); //act
+
+            //verify HTTP status code 200 (response created via Ok() method)
+            Assert.IsType<OkObjectResult>(result);
+            var resultAsObjectResult = (OkObjectResult)result;
+            var resultEnumerable = (IEnumerable<Area>)resultAsObjectResult.Value;
+
+            //all areas should have climbs (if we filter out all an area's climbs, it should be removed)
+            Assert.DoesNotContain(resultEnumerable, a => a.climbs.Count == 0);
+
+            //there are 69 climbs in Delaware. Some should be too far (>23 miles), some should be within range.
+            var totalClimbs = resultEnumerable.Sum(a => a.climbs.Count);
+            Assert.True(totalClimbs > 0);
+            Assert.True(totalClimbs < 69);
+        }
+
+        [Fact]
         public async Task SearchByLocationWithFilters_GivenInvalidState_Returns400BadRequestWithErrorMsg()
         {
             var controller = SetupSearchControllerForInvalidStateTests();
