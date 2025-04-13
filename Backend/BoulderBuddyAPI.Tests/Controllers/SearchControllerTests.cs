@@ -169,6 +169,36 @@ namespace BoulderBuddyAPI.Tests.Controllers
             }
         }
 
+        //extra coverage since MinAndMax test trims the "+"/"-" on the Min filter and leaves Max filter's trim untested
+        [Fact]
+        public async Task SearchByLocationWithFilters_GivenMaxYds_CutsTrailingPlusOrMinusSign()
+        {
+            var controller = SetupSearchControllerForValidStateTests("TestResources/ColoradoResponse.json");
+            var options = new SearchWithFiltersOptions()
+            {
+                State = "Colorado",
+                MaxYDS = "5.12d"
+            };
+
+            var result = await controller.SearchByLocationWithFilters(options); //act
+
+            //verify HTTP status code 200 (response created via Ok() method)
+            Assert.IsType<OkObjectResult>(result);
+            var resultAsObjectResult = (OkObjectResult)result;
+            var resultEnumerable = (IEnumerable<Area>)resultAsObjectResult.Value;
+
+            //all areas should have climbs (if we filter out all an area's climbs, it should be removed)
+            Assert.DoesNotContain(resultEnumerable, a => a.climbs.Count == 0);
+
+            //all climbs should have null/empty font or be base of 5
+            foreach (var area in resultEnumerable)
+            {
+                foreach (var climb in area.climbs)
+                    Assert.True(climb.grades.yds is null || climb.grades.yds == "" || climb.grades.yds.StartsWith("V")
+                        || (!climb.grades.yds.EndsWith("+") && !climb.grades.yds.EndsWith("-")));
+            }
+        }
+
         [Fact]
         public async Task SearchByLocationWithFilters_GivenInvalidState_Returns400BadRequestWithErrorMsg()
         {
