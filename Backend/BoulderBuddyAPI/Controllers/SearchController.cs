@@ -156,6 +156,9 @@ public class SearchController : ControllerBase
     //returns true when 'grade' is null/empty or at/above 'min' in the given gradeRange. False if grade is below min or if error
     private bool AboveMin(string grade, string min, string[] gradeRange)
     {
+        if (grade is null || grade == "")
+            return true;
+
         int minIndex = Array.IndexOf(gradeRange, min);
         int targetIndex = Array.IndexOf(gradeRange, grade);
 
