@@ -134,6 +134,13 @@ public class SearchController : ControllerBase
                 if (!BelowMax(c.grades.yds, options.MaxYDS, _ranges.Yds))
                     return false;
             }
+            if (options.DistOptions is not null)
+            {
+                double dist = DistanceInMiles(c.metadata.lat, c.metadata.lng, options.DistOptions.Lat, options.DistOptions.Lng);
+                Console.WriteLine("Climb '" + c.name + "' is " + dist + " miles away.");
+                if (dist > options.DistOptions.Miles)
+                    return false;
+            }
 
             //TODO: distance test
             return true;
@@ -189,5 +196,29 @@ public class SearchController : ControllerBase
         }
 
         return targetIndex <= maxIndex;
+    }
+
+    //calculates the distance between two coordinates using the Haversine Formula, assuming the Earth is a 6371km radius sphere
+    //note: the calculated value has some minimal error, since Earth is not a sphere or constant radius. We accept that fact.
+    //references:
+    // - https://github.com/mesotron/GRAIL/blob/master/geo_demo/geo_demo/Maths.cs (source code)
+    // - https://community.esri.com/t5/coordinate-reference-systems-blog/distance-on-a-sphere-the-haversine-formula/ba-p/902128
+    // - https://en.wikipedia.org/wiki/Haversine_formula
+    private double DistanceInMiles(double lat1, double lng1, double lat2, double lng2)
+    {
+        double earthRadius = 6371; //earth radius in kilometers
+        lat1 *= Math.PI / 180; //convert to radians
+        lat2 *= Math.PI / 180; //convert to radians
+        double dLat = lat2 - lat1; //delta of latitude in radians
+        double dLon = (lng2 - lng1) * Math.PI / 180; //delta of longitude in radians
+
+        //haversine formula
+        double a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
+                Math.Sin(dLon / 2) * Math.Sin(dLon / 2) * Math.Cos(lat1) * Math.Cos(lat2);
+        double c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+        double distKm = earthRadius * c;
+
+        double distMiles = distKm * 0.621371; //convert to miles
+        return Math.Round(distMiles, 4); //round to 4 decimal digits
     }
 }
