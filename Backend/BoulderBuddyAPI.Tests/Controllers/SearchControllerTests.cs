@@ -208,7 +208,7 @@ namespace BoulderBuddyAPI.Tests.Controllers
                 State = "Delaware",
                 DistOptions = new DistanceFromCenterOptions()
                 {
-                    Miles = 23, //the Delaware dataset has climbs from 20-26 miles away. This filters some of them
+                    Miles = 25, //Delaware dataset has climbs 20-26 miles away. This should filter ~2/3 of them out
                     Lat = 39.9528, //coords to Philadelphia City Hall
                     Lng = -75.1635
                 }

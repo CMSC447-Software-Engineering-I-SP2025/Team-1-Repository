@@ -54,12 +54,11 @@ public class SearchController : ControllerBase
             return BadRequest("Invalid root area (state or country)."); //HTTP 400 (BadRequest) response with error msg
         }
 
-        var climbFilter = BuildSearchFilterPredicate(options);
 
-        //filter climbs to climbs that meet filter options, then remove areas that had all their climbs filtered out
+        //filter climbs to climbs that meet filter options, and removes areas that had all their climbs filtered out
         areas = areas.Where(a =>
         {
-            a.climbs = a.climbs.Where(climbFilter).ToList();
+            a.climbs = a.climbs.Where(c => SearchFilter(options, c)).ToList();
             return a.climbs.Count > 0;
         });
 
@@ -97,54 +96,49 @@ public class SearchController : ControllerBase
         return leavesWithClimbs;
     }
 
-    //builds filter predicate that determines whether an area should be included based on all desired filter options
-    private Func<Climb, bool> BuildSearchFilterPredicate(SearchWithFiltersOptions options)
+    //determines if climb should be included based on all desired filter options (pass=true, fail=false)
+    private bool SearchFilter(SearchWithFiltersOptions options, Climb c)
     {
-        return c =>
+        if (c.grades is null) //there are rare occasions where this happens. Better to catch it here than pass it downstream
+            return false;
+        if (ShouldTest(options.MinFont, c.grades.font) && !AboveMin(c.grades.font, options.MinFont, _ranges.Font))
+            return false;
+        if (ShouldTest(options.MaxFont, c.grades.font) && !BelowMax(c.grades.font, options.MaxFont, _ranges.Font))
+            return false;
+        if (ShouldTest(options.MinFrench, c.grades.french) && !AboveMin(c.grades.french, options.MinFrench, _ranges.French))
+            return false;
+        if (ShouldTest(options.MaxFrench, c.grades.french) && !BelowMax(c.grades.french, options.MaxFrench, _ranges.French))
+            return false;
+        if (ShouldTest(options.MinVscale, c.grades.vscale) && !AboveMin(c.grades.vscale, options.MinVscale, _ranges.Vscale))
+            return false;
+        if (ShouldTest(options.MaxVscale, c.grades.vscale) && !BelowMax(c.grades.vscale, options.MaxVscale, _ranges.Vscale))
+            return false;
+        if (ShouldTest(options.MinYDS, c.grades.yds) && !c.grades.yds.StartsWith("V"))
         {
-            if (c.grades is null)
-                return false;
-            if (ShouldTest(options.MinFont, c.grades.font) && !AboveMin(c.grades.font, options.MinFont, _ranges.Font))
-                return false;
-            if (ShouldTest(options.MaxFont, c.grades.font) && !BelowMax(c.grades.font, options.MaxFont, _ranges.Font))
-                return false;
-            if (ShouldTest(options.MinFrench, c.grades.french) && !AboveMin(c.grades.french, options.MinFrench, _ranges.French))
-                return false;
-            if (ShouldTest(options.MaxFrench, c.grades.french) && !BelowMax(c.grades.french, options.MaxFrench, _ranges.French))
-                return false;
-            if (ShouldTest(options.MinVscale, c.grades.vscale) && !AboveMin(c.grades.vscale, options.MinVscale, _ranges.Vscale))
-                return false;
-            if (ShouldTest(options.MaxVscale, c.grades.vscale) && !BelowMax(c.grades.vscale, options.MaxVscale, _ranges.Vscale))
-                return false;
-            if (ShouldTest(options.MinYDS, c.grades.yds) && !c.grades.yds.StartsWith("V"))
-            {
-                //sometimes OpenBeta data's YDS grade has a "-" or "+", which isn't valid for YDS format
-                if (c.grades.yds.EndsWith("-") || c.grades.yds.EndsWith("+"))
-                    c.grades.yds = c.grades.yds.Substring(0, c.grades.yds.Length - 1);
+            //sometimes OpenBeta data's YDS grade has a "-" or "+", which isn't valid for YDS format
+            if (c.grades.yds.EndsWith("-") || c.grades.yds.EndsWith("+"))
+                c.grades.yds = c.grades.yds.Substring(0, c.grades.yds.Length - 1);
 
-                if (!AboveMin(c.grades.yds, options.MinYDS, _ranges.Yds))
-                    return false;
-            }
-            if (ShouldTest(options.MaxYDS, c.grades.yds) && !c.grades.yds.StartsWith("V"))
-            {
-                //sometimes OpenBeta data's YDS grade has a "-" or "+", which isn't valid for YDS format
-                if (c.grades.yds.EndsWith("-") || c.grades.yds.EndsWith("+"))
-                    c.grades.yds = c.grades.yds.Substring(0, c.grades.yds.Length - 1);
+        if (!AboveMin(c.grades.yds, options.MinYDS, _ranges.Yds))
+                return false;
+        }
+        if (ShouldTest(options.MaxYDS, c.grades.yds) && !c.grades.yds.StartsWith("V"))
+        {
+            //sometimes OpenBeta data's YDS grade has a "-" or "+", which isn't valid for YDS format
+            if (c.grades.yds.EndsWith("-") || c.grades.yds.EndsWith("+"))
+                c.grades.yds = c.grades.yds.Substring(0, c.grades.yds.Length - 1);
 
-                if (!BelowMax(c.grades.yds, options.MaxYDS, _ranges.Yds))
-                    return false;
-            }
-            if (options.DistOptions is not null)
-            {
-                double dist = DistanceInMiles(c.metadata.lat, c.metadata.lng, options.DistOptions.Lat, options.DistOptions.Lng);
-                Console.WriteLine("Climb '" + c.name + "' is " + dist + " miles away.");
-                if (dist > options.DistOptions.Miles)
-                    return false;
-            }
+            if (!BelowMax(c.grades.yds, options.MaxYDS, _ranges.Yds))
+                return false;
+        }
+        if (options.DistOptions is not null)
+        {
+            double dist = DistanceInMiles(c.metadata.lat, c.metadata.lng, options.DistOptions.Lat, options.DistOptions.Lng);
+            if (dist > options.DistOptions.Miles)
+                return false;
+        }
 
-            //TODO: distance test
-            return true;
-        };
+        return true;
     }
 
     //checks whether given filter needs to be ran (options entry and grade data are nonnull)
