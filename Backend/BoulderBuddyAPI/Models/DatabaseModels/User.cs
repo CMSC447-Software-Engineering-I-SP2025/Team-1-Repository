@@ -3,17 +3,20 @@ using System.Text.Json.Serialization;
 public class User
 {
     [JsonPropertyName("UserId")]
-    public required string UserId { get; set; }
+    public string UserId { get; set; }
 
     [JsonPropertyName("Name")]
-    public required string Name { get; set; }
+    public string Name { get; set; }
 
     [JsonPropertyName("Email")]
-    public required string Email { get; set; }
+    public string Email { get; set; }
 
     [JsonPropertyName("Password")]
-    public required string Password { get; set; }
+    public string Password { get; set; }
 
     [JsonPropertyName("AccountType")]
-    public required string AccountType { get; set; }
+    public string AccountType { get; set; }
+
+    // Add a parameterless constructor to satisfy the 'new()' constraint
+    public User() { }
 }
