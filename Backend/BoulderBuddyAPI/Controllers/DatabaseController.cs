@@ -232,6 +232,20 @@ namespace BoulderBuddyAPI.Controllers
                 return StatusCode(500, new { message = ex.Message });
             }
         }
+
+        [HttpDelete("users/{userId}")]
+        public async Task<IActionResult> DeleteUser(string userId)
+        {
+            try
+            {
+                await _databaseService.DeleteFromUserTable(userId);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
     }
 }
 
@@ -255,5 +269,9 @@ namespace BoulderBuddyAPI.Services
         Task<List<ClimbGroupEvent>> GetClimbGroupEvents();
         Task<List<Badge>> GetBadges();
         Task<List<BadgeRelation>> GetBadgeRelations();
+
+        Task DeleteFromUserTable(string userId);
+        
+
     }
 }

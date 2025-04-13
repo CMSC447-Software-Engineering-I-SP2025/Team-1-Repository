@@ -57,6 +57,25 @@ namespace BoulderBuddyAPI.Tests.Controllers
         }
 
         [Fact]
+        public void Initialize_CreatesAllTablesSuccessfully()
+        {
+            // Act
+            _databaseInitializer.Initialize();
+
+            // Assert
+            var tables = new[] { "User", "Route", "Review", "Badge", "BadgeRelation" }; // Add all table names here
+            foreach (var table in tables)
+            {
+                using (var command = _sqliteConnection.CreateCommand())
+                {
+                    command.CommandText = $"SELECT name FROM sqlite_master WHERE type='table' AND name='{table}';";
+                    var result = command.ExecuteScalar();
+                    Assert.NotNull(result); // Ensure the table was created
+                }
+            }
+        }
+
+        [Fact]
         public async Task ExecuteInsertCommand_AllowsDataInsertion()
         {
             // Arrange
@@ -199,6 +218,133 @@ namespace BoulderBuddyAPI.Tests.Controllers
             Assert.Equal("12", users[0].UserId);
             Assert.Equal("Test User", users[0].Name);
             Assert.Equal("test@example.com", users[0].Email);
+        }
+
+        [Fact]
+        public void Initialize_ValidatesUserTableSchema()
+        {
+            // Act
+            _databaseInitializer.Initialize();
+
+            // Assert
+            using (var command = _sqliteConnection.CreateCommand())
+            {
+                command.CommandText = "PRAGMA table_info(User);";
+                using (var reader = command.ExecuteReader())
+                {
+                    var columns = new List<string>();
+                    while (reader.Read())
+                    {
+                        columns.Add(reader["name"].ToString());
+                    }
+                    Assert.Contains("UserId", columns);
+                    Assert.Contains("Name", columns);
+                    Assert.Contains("Email", columns);
+                    Assert.Contains("Password", columns);
+                    Assert.Contains("AccountType", columns);
+                }
+            }
+        }
+
+        [Fact]
+        public void Initialize_ValidatesRouteTableSchema()
+        {
+            // Act
+            _databaseInitializer.Initialize();
+
+            // Assert
+            using (var command = _sqliteConnection.CreateCommand())
+            {
+                command.CommandText = "PRAGMA table_info(Route);";
+                using (var reader = command.ExecuteReader())
+                {
+                    var columns = new List<string>();
+                    while (reader.Read())
+                    {
+                        columns.Add(reader["name"].ToString());
+                    }
+                    Assert.Contains("RouteId", columns);
+                    Assert.Contains("Name", columns);
+                    Assert.Contains("Grade", columns);
+                    Assert.Contains("Longitude", columns);
+                    Assert.Contains("Latitude", columns);
+                }
+            }
+        }
+
+        [Fact]
+        public void Initialize_ValidatesReviewTableSchema()
+        {
+            // Act
+            _databaseInitializer.Initialize();
+
+            // Assert
+            using (var command = _sqliteConnection.CreateCommand())
+            {
+                command.CommandText = "PRAGMA table_info(Review);";
+                using (var reader = command.ExecuteReader())
+                {
+                    var columns = new List<string>();
+                    while (reader.Read())
+                    {
+                        columns.Add(reader["name"].ToString());
+                    }
+                    Assert.Contains("ReviewId", columns);
+                    Assert.Contains("UserId", columns);
+                    Assert.Contains("RouteId", columns);
+                    Assert.Contains("Rating", columns);
+                    Assert.Contains("Text", columns);
+                }
+            }
+        }
+
+        [Fact]
+        public void Initialize_ValidatesBadgeTableSchema()
+        {
+            // Act
+            _databaseInitializer.Initialize();
+
+            // Assert
+            using (var command = _sqliteConnection.CreateCommand())
+            {
+                command.CommandText = "PRAGMA table_info(Badge);";
+                using (var reader = command.ExecuteReader())
+                {
+                    var columns = new List<string>();
+                    while (reader.Read())
+                    {
+                        columns.Add(reader["name"].ToString());
+                    }
+                    Assert.Contains("BadgeName", columns);
+                    Assert.Contains("BadgeDescription", columns);
+                    Assert.Contains("BadgeRequirement", columns);
+                    Assert.Contains("BadgeRarity", columns);
+                    Assert.Contains("BadgeImage", columns);
+                }
+            }
+        }
+
+        [Fact]
+        public void Initialize_ValidatesBadgeRelationTableSchema()
+        {
+            // Act
+            _databaseInitializer.Initialize();
+
+            // Assert
+            using (var command = _sqliteConnection.CreateCommand())
+            {
+                command.CommandText = "PRAGMA table_info(BadgeRelation);";
+                using (var reader = command.ExecuteReader())
+                {
+                    var columns = new List<string>();
+                    while (reader.Read())
+                    {
+                        columns.Add(reader["name"].ToString());
+                    }
+                    Assert.Contains("UserId", columns);
+                    Assert.Contains("BadgeId", columns);
+                }
+            }
         }
     }
 }

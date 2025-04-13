@@ -328,6 +328,9 @@ namespace BoulderBuddyAPI.Services
         public Task DeleteFromUserTable(object parameters) =>
             ExecuteDeleteCommand("DELETE FROM User WHERE id = @UserId;", parameters);
 
+        public Task DeleteFromUserTable(string userId) =>
+            ExecuteDeleteCommand("DELETE FROM User WHERE id = @UserId;", new { UserId = userId });
+
         //delete from route table
         public Task DeleteFromRouteTable(object parameters) =>
             ExecuteDeleteCommand("DELETE FROM Route WHERE id = @RouteId;", parameters);
