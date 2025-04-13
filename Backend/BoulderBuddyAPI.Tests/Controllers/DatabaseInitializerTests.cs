@@ -61,7 +61,15 @@ namespace BoulderBuddyAPI.Tests.Controllers
         {
             // Arrange
             _databaseInitializer.Initialize();
-            var user = new { UserId = "1", Name = "Test User", Email = "test@example.com", Password = "password", AccountType = "public" };
+
+            // Clear the table before running the test
+            using (var command = _sqliteConnection.CreateCommand())
+            {
+                command.CommandText = "DELETE FROM User;";
+                command.ExecuteNonQuery();
+            }
+
+            var user = new { UserId = Guid.NewGuid().ToString(), Name = "Test User", Email = "test@example.com", Password = "password", AccountType = "public" };
 
             var commandText = @"
                 INSERT INTO User (UserId, Name, Email, Password, AccountType) 
@@ -73,7 +81,8 @@ namespace BoulderBuddyAPI.Tests.Controllers
             // Assert
             using (var command = _sqliteConnection.CreateCommand())
             {
-                command.CommandText = "SELECT COUNT(*) FROM User WHERE UserId = '1';";
+                command.CommandText = "SELECT COUNT(*) FROM User WHERE UserId = @UserId;";
+                command.Parameters.AddWithValue("@UserId", user.UserId);
                 var result = (long)(command.ExecuteScalar() ?? 0);
                 Assert.Equal(1, result); // Ensure the user was inserted
             }
@@ -102,6 +111,13 @@ namespace BoulderBuddyAPI.Tests.Controllers
         {
             // Arrange
             _databaseInitializer.Initialize();
+
+            // Clear the table before running the test
+            using (var command = _sqliteConnection.CreateCommand())
+            {
+                command.CommandText = "DELETE FROM User;";
+                command.ExecuteNonQuery();
+            }
 
             var user = new { UserId = "1", Name = "Test User", Email = "test@example.com", Password = "password", AccountType = "public" };
             await _databaseService.ExecuteInsertCommand(_sqliteConnection, @"
