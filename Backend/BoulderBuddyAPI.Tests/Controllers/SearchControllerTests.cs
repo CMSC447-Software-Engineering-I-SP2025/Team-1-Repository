@@ -15,10 +15,10 @@ namespace BoulderBuddyAPI.Tests.Controllers
         [Fact]
         public async Task SearchByLocationState_GivenValidState_Returns200OkWithListOfSubareas()
         {
-            var controller = SetupSearchControllerForValidStateTests();
+            var controller = SetupSearchControllerForValidStateTests("TestResources/DelawareResponse.json");
 
             //read expected output from file
-            var jsonString = File.ReadAllText("TestResources/ClimbsByStateResponseLeafAreas.json");
+            var jsonString = File.ReadAllText("TestResources/DelawareLeafAreas.json");
             var expectedReturn = JsonSerializer.Deserialize<List<Area>>(jsonString).AsEnumerable();
 
             var result = await controller.SearchByLocation("Delaware"); //act
@@ -52,7 +52,7 @@ namespace BoulderBuddyAPI.Tests.Controllers
         [Fact]
         public async Task SearchByLocationWithFilters_GivenMinAndMaxFont_FiltersCorrectly()
         {
-            var controller = SetupSearchControllerForValidStateTests();
+            var controller = SetupSearchControllerForValidStateTests("TestResources/DelawareResponse.json");
             var options = new SearchWithFiltersOptions()
             {
                 State = "Delaware",
@@ -98,10 +98,10 @@ namespace BoulderBuddyAPI.Tests.Controllers
         }
 
         //create a SearchController for unit testing valid states
-        private SearchController SetupSearchControllerForValidStateTests()
+        private SearchController SetupSearchControllerForValidStateTests(string testFilePath)
         {
             //read subareas as OpenBetaQueryService would, but without actually pinging OpenBeta API
-            var jsonString = File.ReadAllText("TestResources/ClimbsByStateResponse.json");
+            var jsonString = File.ReadAllText(testFilePath);
             var responseContent = JsonSerializer.Deserialize<SearchByLocationRootObj>(jsonString);
             var subareas = responseContent.data.areas[0].children;
 

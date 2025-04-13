@@ -13,7 +13,7 @@ namespace BoulderBuddyAPI.Tests.Services
         [Fact]
         public async Task QuerySubAreasInArea_GivenValidRootArea_ReturnsSubAreaListWithClimbs()
         {
-            var service = ArrangeTestableObject("TestResources/ClimbsByStateResponse.json"); //arrange
+            var service = ArrangeTestableObject("TestResources/DelawareResponse.json"); //arrange
             var subareas = await service.QuerySubAreasInArea("Delaware"); //act
 
             Assert.Equal(5, subareas.Count); //expecting 5 subareas based on the json file
@@ -24,7 +24,7 @@ namespace BoulderBuddyAPI.Tests.Services
         [Fact]
         public async Task QuerySubAreasInArea_GivenInvalidRootArea_ThrowsArgumentException()
         {
-            var service = ArrangeTestableObject("TestResources/ClimbsByStateResponse.json"); //arrange
+            var service = ArrangeTestableObject("TestResources/DelawareResponse.json"); //arrange
             
             //example invalid inputs
             await Assert.ThrowsAsync<ArgumentException>(() => service.QuerySubAreasInArea("Mississippi"));

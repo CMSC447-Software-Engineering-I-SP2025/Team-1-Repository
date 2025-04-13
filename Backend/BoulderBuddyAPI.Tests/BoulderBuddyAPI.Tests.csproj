@@ -30,10 +30,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="TestResources\ClimbsByStateResponse.json">
+    <None Update="TestResources\DelawareResponse.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="TestResources\ClimbsByStateResponseLeafAreas.json">
+    <None Update="TestResources\DelawareLeafAreas.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
