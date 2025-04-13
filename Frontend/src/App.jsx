@@ -8,6 +8,7 @@ import HeroSection from "./components/HeroSection";
 import WorldMap from "./components/WorldMap";
 import ClimbPage from "./components/ClimbPage";
 import AreaPage from "./components/AreaPage";
+import ViewReviewsPage from "./components/ViewReviewsPage";
 
 const App = () => {
   const [selectedClimb, setSelectedClimb] = useState(null);
@@ -83,6 +84,7 @@ const App = () => {
           <Route path="/login" element={<LoginPage />} /> {/*////////////////////////////////////*/}
           <Route path="/create-review" element={<CreateReview selectedClimb={selectedClimb} />} /> {/*////////////////////////////////////*/}
           <Route path="/create-account" element={<CreateAccountPage />} />
+          <Route path="/view-reviews" element={<ViewReviewsPage selectedClimb={selectedClimb} />} />
           <Route path="/" element={
             (() => {
               if (currentPage === "home") {

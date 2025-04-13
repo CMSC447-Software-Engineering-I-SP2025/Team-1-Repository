@@ -32,6 +32,9 @@ const ClimbPage = ({ selectedClimb }) => {
               <Link to="/create-review" className="px-3">
                   Click me to create a review for this climb!
               </Link>
+              <Link to="/view-reviews" className="px-3">
+                  Click me to view reviews for this climb!
+              </Link>
       </div>
     </div>
   );
