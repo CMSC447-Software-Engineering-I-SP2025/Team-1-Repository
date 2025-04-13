@@ -112,9 +112,9 @@ public class SearchController : ControllerBase
                 return false;
             if (ShouldTest(options.MaxFrench, c.grades.french) && !BelowMax(c.grades.french, options.MaxFrench, _ranges.French))
                 return false;
-            if (ShouldTest(options.MinVscale, c.grades.french) && !AboveMin(c.grades.vscale, options.MinVscale, _ranges.Vscale))
+            if (ShouldTest(options.MinVscale, c.grades.vscale) && !AboveMin(c.grades.vscale, options.MinVscale, _ranges.Vscale))
                 return false;
-            if (ShouldTest(options.MaxVscale, c.grades.french) && !BelowMax(c.grades.vscale, options.MaxVscale, _ranges.Vscale))
+            if (ShouldTest(options.MaxVscale, c.grades.vscale) && !BelowMax(c.grades.vscale, options.MaxVscale, _ranges.Vscale))
                 return false;
             if (ShouldTest(options.MinYDS, c.grades.yds) && !c.grades.yds.StartsWith("V"))
             {

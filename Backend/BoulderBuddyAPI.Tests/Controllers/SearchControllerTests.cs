@@ -80,6 +80,96 @@ namespace BoulderBuddyAPI.Tests.Controllers
         }
 
         [Fact]
+        public async Task SearchByLocationWithFilters_GivenMinAndMaxFrench_FiltersCorrectly()
+        {
+            var controller = SetupSearchControllerForValidStateTests("TestResources/DelawareResponse.json");
+            var options = new SearchWithFiltersOptions()
+            {
+                State = "Delaware",
+                MinFrench = "5a",
+                MaxFrench = "5c+"
+            };
+
+            var result = await controller.SearchByLocationWithFilters(options); //act
+
+            //verify HTTP status code 200 (response created via Ok() method)
+            Assert.IsType<OkObjectResult>(result);
+            var resultAsObjectResult = (OkObjectResult)result;
+            var resultEnumerable = (IEnumerable<Area>)resultAsObjectResult.Value;
+
+            //all areas should have climbs (if we filter out all an area's climbs, it should be removed)
+            Assert.DoesNotContain(resultEnumerable, a => a.climbs.Count == 0);
+
+            //all climbs should have null/empty font or be base of 5
+            foreach (var area in resultEnumerable)
+            {
+                foreach (var climb in area.climbs)
+                    Assert.True(climb.grades.french is null || climb.grades.french == ""
+                        || climb.grades.french.StartsWith("5"));
+            }
+        }
+
+        [Fact]
+        public async Task SearchByLocationWithFilters_GivenMinAndMaxVscale_FiltersCorrectly()
+        {
+            var controller = SetupSearchControllerForValidStateTests("TestResources/DelawareResponse.json");
+            var options = new SearchWithFiltersOptions()
+            {
+                State = "Delaware",
+                MinVscale = "V2",
+                MaxVscale = "V4"
+            };
+
+            var result = await controller.SearchByLocationWithFilters(options); //act
+
+            //verify HTTP status code 200 (response created via Ok() method)
+            Assert.IsType<OkObjectResult>(result);
+            var resultAsObjectResult = (OkObjectResult)result;
+            var resultEnumerable = (IEnumerable<Area>)resultAsObjectResult.Value;
+
+            //all areas should have climbs (if we filter out all an area's climbs, it should be removed)
+            Assert.DoesNotContain(resultEnumerable, a => a.climbs.Count == 0);
+
+            //all climbs should have null/empty font or be base of 5
+            foreach (var area in resultEnumerable)
+            {
+                foreach (var climb in area.climbs)
+                    Assert.True(climb.grades.vscale is null || climb.grades.vscale == ""
+                        || climb.grades.vscale == "V2" || climb.grades.vscale == "V3" || climb.grades.vscale == "V4");
+            }
+        }
+
+        [Fact]
+        public async Task SearchByLocationWithFilters_GivenMinAndMaxYds_FiltersCorrectly()
+        {
+            var controller = SetupSearchControllerForValidStateTests("TestResources/ColoradoResponse.json");
+            var options = new SearchWithFiltersOptions()
+            {
+                State = "Colorado",
+                MinYDS = "5.12a",
+                MaxYDS = "5.12d"
+            };
+
+            var result = await controller.SearchByLocationWithFilters(options); //act
+
+            //verify HTTP status code 200 (response created via Ok() method)
+            Assert.IsType<OkObjectResult>(result);
+            var resultAsObjectResult = (OkObjectResult)result;
+            var resultEnumerable = (IEnumerable<Area>)resultAsObjectResult.Value;
+
+            //all areas should have climbs (if we filter out all an area's climbs, it should be removed)
+            Assert.DoesNotContain(resultEnumerable, a => a.climbs.Count == 0);
+
+            //all climbs should have null/empty font or be base of 5
+            foreach (var area in resultEnumerable)
+            {
+                foreach (var climb in area.climbs)
+                    Assert.True(climb.grades.yds is null || climb.grades.yds == ""
+                        || climb.grades.yds.StartsWith("5.12") || climb.grades.yds.StartsWith("V"));
+            }
+        }
+
+        [Fact]
         public async Task SearchByLocationWithFilters_GivenInvalidState_Returns400BadRequestWithErrorMsg()
         {
             var controller = SetupSearchControllerForInvalidStateTests();

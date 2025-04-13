@@ -30,6 +30,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="TestResources\ColoradoResponse.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="TestResources\ColoradoLeafAreas.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="TestResources\DelawareResponse.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
