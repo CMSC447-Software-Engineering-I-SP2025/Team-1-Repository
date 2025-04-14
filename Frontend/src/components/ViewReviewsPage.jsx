@@ -42,7 +42,7 @@ const ViewReviewsPage = ({ selectedClimb }) => {
                 <ul>
                     {reviews.map((review, index) => (
                         <li key={index} style={{ marginBottom: "1rem" }}>
-                            <strong>User ID:</strong> {review.UserId} <br />
+                            <strong>Username:</strong> {review.UserName} <br />
                             <strong>Rating:</strong> {review.Rating / 2} / 5<br />
                             <strong>Review:</strong> {review.Text}
                         </li>
