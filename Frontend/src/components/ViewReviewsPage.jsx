@@ -13,11 +13,11 @@ const ViewReviewsPage = ({ selectedClimb }) => {
         const fetchReviews = async (climbID) => {
             try {
                 //climbID = "string"; //remove this
-                console.log("Climb ID being requested:", "string");
+                console.log("Climb ID being requested:", selectedClimb.id);
                 const response = await axios.get(
                     "https://localhost:7195/api/Database/ReviewsByClimbID",
                     {
-                        params: { id: "string" }, //change this
+                        params: { id: selectedClimb.id }, //change this
                     }
                 );
                 console.log("API Response:", response.data);
