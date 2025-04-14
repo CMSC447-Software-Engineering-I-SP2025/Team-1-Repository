@@ -143,7 +143,12 @@ namespace BoulderBuddyAPI.Services
 
         //select 10 random reviews for a specific climb
         public Task<List<Review>> GetTenReviews(string RouteID) =>
-            ExecuteSelectCommand<Review>($"SELECT * FROM Review WHERE RouteID = \"{RouteID}\" ORDER BY RANDOM() LIMIT 10", new object());
+            ExecuteSelectCommand<Review>("SELECT Review.*, User.Name as UserName " +
+                "FROM Review " +
+                "JOIN User ON Review.UserId=User.UserId " +
+                $"WHERE Review.RouteID='{RouteID}' " +
+                "ORDER BY RANDOM() LIMIT 10", new object());
+
 
         //select from recommendation table
         public Task<List<Recommendation>> GetRecommendations() =>
