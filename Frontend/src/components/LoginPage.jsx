@@ -1,15 +1,33 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { supabase } from "../lib/supabaseClient"; 
+import { useNavigate } from 'react-router-dom';
+import { useUser } from './UserProvider';
 import "./css/LoginPage.css";
 
-const LoginPage = ({ onLogin }) => {
-  const [username, setUsername] = useState('');
+const LoginPage = () => {
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    onLogin(username.toLowerCase(), password);
-  };
 
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email,
+      password,
+    });
+  
+    if (error) {
+      alert(`Login failed: ${error.message}`);
+    } else {
+      alert('Logged in successfully'); 
+      console.log('User ID:', data.user.id);
+      console.log('Session:', data.session);
+      navigate('/my-profile'); // Redirect to My Profile page
+    }
+  };
+  
   return (
     <div className="login-container">
       <form className="login-form" onSubmit={handleLogin}>
@@ -18,23 +36,31 @@ const LoginPage = ({ onLogin }) => {
         <p>Log in to continue</p>
         <div className="form-group">
           <input
-            type="text"
-            placeholder="Username"
-            id="username"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
+            type="email"
+            placeholder="Email"
+            id="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             required
           />
         </div>
-        <div className="form-group">
-          <input
-            type="password"
-            placeholder="Password"
-            id="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
+        <div className="form-group password-group">
+          <div className="password-input-wrapper">
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder="Password"
+              id="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+            <span
+              className="toggle-password"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? "🙈" : "👁️" }
+            </span>
+          </div>
         </div>
         <button type="submit">Login</button>
         <div className="info-box">
