@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, use } from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { supabase } from "./lib/supabaseClient";
+import { UserProvider } from "./components/UserProvider"; // Import UserProvider if needed
 import LoginPage from "./components/LoginPage";
 import CreateAccountPage from "./components/CreateAccountPage";
 import Header from "./components/Header";
@@ -7,15 +9,16 @@ import HeroSection from "./components/HeroSection";
 import WorldMap from "./components/WorldMap";
 import ClimbPage from "./components/ClimbPage";
 import AreaPage from "./components/AreaPage";
+import ForgotPassword from "./components/ForgotPassword";
 
 const App = () => {
+  const [user, setUser] = useState(null);
   const [selectedClimb, setSelectedClimb] = useState(null);
   const [currentPage, setCurrentPage] = useState("home");
   const [selectedArea, setSelectedArea] = useState(null);
   const [areas, setAllAreas] = useState([]);
   const [allClimbs, setAllClimbs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [recommendedClimbs, setRecommendedClimbs] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -39,20 +42,12 @@ const App = () => {
     fetchData();
   }, []);
 
-  useEffect(() => {
-    if (areas.length > 0) {
-      const allClimbs = areas.flatMap(area => area.climbs);
-      const selectedClimbs = allClimbs.sort(() => 0.5 - Math.random()).slice(0, 10);
-      setRecommendedClimbs(selectedClimbs);
-    }
-  }, [areas]);
-
   const handleHomeClick = () => {
     setCurrentPage("home");
     setSelectedClimb(null);
     setSelectedArea(null);
   };
-
+  
   useEffect(() => {
     if (selectedClimb) {
       setCurrentPage("climb");
@@ -75,53 +70,56 @@ const App = () => {
   }, [areas]);
 
   return (
-    <Router>
-      <div>
-        <Header onHomeClick={handleHomeClick} />
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/create-account" element={<CreateAccountPage />} />
-          <Route path="/" element={
-            (() => {
-              if (currentPage === "home") {
-                return (
-                  <div className="flex">
-                    <div className="w-2/4">
-                      <HeroSection
-                        setCurrentPage={setCurrentPage}
-                        setSelectedClimb={setSelectedClimb}
-                        allClimbs={allClimbs}
-                        isLoading={isLoading}
-                        recommendedClimbs={recommendedClimbs} 
-                      />
+    <UserProvider> 
+      <Router>
+        <div>
+          <Header onHomeClick={handleHomeClick} />
+          <Routes>
+            <Route path="/signup" element={<CreateAccountPage />} />
+            <Route path="/login" element={<LoginPage onLogin={setUser} />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/create-account" element={<CreateAccountPage />} />
+            <Route path="/" element={
+              (() => {
+                if (currentPage === "home") {
+                  return (
+                    <div className="flex">
+                      <div className="w-2/4">
+                        <HeroSection
+                          setCurrentPage={setCurrentPage}
+                          setSelectedClimb={setSelectedClimb}
+                          allClimbs={allClimbs}
+                          isLoading={isLoading}
+                        />
+                      </div>
+                      <div className="w-3/4">
+                        <WorldMap
+                          areas={areas}
+                          area={selectedArea}
+                          setSelectedArea={setSelectedArea}
+                          isLoading={isLoading}
+                        />
+                      </div>
                     </div>
-                    <div className="w-3/4">
-                      <WorldMap
-                        areas={areas}
-                        area={selectedArea}
-                        setSelectedArea={setSelectedArea}
-                        isLoading={isLoading}
-                      />
-                    </div>
-                  </div>
-                );
-              } else if (currentPage === "climb") {
-                return <ClimbPage selectedClimb={selectedClimb} />;
-              } else if (currentPage === "area") {
-                return (
-                  <AreaPage
-                    selectedArea={selectedArea}
-                    setSelectedClimb={setSelectedClimb}
-                  />
-                );
-              } else {
-                return null;
-              }
-            })()
-          } />
-        </Routes>
-      </div>
-    </Router>
+                  );
+                } else if (currentPage === "climb") {
+                  return <ClimbPage selectedClimb={selectedClimb} />;
+                } else if (currentPage === "area") {
+                  return (
+                    <AreaPage
+                      selectedArea={selectedArea}
+                      setSelectedClimb={setSelectedClimb}
+                    />
+                  );
+                } else {
+                  return null;
+                }
+              })()
+            } />
+          </Routes>
+        </div>
+      </Router>
+    </UserProvider>
   );
 };
 
