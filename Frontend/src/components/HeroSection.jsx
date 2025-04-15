@@ -78,7 +78,6 @@ const HeroSection = ({ setSelectedClimb, allClimbs, isLoading, recommendedClimbs
             ))}
           </ul>
         </div>
-         <RecommendationTab recommendedClimbs={recommendedClimbs} /> 
       </div>
     </section>
   );
