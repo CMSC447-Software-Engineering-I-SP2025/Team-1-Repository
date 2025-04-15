@@ -17,11 +17,16 @@
   color: #ffffff;
 }
 
+.signup-card.expanded {
+  height: auto; /* Allow dynamic height adjustment */
+  padding-bottom: 20px; /* Add spacing for the password requirements */
+}
+
 .website-title {
   font-size: 30px;
   font-weight: bold;
   font-family: 'Montserrat', sans-serif;
-  color: #ff5c5c;
+  color: blue; /* Changed from red to blue */
   text-transform: uppercase;
   letter-spacing: 2px;
   margin-bottom: 20px;
@@ -58,6 +63,29 @@
   color: #fff;
 }
 
+.password-group {
+  position: relative;
+}
+
+.password-input-wrapper {
+  position: relative;
+}
+
+.password-input-wrapper input {
+  width: 100%;
+  padding-right: 40px; /* Add space for the icon */
+}
+
+.toggle-password {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  font-size: 18px;
+  color: #fff;
+}
+
 button {
   width: 100%;
   padding: 12px;
@@ -74,7 +102,7 @@ button:hover {
   background-color: #ff5c5c;
 }
 
-.login-text {
+login-text {
   margin-top: 15px;
   color: #b0b3b8;
 }
@@ -86,4 +114,32 @@ button:hover {
 
 .login-text a:hover {
   text-decoration: underline;
+}
+
+.password-requirements {
+  background-color: #2c3e5a;
+  color: #fff;
+  padding: 10px;
+  border-radius: 5px;
+  margin-top: 10px;
+  text-align: left;
+  font-size: 14px;
+}
+
+.password-requirements ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.password-requirements li {
+  margin-bottom: 5px;
+}
+
+.password-requirements li.valid {
+  color: #ffffff; /* Green for valid */
+}
+
+.password-requirements li:not(.valid) {
+  color: #f44336; /* Red for invalid */
 }
