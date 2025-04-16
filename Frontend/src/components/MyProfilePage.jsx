@@ -1,10 +1,21 @@
 import React, { useEffect, useState } from "react";
-import defaultProfilePic from "../../assets/default-profile.jpg"; // Import the default profile picture
+import defaultProfilePic from "../../assets/default-profile.jpg";
 
-const MyProfilePage = ({ user }) => {
+const MyProfilePage = ({ user, onSave }) => {
   const [profilePic, setProfilePic] = useState(defaultProfilePic); // State for profile picture
   const [isHovered, setIsHovered] = useState(false); // State for hover effect
-  const [bio, setBio] = useState(""); // State for bio
+  const [bio, setBio] = useState(user.bio || ""); // Initialize bio from user
+  const [firstName, setFirstName] = useState(user.firstName || "John");
+  const [lastName, setLastName] = useState(user.lastName || "Doe");
+  const [email, setEmail] = useState(user.email || "");
+  const [phone, setPhone] = useState(user.phone || "");
+  const [phoneCountry, setPhoneCountry] = useState(user.phoneCountry || "+1");
+  const [boulderGradeRange, setBoulderGradeRange] = useState(
+    user.boulderGradeRange || { min: "V0", max: "V5" }
+  );
+  const [ropeGradeRange, setRopeGradeRange] = useState(
+    user.ropeGradeRange || { min: "5.8", max: "5.12" }
+  );
   const [activeTab, setActiveTab] = useState("editProfile"); // State for active tab
   const maxBioLength = 200; // Maximum character limit for bio
 
@@ -29,56 +40,52 @@ const MyProfilePage = ({ user }) => {
     }
   };
 
+  const handleSaveChanges = (event) => {
+    event.preventDefault();
+    const updatedUser = {
+      ...user,
+      firstName,
+      lastName,
+      email,
+      phone,
+      phoneCountry,
+      bio,
+      boulderGradeRange,
+      ropeGradeRange,
+    };
+    onSave(updatedUser); // Call the onSave callback with updated user data
+  };
+
   return (
     <div className="min-h-screen bg-gray-100">
-      <div className="max-w-4xl p-6 mx-auto mt-10 bg-white rounded-lg shadow-md">
+      <div className="max-w-4xl p-6 mx-auto mt-10 bg-white rounded-lg">
         {/* Tabs */}
-        <div className="flex mb-6 border-b">
-          <button
-            className={`px-4 py-2 text-sm font-medium ${
-              activeTab === "editProfile"
-                ? "text-blue-500 border-b-2 border-blue-500"
-                : "text-gray-500"
-            }`}
-            onClick={() => setActiveTab("editProfile")}
-          >
-            Edit Profile
-          </button>
-          <button
-            className={`px-4 py-2 text-sm font-medium ${
-              activeTab === "myClimbs"
-                ? "text-blue-500 border-b-2 border-blue-500"
-                : "text-gray-500"
-            }`}
-            onClick={() => setActiveTab("myClimbs")}
-          >
-            My Climbs
-          </button>
-          <button
-            className={`px-4 py-2 text-sm font-medium ${
-              activeTab === "reviews"
-                ? "text-blue-500 border-b-2 border-blue-500"
-                : "text-gray-500"
-            }`}
-            onClick={() => setActiveTab("reviews")}
-          >
-            Reviews
-          </button>
-          <button
-            className={`px-4 py-2 text-sm font-medium ${
-              activeTab === "photos"
-                ? "text-blue-500 border-b-2 border-blue-500"
-                : "text-gray-500"
-            }`}
-            onClick={() => setActiveTab("photos")}
-          >
-            Photos
-          </button>
+        <div className="flex justify-between px-4 mb-6 border-b border-gray-300">
+          {["editProfile", "myClimbs", "reviews", "photos"].map((tab) => (
+            <div
+              key={tab}
+              className={`relative pb-3 text-base font-medium transition-all duration-300 cursor-pointer ${
+                activeTab === tab
+                  ? "text-blue-600 border-b-4 border-blue-600"
+                  : "text-gray-500 hover:text-blue-600 hover:border-b-4 hover:border-blue-300"
+              }`}
+              onClick={() => setActiveTab(tab)}
+              style={{ flex: 1, textAlign: "center" }} // Ensure even spacing and alignment
+            >
+              {tab === "editProfile"
+                ? "Edit Profile"
+                : tab === "myClimbs"
+                ? "My Climbs"
+                : tab === "reviews"
+                ? "Reviews"
+                : "Photos"}
+            </div>
+          ))}
         </div>
 
         {/* Tab Content */}
         {activeTab === "editProfile" && (
-          <form>
+          <form onSubmit={handleSaveChanges}>
             {/* Profile Picture */}
             <div className="mb-6">
               <div
@@ -107,24 +114,195 @@ const MyProfilePage = ({ user }) => {
 
             {/* First Name and Last Name */}
             <div className="flex mb-6 space-x-4">
-              {/* ...existing code for first and last name... */}
+              {/* First Name */}
+              <div className="w-1/2">
+                <label className="block mb-2 text-sm font-medium text-gray-700">
+                  First Name
+                </label>
+                <input
+                  type="text"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
+
+              {/* Last Name */}
+              <div className="w-1/2">
+                <label className="block mb-2 text-sm font-medium text-gray-700">
+                  Last Name
+                </label>
+                <input
+                  type="text"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
             </div>
 
             {/* Email */}
-            <div className="mb-6">{/* ...existing code for email... */}</div>
+            <div className="mb-6">
+              <label className="block mb-2 text-sm font-medium text-gray-700">
+                Email
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
 
             {/* Phone Number */}
             <div className="mb-6">
-              {/* ...existing code for phone number... */}
+              <label className="block mb-2 text-sm font-medium text-gray-700">
+                Phone Number
+              </label>
+              <div className="flex">
+                <select
+                  value={phoneCountry}
+                  onChange={(e) => setPhoneCountry(e.target.value)}
+                  className="px-2 py-2 border border-gray-300 rounded-l bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  style={{ width: "auto" }}
+                >
+                  <option value="+1">+1</option>
+                  <option value="+44">+44</option>
+                  <option value="+91">+91</option>
+                  {/* Add more country codes as needed */}
+                </select>
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-r focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              </div>
             </div>
 
             {/* Boulder Grade Range and Rope Climbing Grade Range */}
             <div className="flex mb-6 space-x-4">
-              {/* ...existing code for grade ranges... */}
+              {/* Boulder Grade Range */}
+              <div className="w-1/2">
+                <label className="block mb-2 text-sm font-medium text-gray-700">
+                  Boulder Grade Range
+                </label>
+                <div className="flex space-x-2">
+                  <select
+                    value={boulderGradeRange.min}
+                    onChange={(e) =>
+                      setBoulderGradeRange((prev) => ({
+                        ...prev,
+                        min: e.target.value,
+                      }))
+                    }
+                    className="w-1/2 px-2 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="V0">V0</option>
+                    <option value="V1">V1</option>
+                    <option value="V2">V2</option>
+                    <option value="V3">V3</option>
+                    <option value="V4">V4</option>
+                    <option value="V5">V5</option>
+                    <option value="V6">V6</option>
+                    <option value="V7">V7</option>
+                    <option value="V8">V8</option>
+                    <option value="V9">V9</option>
+                    <option value="V10">V10</option>
+                  </select>
+                  <select
+                    value={boulderGradeRange.max}
+                    onChange={(e) =>
+                      setBoulderGradeRange((prev) => ({
+                        ...prev,
+                        max: e.target.value,
+                      }))
+                    }
+                    className="w-1/2 px-2 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="V0">V0</option>
+                    <option value="V1">V1</option>
+                    <option value="V2">V2</option>
+                    <option value="V3">V3</option>
+                    <option value="V4">V4</option>
+                    <option value="V5">V5</option>
+                    <option value="V6">V6</option>
+                    <option value="V7">V7</option>
+                    <option value="V8">V8</option>
+                    <option value="V9">V9</option>
+                    <option value="V10">V10</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Rope Climbing Grade Range */}
+              <div className="w-1/2">
+                <label className="block mb-2 text-sm font-medium text-gray-700">
+                  Rope Climbing Grade Range
+                </label>
+                <div className="flex space-x-2">
+                  <select
+                    value={ropeGradeRange.min}
+                    onChange={(e) =>
+                      setRopeGradeRange((prev) => ({
+                        ...prev,
+                        min: e.target.value,
+                      }))
+                    }
+                    className="w-1/2 px-2 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="5.5">5.5</option>
+                    <option value="5.6">5.6</option>
+                    <option value="5.7">5.7</option>
+                    <option value="5.8">5.8</option>
+                    <option value="5.9">5.9</option>
+                    <option value="5.10">5.10</option>
+                    <option value="5.11">5.11</option>
+                    <option value="5.12">5.12</option>
+                    <option value="5.13">5.13</option>
+                    <option value="5.14">5.14</option>
+                  </select>
+                  <select
+                    value={ropeGradeRange.max}
+                    onChange={(e) =>
+                      setRopeGradeRange((prev) => ({
+                        ...prev,
+                        max: e.target.value,
+                      }))
+                    }
+                    className="w-1/2 px-2 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="5.5">5.5</option>
+                    <option value="5.6">5.6</option>
+                    <option value="5.7">5.7</option>
+                    <option value="5.8">5.8</option>
+                    <option value="5.9">5.9</option>
+                    <option value="5.10">5.10</option>
+                    <option value="5.11">5.11</option>
+                    <option value="5.12">5.12</option>
+                    <option value="5.13">5.13</option>
+                    <option value="5.14">5.14</option>
+                  </select>
+                </div>
+              </div>
             </div>
 
             {/* Bio */}
-            <div className="mb-6">{/* ...existing code for bio... */}</div>
+            <div className="mb-6">
+              <label className="block mb-2 text-sm font-medium text-gray-700">
+                Bio
+              </label>
+              <textarea
+                rows="4"
+                placeholder="Tell us about yourself..."
+                value={bio}
+                onChange={handleBioChange}
+                className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              ></textarea>
+              <div className="mt-1 text-sm text-gray-500">
+                {bio.length}/{maxBioLength} characters
+              </div>
+            </div>
 
             {/* Save Button */}
             <div className="flex justify-end">

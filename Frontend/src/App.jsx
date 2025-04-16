@@ -1,7 +1,7 @@
 import React, { useState, useEffect, use } from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { supabase } from "./lib/supabaseClient";
-import { UserProvider } from "./components/UserProvider"; // Import UserProvider if needed
+import { UserProvider } from "./components/UserProvider";
 import LoginPage from "./components/LoginPage";
 import CreateAccountPage from "./components/CreateAccountPage";
 import Header from "./components/Header";
@@ -22,8 +22,7 @@ const App = () => {
   const [allClimbs, setAllClimbs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [recommendedClimbs, setRecommendedClimbs] = useState([]);
-
-  const currentUser = {
+  const [currentUser, setCurrentUser] = useState({
     id: "12345",
     firstName: "John",
     lastName: "Doe",
@@ -32,6 +31,10 @@ const App = () => {
     phoneCountry: "+1",
     boulderGradeRange: { min: "V0", max: "V5" },
     ropeGradeRange: { min: "5.8", max: "5.12" },
+  });
+
+  const handleSaveUser = (updatedUser) => {
+    setCurrentUser(updatedUser);
   };
 
   useEffect(() => {
@@ -105,7 +108,12 @@ const App = () => {
     <UserProvider>
       <Router>
         <div>
-          <Header onHomeClick={handleHomeClick} />
+          <Header
+            onHomeClick={handleHomeClick}
+            onProfileClick={handleProfileClick}
+            onSettingsClick={handleSettingsClick}
+            isLoggedIn={true}
+          />
           <Routes>
             <Route path="/signup" element={<CreateAccountPage />} />
             <Route path="/login" element={<LoginPage onLogin={setUser} />} />
@@ -145,7 +153,9 @@ const App = () => {
                     />
                   );
                 } else if (currentPage === "profile") {
-                  return <MyProfilePage user={currentUser} />;
+                  return (
+                    <MyProfilePage user={currentUser} onSave={handleSaveUser} />
+                  );
                 } else if (currentPage === "settings") {
                   return <SettingsPage />;
                 } else {
