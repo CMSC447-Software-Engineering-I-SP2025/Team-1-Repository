@@ -27,7 +27,7 @@ const App = () => {
     firstName: "John",
     lastName: "Doe",
     email: "johndoe@example.com",
-    phone: "123-456-7890",
+    phone: "1234567890",
     phoneCountry: "+1",
     boulderGradeRange: { min: "V0", max: "V5" },
     ropeGradeRange: { min: "5.8", max: "5.12" },

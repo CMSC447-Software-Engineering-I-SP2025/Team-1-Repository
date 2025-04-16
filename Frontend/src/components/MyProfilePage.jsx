@@ -17,11 +17,30 @@ const MyProfilePage = ({ user, onSave }) => {
     user.ropeGradeRange || { min: "5.8", max: "5.12" }
   );
   const [activeTab, setActiveTab] = useState("editProfile"); // State for active tab
+  const [emailError, setEmailError] = useState(""); // State for email error
+  const [phoneError, setPhoneError] = useState(""); // State for phone error
   const maxBioLength = 200; // Maximum character limit for bio
 
   useEffect(() => {
     window.scrollTo(0, 0); // Scroll to the top of the page
   }, []);
+
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validatePhone = (phone) => {
+    const phoneRegex = /^[0-9]{10,15}$/; // Allow 10 to 15 digits
+    return phoneRegex.test(phone);
+  };
+
+  const formatPhoneNumber = (phone) => {
+    // Format phone number as (XXX) XXX-XXXX
+    const cleaned = phone.replace(/\D/g, ""); // Remove non-numeric characters
+    const match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
+    return match ? `(${match[1]}) ${match[2]}-${match[3]}` : phone;
+  };
 
   const handleImageChange = (event) => {
     const file = event.target.files[0];
@@ -42,12 +61,32 @@ const MyProfilePage = ({ user, onSave }) => {
 
   const handleSaveChanges = (event) => {
     event.preventDefault();
+
+    // Validate email
+    if (!validateEmail(email)) {
+      setEmailError("Please enter a valid email address.");
+      return;
+    } else {
+      setEmailError("");
+    }
+
+    // Validate phone
+    if (!validatePhone(phone)) {
+      setPhoneError("Please enter a valid phone number (10-15 digits).");
+      return;
+    } else {
+      setPhoneError("");
+    }
+
+    // Auto-format phone number
+    const formattedPhone = formatPhoneNumber(phone);
+
     const updatedUser = {
       ...user,
       firstName,
       lastName,
       email,
-      phone,
+      phone: formattedPhone,
       phoneCountry,
       bio,
       boulderGradeRange,
@@ -150,8 +189,18 @@ const MyProfilePage = ({ user, onSave }) => {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className={`w-full px-4 py-2 border ${
+                  emailError ? "border-red-500" : "border-gray-300"
+                } rounded focus:outline-none focus:ring-2 ${
+                  emailError ? "focus:ring-red-500" : "focus:ring-blue-500"
+                }`}
+                style={{
+                  outline: emailError ? "2px solid red" : "none",
+                }}
               />
+              {emailError && (
+                <p className="mt-1 text-sm text-red-500">{emailError}</p>
+              )}
             </div>
 
             {/* Phone Number */}
@@ -175,9 +224,19 @@ const MyProfilePage = ({ user, onSave }) => {
                   type="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-r focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className={`w-full px-4 py-2 border ${
+                    phoneError ? "border-red-500" : "border-gray-300"
+                  } rounded-r focus:outline-none focus:ring-2 ${
+                    phoneError ? "focus:ring-red-500" : "focus:ring-blue-500"
+                  }`}
+                  style={{
+                    outline: phoneError ? "2px solid red" : "none",
+                  }}
                 />
               </div>
+              {phoneError && (
+                <p className="mt-1 text-sm text-red-500">{phoneError}</p>
+              )}
             </div>
 
             {/* Boulder Grade Range and Rope Climbing Grade Range */}
