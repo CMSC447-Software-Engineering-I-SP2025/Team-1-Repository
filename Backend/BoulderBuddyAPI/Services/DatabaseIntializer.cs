@@ -30,15 +30,15 @@ namespace BoulderBuddyAPI.Services
                     );
                     CREATE TABLE IF NOT EXISTS Review (
                         ReviewId INTEGER PRIMARY KEY AUTOINCREMENT,
-                        UserId INTEGER NOT NULL,
+                        UserId TEXT NOT NULL,
                         RouteId TEXT NOT NULL,
                         Rating INTEGER NOT NULL,
                         Text TEXT,
                         FOREIGN KEY (UserId) REFERENCES User(UserId)
                     );
                     CREATE TABLE IF NOT EXISTS UserRelation (
-                        User1Id INTEGER NOT NULL,
-                        User2Id INTEGER NOT NULL,
+                        User1Id TEXT NOT NULL,
+                        User2Id TEXT NOT NULL,
                         RelationType TEXT NOT NULL,
                         RequestDate TEXT NOT NULL DEFAULT current_timestamp,
                         FriendSince TEXT,
@@ -62,7 +62,7 @@ namespace BoulderBuddyAPI.Services
                     );
                     CREATE TABLE IF NOT EXISTS ClimbGroupRelation (
                         GroupId INTEGER NOT NULL,
-                        UserId INTEGER NOT NULL,
+                        UserId TEXT NOT NULL,
                         RelationType TEXT NOT NULL,
                         InviteDate TEXT,
                         MemberSince TEXT,
@@ -92,7 +92,7 @@ namespace BoulderBuddyAPI.Services
                         CHECK (BadgeRarity IN (""common"", ""uncommon"", ""rare""))
                     );
                     CREATE TABLE IF NOT EXISTS BadgeRelation (
-                        UserId INTEGER NOT NULL,
+                        UserId TEXT NOT NULL,
                         BadgeId INTEGER NOT NULL,
                         PRIMARY KEY (UserId, BadgeId),
                         FOREIGN KEY (UserId) REFERENCES User(UserId),
