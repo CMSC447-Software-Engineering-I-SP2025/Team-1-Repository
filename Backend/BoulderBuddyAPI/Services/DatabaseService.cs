@@ -1,6 +1,5 @@
+using BoulderBuddyAPI.Models.DatabaseModels;
 using Microsoft.Data.Sqlite;
-using System;
-using System.Threading.Tasks;
 
 namespace BoulderBuddyAPI.Services
 {
@@ -170,9 +169,24 @@ namespace BoulderBuddyAPI.Services
         //select from route table
         public Task<List<Route>> GetRoutes() =>
             ExecuteSelectCommand<Route>("SELECT * FROM Route", new object());
-            //select from review table
+        //select from review table
         public Task<List<Review>> GetReviews() =>
             ExecuteSelectCommand<Review>("SELECT * FROM Review", new object());
+
+        //select 10 random reviews for a specific climb
+        public Task<List<Review>> GetTenReviews(string RouteID) =>
+            ExecuteSelectCommand<Review>("SELECT Review.*, User.Name as UserName " +
+                "FROM Review " +
+                "JOIN User ON Review.UserId=User.UserId " +
+                $"WHERE Review.RouteID='{RouteID}' " +
+                "ORDER BY RANDOM() LIMIT 10", new object());
+        
+        //get average rating for a specific climb
+        public Task<List<SingleItemWrapper<double>>> GetAvgReview(string RouteID) =>
+            ExecuteSelectCommand<SingleItemWrapper<double>>("SELECT AVG(Rating) as Val " +
+                "FROM Review " +
+                $"WHERE RouteID='{RouteID}'", new object());
+
 
         //select from recommendation table
         public Task<List<Recommendation>> GetRecommendations() =>

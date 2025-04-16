@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { supabase } from "./lib/supabaseClient";
 import { UserProvider } from "./components/UserProvider"; // Import UserProvider if needed
 import LoginPage from "./components/LoginPage";
+import CreateReview from "./components/CreateReview";
 import CreateAccountPage from "./components/CreateAccountPage";
 import Header from "./components/Header";
 import HeroSection from "./components/HeroSection";
@@ -10,6 +11,7 @@ import WorldMap from "./components/WorldMap";
 import ClimbPage from "./components/ClimbPage";
 import AreaPage from "./components/AreaPage";
 import ForgotPassword from "./components/ForgotPassword";
+import ViewReviewsPage from "./components/ViewReviewsPage";
 
 const App = () => {
   const [user, setUser] = useState(null);
@@ -19,6 +21,7 @@ const App = () => {
   const [areas, setAllAreas] = useState([]);
   const [allClimbs, setAllClimbs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [recommendedClimbs, setRecommendedClimbs] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -79,6 +82,9 @@ const App = () => {
             <Route path="/login" element={<LoginPage onLogin={setUser} />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/create-account" element={<CreateAccountPage />} />
+            <Route path="/view-reviews" element={<ViewReviewsPage selectedClimb={selectedClimb} />} />
+            <Route path="/create-review" element={<CreateReview selectedClimb={selectedClimb} />} /> 
+
             <Route path="/" element={
               (() => {
                 if (currentPage === "home") {
@@ -90,6 +96,7 @@ const App = () => {
                           setSelectedClimb={setSelectedClimb}
                           allClimbs={allClimbs}
                           isLoading={isLoading}
+                          recommendedClimbs={recommendedClimbs} 
                         />
                       </div>
                       <div className="w-3/4">

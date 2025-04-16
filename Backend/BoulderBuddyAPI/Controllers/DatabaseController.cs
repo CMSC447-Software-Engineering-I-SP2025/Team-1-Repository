@@ -1,5 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using BoulderBuddyAPI.Services;
+using Microsoft.Extensions.Configuration;
+using System;
+using BoulderBuddyAPI.Models.DatabaseModels;
 
 
 namespace BoulderBuddyAPI.Controllers
@@ -135,6 +138,35 @@ namespace BoulderBuddyAPI.Controllers
             }
         }
 
+        [HttpGet("ReviewsByClimbID")]
+        public async Task<IActionResult> GetReviewsByClimbID(string id)
+        {
+            try
+            {
+                var reviews = await _databaseService.GetTenReviews(id);
+                return Ok(reviews);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        [HttpGet("ClimbAvgRating")]
+        public async Task<IActionResult> GetClimbAvgRating(string id)
+        {
+            try
+            {
+                var resultList = await _databaseService.GetAvgReview(id);
+                var avg = resultList.First().Val;
+                return Ok(avg);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
         [HttpGet("recommendation")]
         public async Task<IActionResult> GetRecommendations()
         {
@@ -262,6 +294,8 @@ namespace BoulderBuddyAPI.Services
         Task<List<User>> GetUsers();
         Task<List<Route>> GetRoutes();
         Task<List<Review>> GetReviews();
+        Task<List<Review>> GetTenReviews(string RouteID);
+        Task<List<SingleItemWrapper<double>>> GetAvgReview(string RouteID);
         Task<List<Recommendation>> GetRecommendations();
         Task<List<UserRelation>> GetUserRelations();
         Task<List<ClimbGroup>> GetClimbGroups();
