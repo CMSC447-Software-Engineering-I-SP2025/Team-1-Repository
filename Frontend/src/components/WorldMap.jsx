@@ -3,6 +3,11 @@ import ReactDOMServer from "react-dom/server";
 import ClimbInfoBox from "./ClimbInfoBox";
 
 const WorldMap = ({ areas, area, setSelectedArea, isLoading }) => {
+  if (!areas || !Array.isArray(areas)) {
+    console.error("Invalid 'areas' prop passed to WorldMap.");
+    return null;
+  }
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-screen">
