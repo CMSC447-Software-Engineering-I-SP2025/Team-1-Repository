@@ -15,9 +15,9 @@ const CreateReviewPage = ({ selectedClimb, userId }) => {  // Assuming userId is
 
         // Prepare the data for the review
         const reviewData = {
-            UserId: 1,  // change this
+            UserId: "string",  // change this
             RouteId: selectedClimb.id,
-            Rating: "" + rating,  // make sure rating is a string, will eventually have to change this
+            Rating: parseInt(rating),  // make sure rating is a string, will eventually have to change this
             Text: description,
         };
 

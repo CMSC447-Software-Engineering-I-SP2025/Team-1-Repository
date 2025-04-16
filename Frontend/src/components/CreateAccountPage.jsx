@@ -3,7 +3,6 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabaseClient'; 
 import "./css/CreateAccountPage.css";
-import axios from 'axios';
 
 const CreateAccountPage = () => {
   const [username, setUsername] = useState('');

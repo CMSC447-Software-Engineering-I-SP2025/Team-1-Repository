@@ -3,13 +3,13 @@ using System.Text.Json.Serialization;
 public class Review
 {
     [JsonPropertyName("UserId")]
-    public required long UserId { get; set; }
+    public required string UserId { get; set; }
 
     [JsonPropertyName("UserName")]
     public string? UserName { get; set; }
 
     [JsonPropertyName("RouteId")]
-    public required String RouteId { get; set; }
+    public required string RouteId { get; set; }
 
     [JsonPropertyName("Rating")]
     public required long Rating { get; set; }

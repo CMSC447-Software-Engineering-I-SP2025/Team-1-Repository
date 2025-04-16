@@ -21,7 +21,7 @@ namespace BoulderBuddyAPI.Services
 
                 string createTables = @"
                     CREATE TABLE IF NOT EXISTS User (
-                        UserId INTEGER PRIMARY KEY AUTOINCREMENT,
+                        UserId TEXT PRIMARY KEY,
                         Name TEXT NOT NULL,
                         Email TEXT,
                         Password TEXT NOT NULL,

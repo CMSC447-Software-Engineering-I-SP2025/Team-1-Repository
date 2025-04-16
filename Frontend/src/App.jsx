@@ -83,7 +83,7 @@ const App = () => {
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/create-account" element={<CreateAccountPage />} />
             <Route path="/view-reviews" element={<ViewReviewsPage selectedClimb={selectedClimb} />} />
-            <Route path="/create-review" element={<CreateReview selectedClimb={selectedClimb} />} /> {/*////////////////////////////////////*/}
+            <Route path="/create-review" element={<CreateReview selectedClimb={selectedClimb} />} /> 
 
             <Route path="/" element={
               (() => {
