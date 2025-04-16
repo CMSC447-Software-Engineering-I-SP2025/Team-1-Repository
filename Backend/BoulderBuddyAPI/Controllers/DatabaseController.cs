@@ -1,13 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Data.Sqlite;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.Text.Json;
-using BoulderBuddyAPI.Models;
 using BoulderBuddyAPI.Services;
 using Microsoft.Extensions.Configuration;
 using System;
 using BoulderBuddyAPI.Models.DatabaseModels;
+
 
 namespace BoulderBuddyAPI.Controllers
 {
@@ -269,42 +265,17 @@ namespace BoulderBuddyAPI.Controllers
             }
         }
 
-        private async Task<IActionResult> HandleGetRequest<T>(string selectCommand)
+        [HttpDelete("users/{userId}")]
+        public async Task<IActionResult> DeleteUser(string userId)
         {
             try
             {
-                using (SqliteConnection connection = new SqliteConnection(_configuration.GetConnectionString("DefaultConnection")))
-                {
-                    await connection.OpenAsync();
-                    using (SqliteCommand command = connection.CreateCommand())
-                    {
-                        command.CommandText = selectCommand;
-                        using (var reader = await command.ExecuteReaderAsync())
-                        {
-                            var items = new List<T>();
-                            while (await reader.ReadAsync())
-                            {
-                                var item = Activator.CreateInstance<T>();
-                                PopulateItem(reader, item);
-                                items.Add(item);
-                            }
-                            return Ok(items);
-                        }
-                    }
-                }
+                await _databaseService.DeleteFromUserTable(userId);
+                return Ok();
             }
             catch (Exception ex)
             {
                 return StatusCode(500, new { message = ex.Message });
-            }
-        }
-
-        private void PopulateItem<T>(SqliteDataReader reader, T item)
-        {
-            foreach (var property in typeof(T).GetProperties())
-            {
-                var value = reader[property.Name.ToLower()];
-                property.SetValue(item, value == DBNull.Value ? null : value);
             }
         }
     }
@@ -332,5 +303,8 @@ namespace BoulderBuddyAPI.Services
         Task<List<ClimbGroupEvent>> GetClimbGroupEvents();
         Task<List<Badge>> GetBadges();
         Task<List<BadgeRelation>> GetBadgeRelations();
+        Task DeleteFromUserTable(string userId);
+        
+
     }
 }

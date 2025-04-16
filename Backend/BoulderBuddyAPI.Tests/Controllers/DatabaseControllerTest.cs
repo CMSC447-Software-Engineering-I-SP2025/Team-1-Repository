@@ -46,6 +46,21 @@ namespace BoulderBuddyAPI.Tests.Controllers
         }
 
         [Fact]
+        public async Task PostUser_InvalidUser_ReturnsBadRequest()
+        {
+            // Arrange
+            _controller.ModelState.AddModelError("Name", "The Name field is required.");
+            var user = new User { UserId = "testuser1", Email = "testuser@example.com", Password = "password123", AccountType = "Standard" };
+
+            // Act
+            var result = await _controller.PostUser(user);
+
+            // Assert
+            var badRequestResult = Assert.IsType<BadRequestObjectResult>(result);
+            Assert.Equal(400, badRequestResult.StatusCode);
+        }
+
+        [Fact]
         public async Task PostRoute_ValidRoute_ReturnsOk()
         {
             var route = new Route { RouteId = "1", Name = "Test Route", Grade = "5.10", Longitude = "0.0", Latitude = "0.0" };
@@ -132,5 +147,22 @@ namespace BoulderBuddyAPI.Tests.Controllers
             Assert.Equal(200, okResult.StatusCode);
             Assert.Equal(recommendations, okResult.Value);
         }
+
+        [Fact]
+        public async Task DeleteUser_ValidUserId_ReturnsOk()
+        {
+            // Arrange
+            var userId = "testuser1";
+            _mockDatabaseService.Setup(service => service.DeleteFromUserTable(userId)).Returns(Task.CompletedTask);
+
+            // Act
+            var result = await _controller.DeleteUser(userId);
+
+            // Assert
+            var okResult = Assert.IsType<OkResult>(result);
+            Assert.Equal(200, okResult.StatusCode);
+        }
+
+
     }
 }

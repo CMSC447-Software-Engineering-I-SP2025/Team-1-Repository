@@ -1,3 +1,4 @@
+using BoulderBuddyAPI.Models;
 using BoulderBuddyAPI.Models.OpenBetaModels;
 using BoulderBuddyAPI.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -10,11 +11,13 @@ public class SearchController : ControllerBase
 {
     private readonly ILogger<SearchController> _logger;
     private readonly IOpenBetaQueryService _openBetaQuerySvc;
+    private readonly GradeRangesConfig _ranges;
 
-    public SearchController(ILogger<SearchController> logger, IOpenBetaQueryService openBetaQuerySvc)
+    public SearchController(ILogger<SearchController> logger, IOpenBetaQueryService openBetaQuerySvc, GradeRangesConfig ranges)
     {
         _logger = logger;
         _openBetaQuerySvc = openBetaQuerySvc;
+        _ranges = ranges;
     }
 
     //POST /Search/State - performs OpenBeta API query to find climbs in given state
@@ -33,6 +36,33 @@ public class SearchController : ControllerBase
         {
             return BadRequest("Invalid root area (state or country)."); //HTTP 400 (BadRequest) response with error msg
         }
+    }
+
+    //POST /Search/StateWithFilters - performs OpenBeta API query, then filters the response based on desired options
+    //note: if a grade filter is desired (like MinYDS), but an area has a null YDS specified, that area will be included
+    [HttpPost("StateWithFilters")]
+    public async Task<IActionResult> SearchByLocationWithFilters(SearchWithFiltersOptions options)
+    {
+        IEnumerable<Area> areas;
+        try
+        {
+            var subareas = await _openBetaQuerySvc.QuerySubAreasInArea(options.State);
+            areas = GetLeafAreasWithClimbs(subareas);
+        }
+        catch (ArgumentException)
+        {
+            return BadRequest("Invalid root area (state or country)."); //HTTP 400 (BadRequest) response with error msg
+        }
+
+
+        //filter climbs to climbs that meet filter options, and removes areas that had all their climbs filtered out
+        areas = areas.Where(a =>
+        {
+            a.climbs = a.climbs.Where(c => SearchFilter(options, c)).ToList();
+            return a.climbs.Count > 0;
+        });
+
+        return Ok(areas.ToList()); //HTTP 200 (Ok) response with content
     }
 
     //finds all areas within list of trees (areas) that have no subareas but do have climbs associated with them. DFS
@@ -64,5 +94,128 @@ public class SearchController : ControllerBase
         }
 
         return leavesWithClimbs;
+    }
+
+    //determines if climb should be included based on all desired filter options (pass=true, fail=false)
+    private bool SearchFilter(SearchWithFiltersOptions options, Climb c)
+    {
+        if (c.grades is null) //there are rare occasions where this happens. Better to catch it here than pass it downstream
+            return false;
+        if (ShouldTest(options.MinFont, c.grades.font) && !AboveMin(c.grades.font, options.MinFont, _ranges.Font))
+            return false;
+        if (ShouldTest(options.MaxFont, c.grades.font) && !BelowMax(c.grades.font, options.MaxFont, _ranges.Font))
+            return false;
+        if (ShouldTest(options.MinFrench, c.grades.french) && !AboveMin(c.grades.french, options.MinFrench, _ranges.French))
+            return false;
+        if (ShouldTest(options.MaxFrench, c.grades.french) && !BelowMax(c.grades.french, options.MaxFrench, _ranges.French))
+            return false;
+        if (ShouldTest(options.MinVscale, c.grades.vscale) && !AboveMin(c.grades.vscale, options.MinVscale, _ranges.Vscale))
+            return false;
+        if (ShouldTest(options.MaxVscale, c.grades.vscale) && !BelowMax(c.grades.vscale, options.MaxVscale, _ranges.Vscale))
+            return false;
+        if (ShouldTest(options.MinYDS, c.grades.yds) && !c.grades.yds.StartsWith("V"))
+        {
+            //sometimes OpenBeta data's YDS grade has a "-" or "+", which isn't valid for YDS format
+            if (c.grades.yds.EndsWith("-") || c.grades.yds.EndsWith("+"))
+                c.grades.yds = c.grades.yds.Substring(0, c.grades.yds.Length - 1);
+
+        if (!AboveMin(c.grades.yds, options.MinYDS, _ranges.Yds))
+                return false;
+        }
+        if (ShouldTest(options.MaxYDS, c.grades.yds) && !c.grades.yds.StartsWith("V"))
+        {
+            //sometimes OpenBeta data's YDS grade has a "-" or "+", which isn't valid for YDS format
+            if (c.grades.yds.EndsWith("-") || c.grades.yds.EndsWith("+"))
+                c.grades.yds = c.grades.yds.Substring(0, c.grades.yds.Length - 1);
+
+            if (!BelowMax(c.grades.yds, options.MaxYDS, _ranges.Yds))
+                return false;
+        }
+        if (options.DistOptions is not null)
+        {
+            double dist = DistanceInMiles(c.metadata.lat, c.metadata.lng, options.DistOptions.Lat, options.DistOptions.Lng);
+            if (dist > options.DistOptions.Miles)
+                return false;
+        }
+
+        return true;
+    }
+
+    //checks whether given filter needs to be ran (options entry and grade data are nonnull)
+    private bool ShouldTest(string? fromOptions, string? fromData)
+    {
+        return fromOptions is not null && fromData is not null && fromData != "";
+    }
+
+    //returns true when 'grade' is null/empty or at/above 'min' in the given gradeRange. False if grade is below min or if error
+    private bool AboveMin(string grade, string min, string[] gradeRange)
+    {
+        if (grade is null || grade == "")
+            return true;
+
+        int minIndex = Array.IndexOf(gradeRange, min);
+        int targetIndex = Array.IndexOf(gradeRange, grade);
+
+        //logs when returning false due to invalid inputs
+        if (minIndex == -1)
+        {
+            _logger.LogError($"Cannot determine if grade '{grade}' is above min '{min}' because min is an unsupported value.");
+            return false;
+        }
+        else if (targetIndex == -1)
+        {
+            _logger.LogError($"Could not determine if grade '{grade}' is above min '{min}' because grade is an unsupported value.");
+            return false;
+        }
+
+        return targetIndex >= minIndex;
+    }
+
+    //returns true when 'grade' is null/empty or at/below 'max' in the given gradeRange. False if grade is above max or if error
+    private bool BelowMax(string grade, string max, string[] gradeRange)
+    {
+        if (grade is null || grade == "")
+            return true;
+
+        int maxIndex = Array.IndexOf(gradeRange, max);
+        int targetIndex = Array.IndexOf(gradeRange, grade);
+
+        //logs when returning false due to invalid inputs
+        if (maxIndex == -1)
+        {
+            _logger.LogError($"Cannot determine if grade '{grade}' is below max '{max}' because max is an unsupported value.");
+            return false;
+        }
+        else if (targetIndex == -1)
+        {
+            _logger.LogError($"Could not determine if grade '{grade}' is below max '{max}' because grade is an unsupported value.");
+            return false;
+        }
+
+        return targetIndex <= maxIndex;
+    }
+
+    //calculates the distance between two coordinates using the Haversine Formula, assuming the Earth is a 6371km radius sphere
+    //note: the calculated value has some minimal error, since Earth is not a sphere or constant radius. We accept that fact.
+    //references:
+    // - https://github.com/mesotron/GRAIL/blob/master/geo_demo/geo_demo/Maths.cs (source code)
+    // - https://community.esri.com/t5/coordinate-reference-systems-blog/distance-on-a-sphere-the-haversine-formula/ba-p/902128
+    // - https://en.wikipedia.org/wiki/Haversine_formula
+    private double DistanceInMiles(double lat1, double lng1, double lat2, double lng2)
+    {
+        double earthRadius = 6371; //earth radius in kilometers
+        lat1 *= Math.PI / 180; //convert to radians
+        lat2 *= Math.PI / 180; //convert to radians
+        double dLat = lat2 - lat1; //delta of latitude in radians
+        double dLon = (lng2 - lng1) * Math.PI / 180; //delta of longitude in radians
+
+        //haversine formula
+        double a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2) +
+                Math.Sin(dLon / 2) * Math.Sin(dLon / 2) * Math.Cos(lat1) * Math.Cos(lat2);
+        double c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
+        double distKm = earthRadius * c;
+
+        double distMiles = distKm * 0.621371; //convert to miles
+        return Math.Round(distMiles, 4); //round to 4 decimal digits
     }
 }

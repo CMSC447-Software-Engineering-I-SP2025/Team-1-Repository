@@ -29,12 +29,18 @@ namespace BoulderBuddyAPI.Services
             using (var connection = _sqliteConnection ?? new SqliteConnection(_connectionString))
             {
                 await connection.OpenAsync();
-                using (var command = connection.CreateCommand())
-                {
-                    AddParameters(command, parameters);
-                    command.CommandText = commandText;
-                    await command.ExecuteNonQueryAsync();
-                }
+                await ExecuteInsertCommand(connection, commandText, parameters);
+            }
+        }
+
+        public async Task ExecuteInsertCommand(SqliteConnection connection, string commandText, object parameters)
+        {
+            using (var command = connection.CreateCommand())
+            {
+                AddParameters(command, parameters);
+                command.CommandText = commandText;
+
+                await command.ExecuteNonQueryAsync();
             }
         }
 
@@ -129,6 +135,33 @@ namespace BoulderBuddyAPI.Services
             return results;
         }
 
+        public async Task<List<T>> ExecuteSelectCommand<T>(SqliteConnection connection, string commandText, object parameters) where T : new()
+        {
+            using (var command = connection.CreateCommand())
+            {
+                AddParameters(command, parameters);
+                command.CommandText = commandText;
+
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    var results = new List<T>();
+                    while (await reader.ReadAsync())
+                    {
+                        var item = new T();
+                        foreach (var property in typeof(T).GetProperties())
+                        {
+                            if (!reader.IsDBNull(reader.GetOrdinal(property.Name)))
+                            {
+                                property.SetValue(item, reader[property.Name]);
+                            }
+                        }
+                        results.Add(item);
+                    }
+                    return results;
+                }
+            }
+        }
+
         //select from user table
         public Task<List<User>> GetUsers() =>
             ExecuteSelectCommand<User>("SELECT * FROM User", new object());
@@ -195,6 +228,17 @@ namespace BoulderBuddyAPI.Services
                     command.CommandText = commandText;
                     await command.ExecuteNonQueryAsync();
                 }
+            }
+        }
+
+        public async Task ExecuteUpdateCommand(SqliteConnection connection, string commandText, object parameters)
+        {
+            using (var command = connection.CreateCommand())
+            {
+                AddParameters(command, parameters);
+                command.CommandText = commandText;
+
+                await command.ExecuteNonQueryAsync();
             }
         }
 
@@ -283,9 +327,23 @@ namespace BoulderBuddyAPI.Services
             }
         }
 
+        public async Task ExecuteDeleteCommand(SqliteConnection connection, string commandText, object parameters)
+        {
+            using (var command = connection.CreateCommand())
+            {
+                AddParameters(command, parameters);
+                command.CommandText = commandText;
+
+                await command.ExecuteNonQueryAsync();
+            }
+        }
+
         //delete from user table
         public Task DeleteFromUserTable(object parameters) =>
             ExecuteDeleteCommand("DELETE FROM User WHERE id = @UserId;", parameters);
+
+        public Task DeleteFromUserTable(string userId) =>
+            ExecuteDeleteCommand("DELETE FROM User WHERE id = @UserId;", new { UserId = userId });
 
         //delete from route table
         public Task DeleteFromRouteTable(object parameters) =>

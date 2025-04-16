@@ -9,8 +9,14 @@ const Header = ({ onHomeClick }) => {
           <Link to="/" onClick={onHomeClick}>Boulder Buddy</Link>
         </h1>
         <nav>
+          <Link to="/signup" className="px-3">
+            Sign up
+          </Link>
           <Link to="/login" className="px-3">
             Login
+          </Link>
+          <Link to="/my-profile" className="px-3">
+            My Profile
           </Link>
         </nav>
       </div>
