@@ -10,6 +10,8 @@
     "serve": "vite preview"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.49.4",
+    "axios": "^1.8.4",
     "boulder-buddy": "file:",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",

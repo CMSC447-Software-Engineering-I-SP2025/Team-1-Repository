@@ -1,5 +1,9 @@
-import React, { useState, useEffect } from "react";
-import { BrowserRouter } from "react-router-dom";
+import React, { useState, useEffect, use } from "react";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import { supabase } from "./lib/supabaseClient";
+import { UserProvider } from "./components/UserProvider"; // Import UserProvider if needed
+import LoginPage from "./components/LoginPage";
+import CreateAccountPage from "./components/CreateAccountPage";
 import Header from "./components/Header";
 import HeroSection from "./components/HeroSection";
 import WorldMap from "./components/WorldMap";
@@ -10,8 +14,10 @@ import SettingsPage from "./components/SettingsPage";
 import LoginPage from "./components/LoginPage";
 import CreateAccountPage from "./components/CreateAccountPage";
 import { UserProvider } from "./components/UserProvider";
+import ForgotPassword from "./components/ForgotPassword";
 
 const App = () => {
+  const [user, setUser] = useState(null);
   const [selectedClimb, setSelectedClimb] = useState(null);
   const [currentPage, setCurrentPage] = useState("home");
   const [selectedArea, setSelectedArea] = useState(null);
