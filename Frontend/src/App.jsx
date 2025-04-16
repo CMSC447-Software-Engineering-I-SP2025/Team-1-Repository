@@ -11,9 +11,6 @@ import ClimbPage from "./components/ClimbPage";
 import AreaPage from "./components/AreaPage";
 import MyProfilePage from "./components/MyProfilePage";
 import SettingsPage from "./components/SettingsPage";
-import LoginPage from "./components/LoginPage";
-import CreateAccountPage from "./components/CreateAccountPage";
-import { UserProvider } from "./components/UserProvider";
 import ForgotPassword from "./components/ForgotPassword";
 
 const App = () => {
