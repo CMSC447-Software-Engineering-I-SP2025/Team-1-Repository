@@ -24,7 +24,6 @@ const App = () => {
   const [allClimbs, setAllClimbs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [recommendedClimbs, setRecommendedClimbs] = useState([]);
-<<<<<<< HEAD
   const [currentUser, setCurrentUser] = useState({
     id: "12345",
     firstName: "John",
@@ -39,8 +38,6 @@ const App = () => {
   const handleSaveUser = (updatedUser) => {
     setCurrentUser(updatedUser);
   };
-=======
->>>>>>> main
 
   useEffect(() => {
     const fetchData = async () => {
@@ -124,17 +121,11 @@ const App = () => {
             <Route path="/login" element={<LoginPage onLogin={setUser} />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/create-account" element={<CreateAccountPage />} />
-<<<<<<< HEAD
-            <Route
-              path="/"
-              element={(() => {
-=======
             <Route path="/view-reviews" element={<ViewReviewsPage selectedClimb={selectedClimb} />} />
             <Route path="/create-review" element={<CreateReview selectedClimb={selectedClimb} />} /> 
 
             <Route path="/" element={
               (() => {
->>>>>>> main
                 if (currentPage === "home") {
                   return (
                     <div className="flex">
