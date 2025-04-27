@@ -1,5 +1,9 @@
-import React, { useEffect, useState } from "react";
 import defaultProfilePic from "../../assets/default-profile.jpg";
+import React from "react";
+import { Link } from "react-router-dom";
+import { useEffect } from "react";
+import { useState } from 'react';
+import axios from "axios";
 
 const MyProfilePage = ({ user, onSave }) => {
   const [profilePic, setProfilePic] = useState(defaultProfilePic); // State for profile picture
@@ -399,8 +403,16 @@ const MyProfilePage = ({ user, onSave }) => {
               )}
               {activeTab === "community" && (
                   <div>
-                      <h2 className="text-xl font-bold text-gray-800">Community</h2>
-                      <p className="text-gray-600">Community stuff will go here.</p>
+                      <h2 className="text-xl font-bold text-gray-800">Friends</h2>
+                      <Link to="/add-friend" className="px-3">
+                          +
+                      </Link>
+                      <p className="text-gray-600">Friends will go here.</p>
+                      <h2 className="text-xl font-bold text-gray-800">Groups</h2>
+                      <Link to="/add-group" className="px-3">
+                          +
+                      </Link>
+                      <p className="text-gray-600">Groups will go here.</p>
                   </div>
               )}
       </div>
