@@ -100,7 +100,7 @@ const MyProfilePage = ({ user, onSave }) => {
       <div className="max-w-4xl p-6 mx-auto mt-10 bg-white rounded-lg">
         {/* Tabs */}
         <div className="flex justify-between px-4 mb-6 border-b border-gray-300">
-          {["editProfile", "myClimbs", "reviews", "photos"].map((tab) => (
+          {["editProfile", "myClimbs", "reviews", "photos", "community"].map((tab) => (
             <div
               key={tab}
               className={`relative pb-3 text-base font-medium transition-all duration-300 cursor-pointer ${
@@ -117,7 +117,9 @@ const MyProfilePage = ({ user, onSave }) => {
                 ? "My Climbs"
                 : tab === "reviews"
                 ? "Reviews"
-                : "Photos"}
+                : tab === "photos"
+                ? "Photos"
+                : "community"}
             </div>
           ))}
         </div>
@@ -394,7 +396,13 @@ const MyProfilePage = ({ user, onSave }) => {
             <h2 className="text-xl font-bold text-gray-800">Photos</h2>
             <p className="text-gray-600">Gallery of photos will go here.</p>
           </div>
-        )}
+              )}
+              {activeTab === "community" && (
+                  <div>
+                      <h2 className="text-xl font-bold text-gray-800">Community</h2>
+                      <p className="text-gray-600">Community stuff will go here.</p>
+                  </div>
+              )}
       </div>
     </div>
   );
