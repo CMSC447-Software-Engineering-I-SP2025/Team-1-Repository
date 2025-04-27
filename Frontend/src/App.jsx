@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { supabase } from "./lib/supabaseClient";
 import { UserProvider } from "./components/UserProvider";
 import LoginPage from "./components/LoginPage";
+import CreateReview from "./components/CreateReview";
 import CreateAccountPage from "./components/CreateAccountPage";
 import Header from "./components/Header";
 import HeroSection from "./components/HeroSection";
@@ -12,6 +13,7 @@ import AreaPage from "./components/AreaPage";
 import MyProfilePage from "./components/MyProfilePage";
 import SettingsPage from "./components/SettingsPage";
 import ForgotPassword from "./components/ForgotPassword";
+import ViewReviewsPage from "./components/ViewReviewsPage";
 
 const App = () => {
   const [user, setUser] = useState(null);
@@ -22,6 +24,7 @@ const App = () => {
   const [allClimbs, setAllClimbs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [recommendedClimbs, setRecommendedClimbs] = useState([]);
+<<<<<<< HEAD
   const [currentUser, setCurrentUser] = useState({
     id: "12345",
     firstName: "John",
@@ -36,6 +39,8 @@ const App = () => {
   const handleSaveUser = (updatedUser) => {
     setCurrentUser(updatedUser);
   };
+=======
+>>>>>>> main
 
   useEffect(() => {
     const fetchData = async () => {
@@ -119,9 +124,17 @@ const App = () => {
             <Route path="/login" element={<LoginPage onLogin={setUser} />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/create-account" element={<CreateAccountPage />} />
+<<<<<<< HEAD
             <Route
               path="/"
               element={(() => {
+=======
+            <Route path="/view-reviews" element={<ViewReviewsPage selectedClimb={selectedClimb} />} />
+            <Route path="/create-review" element={<CreateReview selectedClimb={selectedClimb} />} /> 
+
+            <Route path="/" element={
+              (() => {
+>>>>>>> main
                 if (currentPage === "home") {
                   return (
                     <div className="flex">
@@ -131,6 +144,7 @@ const App = () => {
                           setSelectedClimb={setSelectedClimb}
                           allClimbs={allClimbs}
                           isLoading={isLoading}
+                          recommendedClimbs={recommendedClimbs} 
                         />
                       </div>
                       <div className="w-3/4">

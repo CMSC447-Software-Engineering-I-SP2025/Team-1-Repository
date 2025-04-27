@@ -63,7 +63,7 @@ namespace BoulderBuddyAPI.Tests.Controllers
             _databaseInitializer.Initialize();
 
             // Assert
-            var tables = new[] { "User", "Route", "Review", "Badge", "BadgeRelation" }; // Add all table names here
+            var tables = new[] { "User", "Review", "Badge", "BadgeRelation" }; // Add all table names here
             foreach (var table in tables)
             {
                 using (var command = _sqliteConnection.CreateCommand())
@@ -242,32 +242,6 @@ namespace BoulderBuddyAPI.Tests.Controllers
                     Assert.Contains("Email", columns);
                     Assert.Contains("Password", columns);
                     Assert.Contains("AccountType", columns);
-                }
-            }
-        }
-
-        [Fact]
-        public void Initialize_ValidatesRouteTableSchema()
-        {
-            // Act
-            _databaseInitializer.Initialize();
-
-            // Assert
-            using (var command = _sqliteConnection.CreateCommand())
-            {
-                command.CommandText = "PRAGMA table_info(Route);";
-                using (var reader = command.ExecuteReader())
-                {
-                    var columns = new List<string>();
-                    while (reader.Read())
-                    {
-                        columns.Add(reader["name"].ToString());
-                    }
-                    Assert.Contains("RouteId", columns);
-                    Assert.Contains("Name", columns);
-                    Assert.Contains("Grade", columns);
-                    Assert.Contains("Longitude", columns);
-                    Assert.Contains("Latitude", columns);
                 }
             }
         }

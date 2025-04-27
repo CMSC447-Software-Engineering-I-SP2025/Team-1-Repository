@@ -15,9 +15,11 @@ namespace BoulderBuddyAPI
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
-            //direct inject "OpenBetaConfig" section from appsettings
+            //direct inject appsettings sections
             builder.Services.AddSingleton(builder.Configuration.GetSection("OpenBetaConfig")
                 .Get<OpenBetaConfig>());
+            builder.Services.AddSingleton(builder.Configuration.GetSection("GradeRanges")
+                .Get<GradeRangesConfig>());
 
             //direct inject connection service for making queries to OpenBeta API
             builder.Services.AddHttpClient<IOpenBetaQueryService, OpenBetaQueryService>(client =>
@@ -46,7 +48,8 @@ namespace BoulderBuddyAPI
                 app.UseSwaggerUI();
             }
 
-            app.UseCors(options => options.AllowAnyOrigin().AllowAnyMethod());
+            app.UseCors(options => options.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader());
+
             app.UseHttpsRedirection();
             app.UseAuthorization();
 
