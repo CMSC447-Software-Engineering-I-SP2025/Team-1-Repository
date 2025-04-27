@@ -23,7 +23,31 @@ const MyProfilePage = ({ user, onSave }) => {
   const [activeTab, setActiveTab] = useState("editProfile"); // State for active tab
   const [emailError, setEmailError] = useState(""); // State for email error
   const [phoneError, setPhoneError] = useState(""); // State for phone error
-  const maxBioLength = 200; // Maximum character limit for bio
+    const maxBioLength = 200; // Maximum character limit for bio
+
+    const [userRelation1] = useState({
+        user1ID: "12345",
+        user2ID: "2",
+        relationType: "pending_user1"
+    });
+    const [userRelation2] = useState({
+        user1ID: "12345",
+        user2ID: "1",
+        relationType: "friends"
+    });
+
+    const [userRelations, setUserRelations] = useState([userRelation1, userRelation2]);
+
+    const [groupRelation1] = useState({
+        groupID: "1",
+        relationType: "invited"
+    });
+    const [groupRelation2] = useState({
+        groupID: "2",
+        relationType: "member"
+    });
+
+    const [groupRelations, setGroupRelations] = useState([groupRelation1, groupRelation2]);
 
   useEffect(() => {
     window.scrollTo(0, 0); // Scroll to the top of the page
@@ -407,12 +431,35 @@ const MyProfilePage = ({ user, onSave }) => {
                       <Link to="/add-friend" className="px-3">
                           +
                       </Link>
-                      <p className="text-gray-600">Friends will go here.</p>
+                      {userRelations.length === 0 ? (
+                          <p>You have no friends, haha, loser.</p>
+                      ) : (
+                          <ul>
+                              {userRelations.map((userRelation, index) => (
+                                  <li key={index} style={{ marginBottom: "1rem" }}>
+                                      <strong>User1ID:</strong> {userRelation.user1ID} <br />
+                                      <strong>User2ID:</strong> {userRelation.user2ID}<br />
+                                      <strong>RelationType:</strong> {userRelation.relationType}
+                                  </li>
+                              ))}
+                          </ul>
+                      )}
                       <h2 className="text-xl font-bold text-gray-800">Groups</h2>
                       <Link to="/add-group" className="px-3">
                           +
                       </Link>
-                      <p className="text-gray-600">Groups will go here.</p>
+                      {groupRelations.length === 0 ? (
+                          <p>You are in no groups, haha, loser.</p>
+                      ) : (
+                          <ul>
+                                  {groupRelations.map((groupRelation, index) => (
+                                  <li key={index} style={{ marginBottom: "1rem" }}>
+                                          <strong>GroupID:</strong> {groupRelation.groupID} <br />
+                                          <strong>RelationType:</strong> {groupRelation.relationType}
+                                  </li>
+                              ))}
+                          </ul>
+                      )}
                   </div>
               )}
       </div>
