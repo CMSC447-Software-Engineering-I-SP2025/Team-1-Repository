@@ -75,7 +75,7 @@ namespace BoulderBuddyAPI.Tests.Controllers
         [Fact]
         public async Task PostReview_ValidReview_ReturnsOk()
         {
-            var review = new Review { UserId = "1", RouteId = "1", Rating = "5", Text = "Great route!" };
+            var review = new Review { UserId = "1", RouteId = "1", Rating = 5, Text = "Great route!" };
             _mockDatabaseService.Setup(service => service.InsertIntoReviewTable(review)).Returns(Task.CompletedTask);
 
             var result = await _controller.PostReview(review);
@@ -125,7 +125,7 @@ namespace BoulderBuddyAPI.Tests.Controllers
         [Fact]
         public async Task GetReviews_ReturnsOk()
         {
-            var reviews = new List<Review> { new Review { UserId = "1", RouteId = "1", Rating = "5", Text = "Test Review" } };
+            var reviews = new List<Review> { new Review { UserId = "1", RouteId = "1", Rating = 5, Text = "Test Review" } };
             _mockDatabaseService.Setup(service => service.GetReviews()).ReturnsAsync(reviews);
 
             var result = await _controller.GetReviews();

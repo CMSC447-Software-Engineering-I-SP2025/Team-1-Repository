@@ -70,11 +70,8 @@ query ClimbsInArea {
         }
         id
         grades {
-          brazilianCrux
-          ewbank
           font
           french
-          uiaa
           vscale
           yds
         }
@@ -96,11 +93,8 @@ query ClimbsInArea {
           }
           id
           grades {
-            brazilianCrux
-            ewbank
             font
             french
-            uiaa
             vscale
             yds
           }
@@ -122,11 +116,8 @@ query ClimbsInArea {
             }
             id
             grades {
-              brazilianCrux
-              ewbank
               font
               french
-              uiaa
               vscale
               yds
             }
@@ -148,11 +139,8 @@ query ClimbsInArea {
               }
               id
               grades {
-                brazilianCrux
-                ewbank
                 font
                 french
-                uiaa
                 vscale
                 yds
               }
@@ -174,11 +162,8 @@ query ClimbsInArea {
                 }
                 id
                 grades {
-                  brazilianCrux
-                  ewbank
                   font
                   french
-                  uiaa
                   vscale
                   yds
                 }
@@ -200,11 +185,8 @@ query ClimbsInArea {
                   }
                   id
                   grades {
-                    brazilianCrux
-                    ewbank
                     font
                     french
-                    uiaa
                     vscale
                     yds
                   }
@@ -226,11 +208,8 @@ query ClimbsInArea {
                     }
                     id
                     grades {
-                      brazilianCrux
-                      ewbank
                       font
                       french
-                      uiaa
                       vscale
                       yds
                     }
@@ -252,11 +231,8 @@ query ClimbsInArea {
                       }
                       id
                       grades {
-                        brazilianCrux
-                        ewbank
                         font
                         french
-                        uiaa
                         vscale
                         yds
                       }
@@ -278,11 +254,8 @@ query ClimbsInArea {
                         }
                         id
                         grades {
-                          brazilianCrux
-                          ewbank
                           font
                           french
-                          uiaa
                           vscale
                           yds
                         }
@@ -304,11 +277,8 @@ query ClimbsInArea {
                           }
                           id
                           grades {
-                            brazilianCrux
-                            ewbank
                             font
                             french
-                            uiaa
                             vscale
                             yds
                           }
