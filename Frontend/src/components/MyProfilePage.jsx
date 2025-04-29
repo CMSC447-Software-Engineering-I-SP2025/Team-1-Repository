@@ -4,8 +4,6 @@ import { useUser } from "./UserProvider";
 import { useLocation } from "react-router-dom";
 import defaultProfilePic from "../../assets/default-profile.jpg";
 import { Link } from "react-router-dom";
-import { useEffect } from "react";
-import { useState } from 'react';
 import axios from "axios";
 
 const MyProfilePage = ({ onSave }) => {
