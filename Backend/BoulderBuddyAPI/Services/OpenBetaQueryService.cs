@@ -9,12 +9,14 @@ namespace BoulderBuddyAPI.Services
         private readonly HttpClient _httpClient;
 
         private readonly string[] _supportedRootAreas;
+        private readonly string _cacheDirectory;
 
         public OpenBetaQueryService(ILogger<OpenBetaQueryService> logger, HttpClient httpClient, OpenBetaConfig config)
         {
             _logger = logger;
             _httpClient = httpClient;
             _supportedRootAreas = config.SupportedRootAreas;
+            _cacheDirectory = config.CacheDirectory;
         }
 
         //query OpenBeta API for subareas in given root area
