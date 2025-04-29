@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { useUser } from "./UserProvider";
 
 const CreateReviewPage = ({ selectedClimb, userId }) => {  // Assuming userId is passed as a prop or from context
+
+    const { user: authenticatedUser, loading } = useUser();
+    const user = authenticatedUser || {};
 
     if (!selectedClimb) {
         return <div className="text-center text-gray-500">No climb selected</div>;
@@ -15,7 +19,7 @@ const CreateReviewPage = ({ selectedClimb, userId }) => {  // Assuming userId is
 
         // Prepare the data for the review
         const reviewData = {
-            UserId: "string",  // Make this actually work with UserID once login is implemented
+            UserId: user.id,
             RouteId: selectedClimb.id,
             Rating: parseInt(rating), 
             Text: description,
