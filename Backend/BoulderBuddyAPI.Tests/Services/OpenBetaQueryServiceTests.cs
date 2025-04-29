@@ -22,6 +22,38 @@ namespace BoulderBuddyAPI.Tests.Services
         }
 
         [Fact]
+        public async Task QuerySubAreasInArea_ReadsFromCache()
+        {
+            var service = ArrangeTestableObject("TestResources/DelawareResponse.json");
+
+            //start this test with an OpenBeta query, not a cache hit
+            var expectedDirPath = $"cached_responses_test\\{DateTime.Now.ToString("yyyyMMdd")}";
+            if (Directory.Exists(expectedDirPath))
+                Directory.Delete(expectedDirPath, true);
+
+            //act (1)
+            var subareas1 = await service.QuerySubAreasInArea("Delaware"); //expecting OpenBeta query
+
+            //caching requires the creation of file and directory (since directory was previously deleted)
+            Assert.True(Directory.Exists(expectedDirPath));
+            Assert.True(Path.Exists($"{expectedDirPath}\\Delaware.json"));
+
+            //act (2)
+            var subareas2 = await service.QuerySubAreasInArea("Delaware"); //expecting cache hit
+
+            //the response from the first search should be read by the second
+            Assert.Equal(subareas1.Count, subareas2.Count);
+
+            //assert first-level deep equality (doesn't go deeper into children trees though)
+            var mapToIDs = (Area a) => a.id;
+            var mapToNames = (Area a) => a.areaName;
+            var mapToClimbCount = (Area a) => a.climbs.Count;
+            Assert.Equal(subareas1.Select(mapToIDs), subareas2.Select(mapToIDs));
+            Assert.Equal(subareas1.Select(mapToNames), subareas2.Select(mapToNames));
+            Assert.Equal(subareas1.Select(mapToClimbCount), subareas2.Select(mapToClimbCount));
+        }
+
+        [Fact]
         public async Task QuerySubAreasInArea_GivenInvalidRootArea_ThrowsArgumentException()
         {
             var service = ArrangeTestableObject("TestResources/DelawareResponse.json"); //arrange
@@ -45,7 +77,8 @@ namespace BoulderBuddyAPI.Tests.Services
             var config = new OpenBetaConfig()
             {
                 OpenBetaEndpoint = "UNUSED",
-                SupportedRootAreas = ["Delaware", "Maryland"]
+                SupportedRootAreas = ["Delaware", "Maryland"],
+                CacheDirectory = "cached_responses_test"
             };
 
             //mock away the OpenBeta API call; testing it is outside the scope of this test
