@@ -1,4 +1,4 @@
-import React, { useState, useEffect, use } from "react";
+import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { supabase } from "./lib/supabaseClient";
 import { UserProvider } from "./components/UserProvider";
@@ -24,6 +24,7 @@ const App = () => {
   const [allClimbs, setAllClimbs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [recommendedClimbs, setRecommendedClimbs] = useState([]);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentUser, setCurrentUser] = useState({
     id: "12345",
     firstName: "John",
@@ -34,6 +35,7 @@ const App = () => {
     boulderGradeRange: { min: "V0", max: "V5" },
     ropeGradeRange: { min: "5.8", max: "5.12" },
   });
+  const [stateName, setStateName] = useState("Maryland");
 
   const handleSaveUser = (updatedUser) => {
     setCurrentUser(updatedUser);
@@ -43,7 +45,9 @@ const App = () => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch("/Search/State?state=Maryland", {
+        console.log("Areas:", areas);
+        console.log("State name:", stateName);
+        const response = await fetch(`/Search/State?state=${stateName}`, {
           method: "POST",
         });
         if (!response.ok) {
@@ -59,7 +63,7 @@ const App = () => {
     };
 
     fetchData();
-  }, []);
+  }, [stateName]);
 
   useEffect(() => {
     if (areas.length > 0) {
@@ -114,7 +118,7 @@ const App = () => {
             onHomeClick={handleHomeClick}
             onProfileClick={handleProfileClick}
             onSettingsClick={handleSettingsClick}
-            isLoggedIn={true}
+            isLoggedIn={isLoggedIn}
           />
           <Routes>
             <Route path="/signup" element={<CreateAccountPage />} />
@@ -143,6 +147,7 @@ const App = () => {
                           allClimbs={allClimbs}
                           isLoading={isLoading}
                           recommendedClimbs={recommendedClimbs}
+                          isLoggedIn={isLoggedIn}
                         />
                       </div>
                       <div className="w-3/4">
@@ -151,6 +156,7 @@ const App = () => {
                           area={selectedArea}
                           setSelectedArea={setSelectedArea}
                           isLoading={isLoading}
+                          setStateName={setStateName}
                         />
                       </div>
                     </div>
