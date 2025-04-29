@@ -195,7 +195,7 @@ const App = () => {
                     </div>
                   );
                 } else if (currentPage === "climb") {
-                  return <ClimbPage selectedClimb={selectedClimb} />;
+                    return <ClimbPage selectedClimb={selectedClimb} isLoggedIn = {isLoggedIn} />;
                 } else if (currentPage === "area") {
                   return (
                     <AreaPage
