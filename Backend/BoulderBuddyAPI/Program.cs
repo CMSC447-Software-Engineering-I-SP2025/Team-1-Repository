@@ -40,7 +40,7 @@ namespace BoulderBuddyAPI
                 var dbInitializer = scope.ServiceProvider.GetRequiredService<DatabaseInitializer>();
                 dbInitializer.Initialize();
 
-                //cache nearby states by calling a search
+                //cache nearby states if they're not yet cached by calling search
                 var obqs = scope.ServiceProvider.GetRequiredService<IOpenBetaQueryService>();
                 obqs.QuerySubAreasInArea("Maryland").Wait();
                 obqs.QuerySubAreasInArea("Delaware").Wait();
