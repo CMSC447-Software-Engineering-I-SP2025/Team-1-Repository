@@ -4,7 +4,6 @@ using Microsoft.Extensions.Configuration;
 using System;
 using BoulderBuddyAPI.Models.DatabaseModels;
 
-
 namespace BoulderBuddyAPI.Controllers
 {
     [ApiController]
@@ -60,25 +59,6 @@ namespace BoulderBuddyAPI.Controllers
             }
         }
 
-        [HttpPost("route")]
-        public async Task<IActionResult> PostRoute([FromBody] Route route)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            try
-            {
-                await _databaseService.InsertIntoRouteTable(route);
-                return Ok(new { message = "Route created successfully" });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
-        }
-
         [HttpPost("review")]
         public async Task<IActionResult> PostReview([FromBody] Review review)
         {
@@ -91,25 +71,6 @@ namespace BoulderBuddyAPI.Controllers
             {
                 await _databaseService.InsertIntoReviewTable(review);
                 return Ok(new { message = "Review created successfully" });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
-        }
-
-        [HttpPost("recommendation")]
-        public async Task<IActionResult> PostRecommendation([FromBody] Recommendation recommendation)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            try
-            {
-                await _databaseService.InsertIntoRecommendationTable(recommendation);
-                return Ok(new { message = "Recommendation created successfully" });
             }
             catch (Exception ex)
             {
@@ -173,6 +134,7 @@ namespace BoulderBuddyAPI.Controllers
                 return StatusCode(500, new { message = ex.Message });
             }
         }
+
         [HttpPost("badge")]
         public async Task<IActionResult> PostBadge([FromBody] Badge badge)
         {
@@ -227,20 +189,6 @@ namespace BoulderBuddyAPI.Controllers
             }
         }
 
-        [HttpGet("route")]
-        public async Task<IActionResult> GetRoutes()
-        {
-            try
-            {
-                var routes = await _databaseService.GetRoutes();
-                return Ok(routes);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
-        }
-
         [HttpGet("review")]
         public async Task<IActionResult> GetReviews()
         {
@@ -277,20 +225,6 @@ namespace BoulderBuddyAPI.Controllers
                 var resultList = await _databaseService.GetAvgReview(id);
                 var avg = resultList.First().Val;
                 return Ok(avg);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
-        }
-
-        [HttpGet("recommendation")]
-        public async Task<IActionResult> GetRecommendations()
-        {
-            try
-            {
-                var recommendations = await _databaseService.GetRecommendations();
-                return Ok(recommendations);
             }
             catch (Exception ex)
             {
@@ -382,7 +316,7 @@ namespace BoulderBuddyAPI.Controllers
             }
         }
 
-        //Delete methods for deleting data from the database
+        // DELETE methods for deleting data from the database
 
         [HttpDelete("users/{userId}")]
         public async Task<IActionResult> DeleteUser(string userId)
@@ -497,6 +431,7 @@ namespace BoulderBuddyAPI.Controllers
         }
 
         // Update methods for updating data in the database
+
         [HttpPut("user/{userId}")]
         public async Task<IActionResult> UpdateUser(string userId, [FromBody] User user)
         {
@@ -528,25 +463,6 @@ namespace BoulderBuddyAPI.Controllers
             {
                 await _databaseService.UpdateReview(reviewId, review);
                 return Ok(new { message = "Review updated successfully" });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
-        }
-
-        [HttpPut("recommendation/{recommendationId}")]
-        public async Task<IActionResult> UpdateRecommendation(string recommendationId, [FromBody] Recommendation recommendation)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            try
-            {
-                await _databaseService.UpdateRecommendation(recommendationId, recommendation);
-                return Ok(new { message = "Recommendation updated successfully" });
             }
             catch (Exception ex)
             {
@@ -648,12 +564,8 @@ namespace BoulderBuddyAPI.Controllers
                 return StatusCode(500, new { message = ex.Message });
             }
         }
-
-
     }
 }
-
-
 
 namespace BoulderBuddyAPI.Services
 {
@@ -663,9 +575,7 @@ namespace BoulderBuddyAPI.Services
         //methods for inserting data into the database
         Task InsertIntoUserTable(object parameters);
         Task InsertIntoUserRelationTable(object parameters);
-        Task InsertIntoRouteTable(object parameters);
         Task InsertIntoReviewTable(object parameters);
-        Task InsertIntoRecommendationTable(object parameters);
         Task InsertIntoClimbGroupTable(object parameters);
         Task InsertIntoClimbGroupRelationTable(object parameters);
         Task InsertIntoClimbGroupEventTable(object parameters);
@@ -685,28 +595,22 @@ namespace BoulderBuddyAPI.Services
         //methods for updating data in the database
         Task UpdateUser(string userId, object parameters);
         Task UpdateReview(string reviewId, object parameters);
-        Task UpdateRecommendation(string recommendationId, object parameters);
         Task UpdateClimbGroup(string climbGroupId, object parameters);
         Task UpdateClimbGroupRelation(string climbGroupRelationId, object parameters);
         Task UpdateClimbGroupEvent(string eventId, object parameters);
         Task UpdateBadge(string badgeId, object parameters);
         Task UpdateBadgeRelation(string badgeRelationId, object parameters);
 
-
         //methods for getting data from the database
         Task<List<User>> GetUsers();
-        Task<List<Route>> GetRoutes();
         Task<List<Review>> GetReviews();
         Task<List<Review>> GetTenReviews(string RouteID);
         Task<List<SingleItemWrapper<double>>> GetAvgReview(string RouteID);
-        Task<List<Recommendation>> GetRecommendations();
         Task<List<UserRelation>> GetUserRelations();
         Task<List<ClimbGroup>> GetClimbGroups();
         Task<List<ClimbGroupRelation>> GetClimbGroupRelations();
         Task<List<ClimbGroupEvent>> GetClimbGroupEvents();
         Task<List<Badge>> GetBadges();
         Task<List<BadgeRelation>> GetBadgeRelations();
-        
-
     }
 }
