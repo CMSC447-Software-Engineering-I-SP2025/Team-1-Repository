@@ -374,12 +374,12 @@ namespace BoulderBuddyAPI.Controllers
             }
         }
 
-        [HttpDelete("climbGroupRelation/{climbGroupRelationId}")]
-        public async Task<IActionResult> DeleteClimbGroupRelation(string climbGroupRelationId)
+        [HttpDelete("climbGroupRelation/{groupId}/{userId}")]
+        public async Task<IActionResult> DeleteClimbGroupRelation(string groupId, string userId)
         {
             try
             {
-                await _databaseService.DeleteFromClimbGroupRelationTable(climbGroupRelationId);
+                await _databaseService.DeleteFromClimbGroupRelationTable(groupId, userId);
                 return Ok();
             }
             catch (Exception ex)
@@ -408,20 +408,6 @@ namespace BoulderBuddyAPI.Controllers
             try
             {
                 await _databaseService.DeleteFromBadgeTable(badgeId);
-                return Ok();
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
-        }
-
-        [HttpDelete("badgeRelation/{badgeRelationId}")]
-        public async Task<IActionResult> DeleteBadgeRelation(string badgeRelationId)
-        {
-            try
-            {
-                await _databaseService.DeleteFromBadgeRelationTable(badgeRelationId);
                 return Ok();
             }
             catch (Exception ex)
@@ -489,25 +475,6 @@ namespace BoulderBuddyAPI.Controllers
             }
         }
 
-        [HttpPut("climbGroupRelation/{climbGroupRelationId}")]
-        public async Task<IActionResult> UpdateClimbGroupRelation(string climbGroupRelationId, [FromBody] ClimbGroupRelation climbGroupRelation)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            try
-            {
-                await _databaseService.UpdateClimbGroupRelation(climbGroupRelationId, climbGroupRelation);
-                return Ok(new { message = "Climb group relation updated successfully" });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
-        }
-
         [HttpPut("climbGroupEvent/{eventId}")]
         public async Task<IActionResult> UpdateClimbGroupEvent(string eventId, [FromBody] ClimbGroupEvent climbGroupEvent)
         {
@@ -546,24 +513,6 @@ namespace BoulderBuddyAPI.Controllers
             }
         }
 
-        [HttpPut("badgeRelation/{badgeRelationId}")]
-        public async Task<IActionResult> UpdateBadgeRelation(string badgeRelationId, [FromBody] BadgeRelation badgeRelation)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            try
-            {
-                await _databaseService.UpdateBadgeRelation(badgeRelationId, badgeRelation);
-                return Ok(new { message = "Badge relation updated successfully" });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
-        }
     }
 }
 
@@ -587,19 +536,17 @@ namespace BoulderBuddyAPI.Services
         Task DeleteFromUserRelationTable(string userRelationId);
         Task DeleteFromReviewTable(string reviewId);
         Task DeleteFromClimbGroupTable(string climbGroupId);
-        Task DeleteFromClimbGroupRelationTable(string climbGroupRelationId);
+        Task DeleteFromClimbGroupRelationTable(string groupId, string userId);
         Task DeleteFromClimbGroupEventTable(string eventId);
         Task DeleteFromBadgeTable(string badgeId);
-        Task DeleteFromBadgeRelationTable(string badgeRelationId);
+        Task DeleteFromBadgeRelationTable(string userId, string badgeId);
 
         //methods for updating data in the database
         Task UpdateUser(string userId, object parameters);
         Task UpdateReview(string reviewId, object parameters);
         Task UpdateClimbGroup(string climbGroupId, object parameters);
-        Task UpdateClimbGroupRelation(string climbGroupRelationId, object parameters);
         Task UpdateClimbGroupEvent(string eventId, object parameters);
         Task UpdateBadge(string badgeId, object parameters);
-        Task UpdateBadgeRelation(string badgeRelationId, object parameters);
 
         //methods for getting data from the database
         Task<List<User>> GetUsers();

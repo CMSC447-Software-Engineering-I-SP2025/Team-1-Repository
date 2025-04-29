@@ -197,7 +197,11 @@ namespace BoulderBuddyAPI.Services
         public Task<List<Review>> GetTenReviews(string RouteID) =>
             ExecuteSelectCommand<Review>(@"
                 SELECT 
-                    Review.ReviewId, Review.UserId, Review.RouteId, Review.Rating, Review.Text,
+                    Review.ReviewId, 
+                    Review.UserId, 
+                    Review.RouteId, 
+                    Review.Rating, 
+                    Review.Text,
                     User.FirstName || ' ' || User.LastName AS UserName
                 FROM Review
                 JOIN User ON Review.UserId = User.UserId
@@ -312,8 +316,8 @@ namespace BoulderBuddyAPI.Services
         public Task UpdateUserRelation(object parameters) =>
             ExecuteUpdateCommand(@"
                 UPDATE UserRelation 
-                SET relationType = @RelationType, requestDate = @RequestDate, friendSince = @FriendSince 
-                WHERE user1Id = @User1Id AND user2Id = @User2Id;", parameters);
+                SET RelationType = @RelationType, RequestDate = @RequestDate, FriendSince = @FriendSince 
+                WHERE User1Id = @User1Id AND User2Id = @User2Id;", parameters);
 
         //update climb group table
         public Task UpdateClimbGroup(string groupId, object parameters) =>
@@ -325,12 +329,12 @@ namespace BoulderBuddyAPI.Services
                 new { GroupId = groupId, parameters });
 
         //update climb group relation table
-        public Task UpdateClimbGroupRelation(string climbGroupRelationId, object parameters) =>
+        public Task UpdateClimbGroupRelation(string groupId, string userId, object parameters) =>
             ExecuteUpdateCommand(@"
                 UPDATE ClimbGroupRelation 
                 SET RelationType = @RelationType, InviteDate = @InviteDate, MemberSince = @MemberSince 
-                WHERE ClimbGroupRelationId = @ClimbGroupRelationId;", 
-                new { ClimbGroupRelationId = climbGroupRelationId, parameters });
+                WHERE GroupId = @GroupId AND UserId = @UserId;", 
+                new { GroupId = groupId, UserId = userId, parameters });
 
         //update climb group event table
         public Task UpdateClimbGroupEvent(string eventId, object parameters) =>
@@ -351,12 +355,12 @@ namespace BoulderBuddyAPI.Services
                 new { BadgeId = badgeId, parameters });
 
         //update badge relation table
-        public Task UpdateBadgeRelation(string badgeRelationId, object parameters) =>
+        public Task UpdateBadgeRelation(string userId, string badgeId, object parameters) =>
             ExecuteUpdateCommand(@"
                 UPDATE BadgeRelation 
                 SET UserId = @UserId, BadgeId = @BadgeId 
-                WHERE BadgeRelationId = @BadgeRelationId;", 
-                new { BadgeRelationId = badgeRelationId, parameters });
+                WHERE UserId = @UserId AND BadgeId = @BadgeId;", 
+                new { UserId = userId, BadgeId = badgeId, parameters });
 
         //execute delete command
         public async Task ExecuteDeleteCommand(string commandText, object parameters)
@@ -386,10 +390,10 @@ namespace BoulderBuddyAPI.Services
 
         //delete from user table
         public Task DeleteFromUserTable(object parameters) =>
-            ExecuteDeleteCommand("DELETE FROM User WHERE id = @UserId;", parameters);
+            ExecuteDeleteCommand("DELETE FROM User WHERE UserId = @UserId;", parameters);
 
         public Task DeleteFromUserTable(string userId) =>
-            ExecuteDeleteCommand("DELETE FROM User WHERE id = @UserId;", new { UserId = userId });    
+            ExecuteDeleteCommand("DELETE FROM User WHERE UserId = @UserId;", new { UserId = userId });    
 
         //delete from review table
         public Task DeleteFromReviewTable(string reviewId) =>
@@ -397,18 +401,19 @@ namespace BoulderBuddyAPI.Services
 
         //delete from user relation table
         public Task DeleteFromUserRelationTable(object parameters) =>
-            ExecuteDeleteCommand("DELETE FROM UserRelation WHERE user1Id = @User1Id AND user2Id = @User2Id;", parameters);
+            ExecuteDeleteCommand("DELETE FROM UserRelation WHERE User1Id = @User1Id AND User2Id = @User2Id;", parameters);
 
         public Task DeleteFromUserRelationTable(string userRelationId) =>
-            ExecuteDeleteCommand("DELETE FROM UserRelation WHERE UserRelationId = @UserRelationId;", new { UserRelationId = userRelationId });
+            ExecuteDeleteCommand("DELETE FROM UserRelation WHERE User1Id = @User1Id;", new { UserRelationId = userRelationId });
 
         //delete from climb group table
         public Task DeleteFromClimbGroupTable(string climbGroupId) =>
             ExecuteDeleteCommand("DELETE FROM ClimbGroup WHERE GroupId = @GroupId;", new { GroupId = climbGroupId });
 
         //delete from climb group relation table
-        public Task DeleteFromClimbGroupRelationTable(string climbGroupRelationId) =>
-            ExecuteDeleteCommand("DELETE FROM ClimbGroupRelation WHERE ClimbGroupRelationId = @ClimbGroupRelationId;", new { ClimbGroupRelationId = climbGroupRelationId });
+        public Task DeleteFromClimbGroupRelationTable(string groupId, string userId) =>
+            ExecuteDeleteCommand("DELETE FROM ClimbGroupRelation WHERE GroupId = @GroupId AND UserId = @UserId;", 
+                new { GroupId = groupId, UserId = userId });
 
         //delete from climb group event table
         public Task DeleteFromClimbGroupEventTable(string eventId) =>
@@ -419,8 +424,8 @@ namespace BoulderBuddyAPI.Services
             ExecuteDeleteCommand("DELETE FROM Badge WHERE BadgeId = @BadgeId;", new { BadgeId = badgeId });
 
         //delete from badge relation table
-        public Task DeleteFromBadgeRelationTable(string badgeRelationId) =>
-             ExecuteDeleteCommand("DELETE FROM BadgeRelation WHERE BadgeRelationId = @BadgeRelationId;", new { BadgeRelationId = badgeRelationId });
+        public Task DeleteFromBadgeRelationTable(string userId, string badgeId) =>
+            ExecuteDeleteCommand("DELETE FROM BadgeRelation WHERE UserId = @UserId AND BadgeId = @BadgeId;", new { UserId = userId, BadgeId = badgeId });
 
         //for testing purposes only
         public async Task<T> ExecuteQueryCommand<T>(string query, object parameters)
