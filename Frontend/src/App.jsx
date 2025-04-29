@@ -1,4 +1,4 @@
-import React, { useState, useEffect, use } from "react";
+import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { supabase } from "./lib/supabaseClient";
 import { UserProvider } from "./components/UserProvider";
@@ -19,6 +19,7 @@ import ViewReviewsPage from "./components/ViewReviewsPage";
 
 const App = () => {
   const [user, setUser] = useState(null);
+
   const [selectedClimb, setSelectedClimb] = useState(null);
   const [currentPage, setCurrentPage] = useState("home");
   const [selectedArea, setSelectedArea] = useState(null);
@@ -26,6 +27,7 @@ const App = () => {
   const [allClimbs, setAllClimbs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [recommendedClimbs, setRecommendedClimbs] = useState([]);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentUser, setCurrentUser] = useState({
     id: "12345",
     firstName: "John",
@@ -36,6 +38,7 @@ const App = () => {
     boulderGradeRange: { min: "V0", max: "V5" },
     ropeGradeRange: { min: "5.8", max: "5.12" },
   });
+  const [stateName, setStateName] = useState("Maryland");
 
   const handleSaveUser = (updatedUser) => {
     setCurrentUser(updatedUser);
@@ -45,7 +48,9 @@ const App = () => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch("/Search/State?state=Maryland", {
+        console.log("Areas:", areas);
+        console.log("State name:", stateName);
+        const response = await fetch(`/Search/State?state=${stateName}`, {
           method: "POST",
         });
         if (!response.ok) {
@@ -61,7 +66,7 @@ const App = () => {
     };
 
     fetchData();
-  }, []);
+  }, [stateName]);
 
   useEffect(() => {
     if (areas.length > 0) {
@@ -72,6 +77,29 @@ const App = () => {
       setRecommendedClimbs(selectedClimbs);
     }
   }, [areas]);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      setUser(session?.user || null);
+      setIsLoggedIn(!!session?.user);
+    };
+
+    fetchUser();
+
+    const { data: subscription } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setUser(session?.user || null);
+        setIsLoggedIn(!!session?.user);
+      }
+    );
+
+    return () => {
+      subscription.unsubscribe(); // Correctly call unsubscribe
+    };
+  }, []);
 
   const handleHomeClick = () => {
     setCurrentPage("home");
@@ -85,6 +113,10 @@ const App = () => {
 
   const handleSettingsClick = () => {
     setCurrentPage("settings");
+  };
+
+  const handleLoginClick = () => {
+    setCurrentPage("login");
   };
 
   useEffect(() => {
@@ -117,10 +149,16 @@ const App = () => {
             onProfileClick={handleProfileClick}
             onSettingsClick={handleSettingsClick}
             isLoggedIn={!!user}
+            setUser={setUser}
+            setIsLoggedIn={setIsLoggedIn}
+            setCurrentPage={setCurrentPage} // Pass setCurrentPage to Header
           />
           <Routes>
             <Route path="/signup" element={<CreateAccountPage />} />
-            <Route path="/login" element={<LoginPage onLogin={setUser} />} />
+            <Route
+              path="/login"
+              element={<LoginPage OnLoginClick={setCurrentPage} />} // Pass setCurrentPage as OnLoginClick
+            />
             <Route path="/profile" element={<MyProfilePage />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/create-account" element={<CreateAccountPage />} />
@@ -129,8 +167,9 @@ const App = () => {
             <Route path="/add-friend" element={<AddFriendPage />} /> 
             <Route path="/add-group" element={<AddGroupPage />} /> 
 
-            <Route path="/" element={
-              (() => {
+            <Route
+              path="/"
+              element={(() => {
                 if (currentPage === "home") {
                   return (
                     <div className="flex">
@@ -140,7 +179,8 @@ const App = () => {
                           setSelectedClimb={setSelectedClimb}
                           allClimbs={allClimbs}
                           isLoading={isLoading}
-                          recommendedClimbs={recommendedClimbs} 
+                          recommendedClimbs={recommendedClimbs}
+                          isLoggedIn={isLoggedIn}
                         />
                       </div>
                       <div className="w-3/4">
@@ -149,6 +189,7 @@ const App = () => {
                           area={selectedArea}
                           setSelectedArea={setSelectedArea}
                           isLoading={isLoading}
+                          setStateName={setStateName}
                         />
                       </div>
                     </div>
@@ -168,6 +209,10 @@ const App = () => {
                   );
                 } else if (currentPage === "settings") {
                   return <SettingsPage />;
+                } else if (currentPage === "login") {
+                  return <LoginPage OnLoginClick={setCurrentPage} />;
+                } else if (currentPage === "signup") {
+                  return <CreateAccountPage />;
                 } else {
                   return null;
                 }
