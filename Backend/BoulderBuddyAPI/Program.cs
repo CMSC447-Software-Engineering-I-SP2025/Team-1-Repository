@@ -34,11 +34,19 @@ namespace BoulderBuddyAPI
 
             var app = builder.Build();
 
-            // Initialize the database
+            // Initialize the database, cache OpenBeta results for MD and adjacent states
             using (var scope = app.Services.CreateScope())
             {
                 var dbInitializer = scope.ServiceProvider.GetRequiredService<DatabaseInitializer>();
                 dbInitializer.Initialize();
+
+                //cache nearby states by calling a search
+                var obqs = scope.ServiceProvider.GetRequiredService<IOpenBetaQueryService>();
+                obqs.QuerySubAreasInArea("Maryland").Wait();
+                obqs.QuerySubAreasInArea("Delaware").Wait();
+                obqs.QuerySubAreasInArea("Pennsylvania").Wait();
+                obqs.QuerySubAreasInArea("Virginia").Wait();
+                obqs.QuerySubAreasInArea("West Virginia").Wait();
             }
 
             //add Swagger middleware for development environment
