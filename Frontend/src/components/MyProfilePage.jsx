@@ -1,12 +1,8 @@
-<<<<<<< HEAD
-=======
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "./UserProvider";
 import { useLocation } from "react-router-dom";
->>>>>>> origin/surafel3-branch
 import defaultProfilePic from "../../assets/default-profile.jpg";
-import React from "react";
 import { Link } from "react-router-dom";
 import { useEffect } from "react";
 import { useState } from 'react';
@@ -140,9 +136,8 @@ const MyProfilePage = ({ onSave }) => {
     onSave(updatedUser); // Call the onSave callback with updated user data
   };
 
-  return (
-<<<<<<< HEAD
-    <div className="min-h-screen bg-gray-100">
+    return (authenticatedUser && (
+    authenticatedUser &&<div className="min-h-screen bg-gray-100">
       <div className="max-w-4xl p-6 mx-auto mt-10 bg-white rounded-lg">
         {/* Tabs */}
         <div className="flex justify-between px-4 mb-6 border-b border-gray-300">
@@ -169,40 +164,6 @@ const MyProfilePage = ({ onSave }) => {
             </div>
           ))}
         </div>
-
-        {/* Tab Content */}
-        {activeTab === "editProfile" && (
-          <form onSubmit={handleSaveChanges}>
-            {/* Profile Picture */}
-            <div className="mb-6">
-=======
-    authenticatedUser && (
-      <div className="min-h-screen bg-gray-100">
-        <div className="max-w-4xl p-6 mx-auto mt-10 bg-white rounded-lg">
-          {/* Tabs */}
-          <div className="flex justify-between px-4 mb-6 border-b border-gray-300">
-            {["editProfile", "myClimbs", "reviews", "photos"].map((tab) => (
->>>>>>> origin/surafel3-branch
-              <div
-                key={tab}
-                className={`relative pb-3 text-base font-medium transition-all duration-300 cursor-pointer ${
-                  activeTab === tab
-                    ? "text-blue-600 border-b-4 border-blue-600"
-                    : "text-gray-500 hover:text-blue-600 hover:border-b-4 hover:border-blue-300"
-                }`}
-                onClick={() => setActiveTab(tab)}
-                style={{ flex: 1, textAlign: "center" }} // Ensure even spacing and alignment
-              >
-                {tab === "editProfile"
-                  ? "Edit Profile"
-                  : tab === "myClimbs"
-                  ? "My Climbs"
-                  : tab === "reviews"
-                  ? "Reviews"
-                  : "Photos"}
-              </div>
-            ))}
-          </div>
 
           {/* Tab Content */}
           {activeTab === "editProfile" && (
@@ -471,21 +432,6 @@ const MyProfilePage = ({ onSave }) => {
             </div>
           )}
 
-<<<<<<< HEAD
-        {activeTab === "myClimbs" && (
-          <div>
-            <h2 className="text-xl font-bold text-gray-800">My Climbs</h2>
-            <p className="text-gray-600">List of climbs will go here.</p>
-          </div>
-        )}
-
-        {activeTab === "reviews" && (
-          <div>
-            <h2 className="text-xl font-bold text-gray-800">Reviews</h2>
-            <p className="text-gray-600">List of reviews will go here.</p>
-          </div>
-        )}
-
         {activeTab === "photos" && (
           <div>
             <h2 className="text-xl font-bold text-gray-800">Photos</h2>
@@ -529,16 +475,8 @@ const MyProfilePage = ({ onSave }) => {
                       )}
                   </div>
               )}
-=======
-          {activeTab === "photos" && (
-            <div>
-              <h2 className="text-xl font-bold text-gray-800">Photos</h2>
-              <p className="text-gray-600">Gallery of photos will go here.</p>
-            </div>
-          )}
-        </div>
->>>>>>> origin/surafel3-branch
       </div>
+        </div>
     )
   );
 };
