@@ -1,9 +1,12 @@
 import React, { useState, useRef } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { supabase } from "../lib/supabaseClient";
 import defaultProfilePic from "../../assets/default-profile.jpg";
 
 const Header = ({ onHomeClick, onProfileClick, onSettingsClick }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const timeoutRef = useRef(null);
+  const navigate = useNavigate();
 
   const handleMouseEnter = () => {
     clearTimeout(timeoutRef.current);
@@ -16,12 +19,31 @@ const Header = ({ onHomeClick, onProfileClick, onSettingsClick }) => {
     }, 250); // 250ms delay
   };
 
+  const handleLogout = async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession(); // Check for active session
+      if (!session) {
+        console.log("No user is logged in. Logout action skipped."); // Log message if no session
+        return;
+      }
+      await supabase.auth.signOut(); // Log out the user
+      console.log("You have successfully logged out. Session terminated."); // Log message to console
+      navigate("/login"); // Redirect to the login page
+    } catch (error) {
+      console.error("Error logging out:", error);
+    }
+  };
+
   return (
     <header className="sticky top-0 z-50 p-4 text-white bg-gray-800">
       <div className="flex items-center justify-between mx-10">
-        <h1 className="text-2xl font-bold cursor-pointer" onClick={onHomeClick}>
-          Boulder Buddy
+        <h1 className="text-2xl font-bold cursor-pointer"> 
+          <Link to="/" onClick={onHomeClick}>Boulder Buddy</Link>
         </h1>
+        <nav className="/flex items-center ml-auto">
+          <Link to="/signup" className="px-1">Sign up</Link>
+          <Link to="/login" className="px-9">Login</Link>
+        </nav>
         <div
           className="relative"
           onMouseEnter={handleMouseEnter}
@@ -54,7 +76,7 @@ const Header = ({ onHomeClick, onProfileClick, onSettingsClick }) => {
               </div>
               <div
                 className="block w-full px-4 py-2 text-sm text-left text-gray-800 cursor-pointer hover:bg-gray-200"
-                onClick={() => console.log("Logout clicked")}
+                onClick={handleLogout}
               >
                 Logout
               </div>

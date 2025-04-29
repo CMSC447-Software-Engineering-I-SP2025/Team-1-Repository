@@ -24,7 +24,20 @@ const LoginPage = () => {
       alert('Logged in successfully'); 
       console.log('User ID:', data.user.id);
       console.log('Session:', data.session);
-      navigate('/my-profile'); // Redirect to My Profile page
+
+      const { user } = data;
+
+      const { data: profileData, error: profileError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (profileError) {
+        console.error('Error fetching profile:', profileError.message);
+      } else {
+        navigate("/profile", { state: { user: profileData } }); // Redirect to My Profile page
+      }
     }
   };
   
