@@ -5,7 +5,7 @@ namespace BoulderBuddyAPI
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -35,19 +35,20 @@ namespace BoulderBuddyAPI
             var app = builder.Build();
 
             // Initialize the database, cache OpenBeta results for MD and adjacent states
-            using (var scope = app.Services.CreateScope())
-            {
-                var dbInitializer = scope.ServiceProvider.GetRequiredService<DatabaseInitializer>();
-                dbInitializer.Initialize();
+            using var scope = app.Services.CreateScope();
+            var dbInitializer = scope.ServiceProvider.GetRequiredService<DatabaseInitializer>();
+            dbInitializer.Initialize();
 
-                //cache nearby states if they're not yet cached by calling search
-                var obqs = scope.ServiceProvider.GetRequiredService<IOpenBetaQueryService>();
-                obqs.QuerySubAreasInArea("Maryland").Wait();
-                obqs.QuerySubAreasInArea("Delaware").Wait();
-                obqs.QuerySubAreasInArea("Pennsylvania").Wait();
-                obqs.QuerySubAreasInArea("Virginia").Wait();
-                obqs.QuerySubAreasInArea("West Virginia").Wait();
-            }
+            //cache nearby states if they're not yet cached by calling search
+            var obqs = scope.ServiceProvider.GetRequiredService<IOpenBetaQueryService>();
+            await obqs.QuerySubAreasInArea("Maryland");
+            await obqs.QuerySubAreasInArea("Delaware");
+            await obqs.QuerySubAreasInArea("Pennsylvania");
+            await obqs.QuerySubAreasInArea("Virginia");
+            await obqs.QuerySubAreasInArea("West Virginia");
+
+            //cache the rest of the Eastern US without blocking the app from starting
+            CacheEasternUS(obqs);
 
             //add Swagger middleware for development environment
             if (app.Environment.IsDevelopment())
@@ -64,6 +65,21 @@ namespace BoulderBuddyAPI
             app.MapControllers();
 
             app.Run();
+        }
+
+        //caches the rest of Eastern US, ordered by proximity to MD, with a 7 second delay between OpenBeta queries
+        private static async Task CacheEasternUS(IOpenBetaQueryService obqs)
+        {
+            //ordered by distance to MD according to Microsoft Copilot. Order is irrelevant though
+            string[] eastOfTheMississippi = ["New Jersey", "New York", "Ohio", "North Carolina", "Connecticut",
+                    "Massachusetts", "Rhode Island", "Vermont", "New Hampshire", "Maine", "Kentucky", "Indiana",
+                    "Tennessee", "Michigan", "Illinois", "South Carolina", "Georgia", "Alabama", "Florida", "Wisconsin"];
+
+            foreach (var state in eastOfTheMississippi)
+            {
+                await obqs.QuerySubAreasInArea(state);
+                await Task.Delay(7000); //offset OpenBeta requests by 7 seconds 
+            }
         }
     }
 }
