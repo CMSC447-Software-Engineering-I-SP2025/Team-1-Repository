@@ -1,4 +1,6 @@
 import React, { useState, useRef } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { supabase } from "../lib/supabaseClient";
 import defaultProfilePic from "../../assets/default-profile.jpg";
 
 const Header = ({
@@ -9,6 +11,7 @@ const Header = ({
 }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const timeoutRef = useRef(null);
+  const navigate = useNavigate();
 
   const handleMouseEnter = () => {
     clearTimeout(timeoutRef.current);
@@ -19,6 +22,23 @@ const Header = ({
     timeoutRef.current = setTimeout(() => {
       setIsDropdownOpen(false);
     }, 250); // 250ms delay
+  };
+
+  const handleLogout = async () => {
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession(); // Check for active session
+      if (!session) {
+        console.log("No user is logged in. Logout action skipped."); // Log message if no session
+        return;
+      }
+      await supabase.auth.signOut(); // Log out the user
+      console.log("You have successfully logged out. Session terminated."); // Log message to console
+      navigate("/login"); // Redirect to the login page
+    } catch (error) {
+      console.error("Error logging out:", error);
+    }
   };
 
   if (isLoggedIn) {

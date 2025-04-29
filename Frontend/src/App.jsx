@@ -118,11 +118,12 @@ const App = () => {
             onHomeClick={handleHomeClick}
             onProfileClick={handleProfileClick}
             onSettingsClick={handleSettingsClick}
-            isLoggedIn={isLoggedIn}
+            isLoggedIn={!!user}
           />
           <Routes>
             <Route path="/signup" element={<CreateAccountPage />} />
             <Route path="/login" element={<LoginPage onLogin={setUser} />} />
+            <Route path="/profile" element={<MyProfilePage />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/create-account" element={<CreateAccountPage />} />
             <Route

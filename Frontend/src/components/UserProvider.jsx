@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { supabase } from "../lib/supabaseClient"; // Update this import path as needed
+import { supabase } from "../lib/supabaseClient"; 
 
 export const UserContext = createContext();
 
@@ -9,8 +9,8 @@ export const UserProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Get session on initial load
-    const loadSession = async () => {
+// Get session on initial load
+        const loadSession = async () => {
       const { data: { session }, error } = await supabase.auth.getSession();
       if (error) console.error("Failed to get session:", error);
       setSession(session);
@@ -18,10 +18,12 @@ export const UserProvider = ({ children }) => {
       setLoading(false);
     };
 
-    loadSession();
+    loadSession();// Listen for session changes (login, logout, token refresh)
+
 
     // Listen for session changes (login, logout, token refresh)
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      console.log("Auth state changed. New session:", session); // Log session refresh events
       setSession(session);
       setUser(session?.user ?? null);
     });
