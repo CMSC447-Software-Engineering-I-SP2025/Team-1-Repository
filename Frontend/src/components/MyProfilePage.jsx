@@ -158,7 +158,7 @@ const MyProfilePage = ({ onSave }) => {
                 ? "Reviews"
                 : tab === "photos"
                 ? "Photos"
-                : "community"}
+                : "Community"}
             </div>
           ))}
         </div>

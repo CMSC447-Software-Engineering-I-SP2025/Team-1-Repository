@@ -58,6 +58,7 @@ const ClimbPage = ({ selectedClimb }) => {
               ? selectedClimb.grades.french
               : selectedClimb.grades.font}
           </span>
+                  
               </div>
               <Link to="/create-review" className="px-3">
                   Click me to create a review for this climb!
