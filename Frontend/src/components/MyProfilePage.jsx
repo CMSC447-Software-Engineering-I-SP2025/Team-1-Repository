@@ -6,7 +6,7 @@ import defaultProfilePic from "../../assets/default-profile.jpg";
 
 const MyProfilePage = ({ onSave }) => {
   const location = useLocation(); // Get the location object from React Router
-  const { user: authenticatedUser, loading } = useUser(); 
+  const { user: authenticatedUser, loading } = useUser();
   const navigate = useNavigate(); // Add navigate for redirection
   const user = authenticatedUser || {}; // Fallback to location.state if needed
   const [profilePic, setProfilePic] = useState(defaultProfilePic); // State for profile picture

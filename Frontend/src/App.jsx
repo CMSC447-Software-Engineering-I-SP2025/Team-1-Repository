@@ -17,6 +17,7 @@ import ViewReviewsPage from "./components/ViewReviewsPage";
 
 const App = () => {
   const [user, setUser] = useState(null);
+
   const [selectedClimb, setSelectedClimb] = useState(null);
   const [currentPage, setCurrentPage] = useState("home");
   const [selectedArea, setSelectedArea] = useState(null);
@@ -75,6 +76,29 @@ const App = () => {
     }
   }, [areas]);
 
+  useEffect(() => {
+    const fetchUser = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      setUser(session?.user || null);
+      setIsLoggedIn(!!session?.user);
+    };
+
+    fetchUser();
+
+    const { data: subscription } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setUser(session?.user || null);
+        setIsLoggedIn(!!session?.user);
+      }
+    );
+
+    return () => {
+      subscription.unsubscribe(); // Correctly call unsubscribe
+    };
+  }, []);
+
   const handleHomeClick = () => {
     setCurrentPage("home");
     setSelectedClimb(null);
@@ -87,6 +111,10 @@ const App = () => {
 
   const handleSettingsClick = () => {
     setCurrentPage("settings");
+  };
+
+  const handleLoginClick = () => {
+    setCurrentPage("login");
   };
 
   useEffect(() => {
@@ -119,10 +147,16 @@ const App = () => {
             onProfileClick={handleProfileClick}
             onSettingsClick={handleSettingsClick}
             isLoggedIn={!!user}
+            setUser={setUser}
+            setIsLoggedIn={setIsLoggedIn}
+            setCurrentPage={setCurrentPage} // Pass setCurrentPage to Header
           />
           <Routes>
             <Route path="/signup" element={<CreateAccountPage />} />
-            <Route path="/login" element={<LoginPage onLogin={setUser} />} />
+            <Route
+              path="/login"
+              element={<LoginPage OnLoginClick={setCurrentPage} />} // Pass setCurrentPage as OnLoginClick
+            />
             <Route path="/profile" element={<MyProfilePage />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/create-account" element={<CreateAccountPage />} />
@@ -177,6 +211,10 @@ const App = () => {
                   );
                 } else if (currentPage === "settings") {
                   return <SettingsPage />;
+                } else if (currentPage === "login") {
+                  return <LoginPage OnLoginClick={setCurrentPage} />;
+                } else if (currentPage === "signup") {
+                  return <CreateAccountPage />;
                 } else {
                   return null;
                 }
