@@ -43,14 +43,7 @@ namespace BoulderBuddyAPI.Tests.Services
 
             //the response from the first search should be read by the second
             Assert.Equal(subareas1.Count, subareas2.Count);
-
-            //assert first-level deep equality (doesn't go deeper into children trees though)
-            var mapToIDs = (Area a) => a.id;
-            var mapToNames = (Area a) => a.areaName;
-            var mapToClimbCount = (Area a) => a.climbs.Count;
-            Assert.Equal(subareas1.Select(mapToIDs), subareas2.Select(mapToIDs));
-            Assert.Equal(subareas1.Select(mapToNames), subareas2.Select(mapToNames));
-            Assert.Equal(subareas1.Select(mapToClimbCount), subareas2.Select(mapToClimbCount));
+            Assert.Equivalent(subareas1, subareas2);
         }
 
         [Fact]
