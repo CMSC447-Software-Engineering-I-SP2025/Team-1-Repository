@@ -1,5 +1,6 @@
 ﻿using BoulderBuddyAPI.Models;
 using BoulderBuddyAPI.Models.OpenBetaModels;
+using System.Text.Json;
 
 namespace BoulderBuddyAPI.Services
 {
@@ -9,12 +10,14 @@ namespace BoulderBuddyAPI.Services
         private readonly HttpClient _httpClient;
 
         private readonly string[] _supportedRootAreas;
+        private readonly string _cacheDirectory;
 
         public OpenBetaQueryService(ILogger<OpenBetaQueryService> logger, HttpClient httpClient, OpenBetaConfig config)
         {
             _logger = logger;
             _httpClient = httpClient;
             _supportedRootAreas = config.SupportedRootAreas;
+            _cacheDirectory = config.CacheDirectory;
         }
 
         //query OpenBeta API for subareas in given root area
@@ -30,19 +33,45 @@ namespace BoulderBuddyAPI.Services
                 operationName = "ClimbsInArea"
             };
 
-            //POST request to OpenBeta API
-            using var response = await _httpClient.PostAsJsonAsync("", data);
+            //get expected file path for the cache file for this root area
+            var formattedDate = DateTime.Now.ToString("yyyyMMdd");
+            var fullDirectory = $"{_cacheDirectory}\\{formattedDate}";
+            var cacheFilePath = $"{fullDirectory}\\{rootArea}.json";
 
-            response.EnsureSuccessStatusCode(); //throw if not a successful request
-            
-            //gives { data: {...} } (SearchByLocationRootObj)
-            var decodedQueryResponse = await response.Content.ReadFromJsonAsync<SearchByLocationRootObj>();
+            List<Area> subareas;
 
-            //get first-level subareas within rootArea
-            var subareas = decodedQueryResponse.data.areas[0].children;
+            //read from today's cached file
+            if (File.Exists(cacheFilePath))
+            {
+                _logger.LogInformation($"Cache hit for \"{rootArea}\" search");
+
+                var jsonContent = File.ReadAllText(cacheFilePath);
+                subareas = JsonSerializer.Deserialize<List<Area>>(jsonContent);
+            }
+
+            //rootArea hasn't been cached today; query OpenBeta
+            else
+            {
+                _logger.LogInformation($"OpenBeta query necessary for \"{rootArea}\" search");
+
+                //POST request to OpenBeta API
+                using var response = await _httpClient.PostAsJsonAsync("", data);
+
+                response.EnsureSuccessStatusCode(); //throw if not a successful request
+
+                //gives { data: {...} } (SearchByLocationRootObj)
+                var responseString = await response.Content.ReadAsStringAsync();
+                var decodedQueryResponse = JsonSerializer.Deserialize<SearchByLocationRootObj>(responseString);
+
+                //get first-level subareas under rootArea
+                subareas = decodedQueryResponse.data.areas[0].children;
+
+                //cache this response
+                Directory.CreateDirectory(fullDirectory);
+                File.WriteAllText(cacheFilePath, JsonSerializer.Serialize(subareas));
+            }
 
             _logger.LogInformation($"Successfully ran ClimbsInArea query for \"{rootArea}\". Found {subareas.Count} subareas.");
-
             return subareas;
         }
 

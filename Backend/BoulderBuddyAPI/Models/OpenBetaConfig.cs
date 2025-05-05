@@ -4,5 +4,6 @@
     {
         public string OpenBetaEndpoint { get; set; }
         public string[] SupportedRootAreas { get; set; }
+        public string CacheDirectory { get; set; }
     }
 }
