@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useUser } from "./UserProvider";
+import { useNavigate } from "react-router-dom";
 
 const CreateReviewPage = ({ selectedClimb, userId }) => {  // Assuming userId is passed as a prop or from context
 
     const { user: authenticatedUser, loading } = useUser();
     const user = authenticatedUser || {};
+    const navigate = useNavigate(); // Add navigate for redirection
 
     if (!selectedClimb) {
         return <div className="text-center text-gray-500">No climb selected</div>;
@@ -28,6 +30,7 @@ const CreateReviewPage = ({ selectedClimb, userId }) => {  // Assuming userId is
         try {
             const response = await axios.post('https://localhost:7195/api/Database/review', reviewData);
             console.log('Review created successfully:', response.data);
+            navigate('/view-reviews')
         } catch (error) {
             console.error('Error creating review:', error);
         }

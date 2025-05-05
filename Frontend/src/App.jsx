@@ -17,6 +17,7 @@ import MyProfilePage from "./components/MyProfilePage";
 import SettingsPage from "./components/SettingsPage";
 import ForgotPassword from "./components/ForgotPassword";
 import ViewReviewsPage from "./components/ViewReviewsPage";
+import CreateEventPage from "./components/CreateEventPage";
 
 const App = () => {
   const [user, setUser] = useState(null);
@@ -167,7 +168,8 @@ const App = () => {
             <Route path="/create-review" element={<CreateReview selectedClimb={selectedClimb} />} /> 
             <Route path="/add-friend" element={<AddFriendPage />} /> 
                       <Route path="/add-group" element={<AddGroupPage />} />
-                      <Route path="/group" element={<GroupPage />} /> 
+                      <Route path="/group" element={<GroupPage />} />
+                      <Route path="/create-event" element={<CreateEventPage />} /> 
 
             <Route
               path="/"

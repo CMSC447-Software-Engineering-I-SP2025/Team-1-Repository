@@ -1,6 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useLocation } from 'react-router-dom';
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
+
+import { Link } from "react-router-dom";
 
 const GroupPage = ({ }) => {
     const location = useLocation();
@@ -79,6 +82,9 @@ const GroupPage = ({ }) => {
     return (
         <div>
             <h2>{group.groupName}</h2>
+            <Link to="/create-event" state={{ groupID: groupID }} className="px-3">
+                <div>Click me to create an event for this group!</div>
+            </Link>
             <h2>{group.groupDescription}</h2>
             {posts.length === 0 ? (
                 <p>No posts in this group.</p>
