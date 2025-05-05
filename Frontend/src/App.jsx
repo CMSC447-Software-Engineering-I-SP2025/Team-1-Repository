@@ -12,6 +12,7 @@ import HeroSection from "./components/HeroSection";
 import WorldMap from "./components/WorldMap";
 import ClimbPage from "./components/ClimbPage";
 import AreaPage from "./components/AreaPage";
+import GroupPage from "./components/GroupPage";
 import MyProfilePage from "./components/MyProfilePage";
 import SettingsPage from "./components/SettingsPage";
 import ForgotPassword from "./components/ForgotPassword";
@@ -165,7 +166,8 @@ const App = () => {
             <Route path="/view-reviews" element={<ViewReviewsPage selectedClimb={selectedClimb} />} />
             <Route path="/create-review" element={<CreateReview selectedClimb={selectedClimb} />} /> 
             <Route path="/add-friend" element={<AddFriendPage />} /> 
-            <Route path="/add-group" element={<AddGroupPage />} /> 
+                      <Route path="/add-group" element={<AddGroupPage />} />
+                      <Route path="/group" element={<GroupPage />} /> 
 
             <Route
               path="/"

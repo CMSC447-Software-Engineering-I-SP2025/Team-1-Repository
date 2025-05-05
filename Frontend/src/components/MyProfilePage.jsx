@@ -465,8 +465,10 @@ const MyProfilePage = ({ onSave }) => {
                           <ul>
                                   {groupRelations.map((groupRelation, index) => (
                                   <li key={index} style={{ marginBottom: "1rem" }}>
+                                          <Link to="/group" state={{ groupID: groupRelation.groupID }} className="px-3">
                                           <strong>GroupID:</strong> {groupRelation.groupID} <br />
                                           <strong>RelationType:</strong> {groupRelation.relationType}
+                                    </Link>
                                   </li>
                               ))}
                           </ul>

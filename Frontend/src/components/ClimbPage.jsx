@@ -63,13 +63,13 @@ const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
               </div>
               {isLoggedIn ? (
                   <Link to="/create-review" className="px-3">
-                      Click me to create a review for this climb!
-                  </Link>
+                          <div>Click me to create a review for this climb!</div>
+                      </Link>
               ) : (<p></p>)}
               {isLoggedIn ? (
                   <Link to="/view-reviews" className="px-3">
-                      Click me to view reviews for this climb!
-                  </Link>
+                          <div>Click me to view reviews for this climb!</div>
+                      </Link>
               ) : (<p></p>)}
       </div>
     </div>
