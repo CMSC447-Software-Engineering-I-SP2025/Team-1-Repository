@@ -17,7 +17,6 @@ import ViewReviewsPage from "./components/ViewReviewsPage";
 
 const App = () => {
   const [user, setUser] = useState(null);
-
   const [selectedClimb, setSelectedClimb] = useState(null);
   const [currentPage, setCurrentPage] = useState("home");
   const [selectedArea, setSelectedArea] = useState(null);
@@ -95,7 +94,7 @@ const App = () => {
     );
 
     return () => {
-      subscription.unsubscribe(); // Correctly call unsubscribe
+      subscription.unsubscribe();
     };
   }, []);
 
