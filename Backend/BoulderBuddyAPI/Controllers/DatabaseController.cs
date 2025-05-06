@@ -330,6 +330,20 @@ namespace BoulderBuddyAPI.Controllers
             }
         }
 
+        [HttpGet("groupMembers/{groupId}")]
+        public async Task<IActionResult> GetGroupMembers(string groupId)
+        {
+            try
+            {
+                var members = await _databaseService.GetGroupMembers(groupId);
+                return Ok(members);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
         // DELETE methods for deleting data from the database
 
         [HttpDelete("users/{userId}")]
@@ -571,6 +585,23 @@ namespace BoulderBuddyAPI.Controllers
                 return StatusCode(500, new { message = ex.Message });
             }
         }
+
+        [HttpPost("joinGroup")]
+        public async Task<IActionResult> JoinGroup(string userId, string groupName)
+        {
+            try
+            {
+                await _databaseService.JoinGroup(userId, groupName);
+                return Ok(new { message = "Successfully joined the group." });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        //group functions
+        
     }
 }
 
@@ -625,5 +656,11 @@ namespace BoulderBuddyAPI.Services
 
         //method for getting user relations for a specific user
         Task<List<UserRelation>> GetUserRelationsForUser(string userId);
+
+        //method for joining a group
+        Task JoinGroup(string userId, string groupName);
+        
+        //method for getting group members
+        Task<List<User>> GetGroupMembers(string groupId);
     }
 }

@@ -537,5 +537,64 @@ namespace BoulderBuddyAPI.Services
                 WHERE User1Id = @UserId OR User2Id = @UserId;",
                 new { UserId = userId });
         }
+
+        //group functions
+        public async Task JoinGroup(string userId, string groupName)
+        {
+            using (var connection = new SqliteConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+
+                // Retrieve the group entry requirements and GroupId
+                string getGroupQuery = @"
+                    SELECT GroupId, JoinRequirements 
+                    FROM ClimbGroup 
+                    WHERE GroupName = @GroupName";
+                using (var getGroupCommand = new SqliteCommand(getGroupQuery, connection))
+                {
+                    getGroupCommand.Parameters.AddWithValue("@GroupName", groupName);
+                    using (var reader = await getGroupCommand.ExecuteReaderAsync())
+                    {
+                        if (!await reader.ReadAsync())
+                        {
+                            throw new Exception("Group not found.");
+                        }
+
+                        var groupId = reader["GroupId"].ToString();
+                        var joinRequirements = reader["JoinRequirements"].ToString();
+
+                        // Check if the group is open
+                        if (joinRequirements != "open")
+                        {
+                            throw new Exception("Group is closed to new members.");
+                        }
+
+                        // Insert a new group relation
+                        string insertRelationQuery = @"
+                            INSERT INTO ClimbGroupRelation (GroupId, UserId, RelationType, MemberSince)
+                            VALUES (@GroupId, @UserId, 'member', current_timestamp)";
+                        using (var insertCommand = new SqliteCommand(insertRelationQuery, connection))
+                        {
+                            insertCommand.Parameters.AddWithValue("@GroupId", groupId);
+                            insertCommand.Parameters.AddWithValue("@UserId", userId);
+                            await insertCommand.ExecuteNonQueryAsync();
+                        }
+                    }
+                }
+            }
+        }
+
+        public Task<List<User>> GetGroupMembers(string groupId)
+        {
+            return ExecuteSelectCommand<User>(@"
+                SELECT 
+                    User.UserId, User.FirstName, User.LastName, User.Email, User.PhoneNumber, 
+                    User.BoulderGradeLowerLimit, User.BoulderGradeUpperLimit, 
+                    User.RopeClimberLowerLimit, User.RopeClimberUpperLimit, User.Bio
+                FROM ClimbGroupRelation
+                JOIN User ON ClimbGroupRelation.UserId = User.UserId
+                WHERE ClimbGroupRelation.GroupId = @GroupId AND ClimbGroupRelation.RelationType = 'member';",
+                new { GroupId = groupId });
+        }
     }
 }
