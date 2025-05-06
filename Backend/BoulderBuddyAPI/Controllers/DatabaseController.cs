@@ -246,6 +246,20 @@ namespace BoulderBuddyAPI.Controllers
             }
         }
 
+        [HttpGet("userRelations/{userId}")]
+        public async Task<IActionResult> GetUserRelationsForUser(string userId)
+        {
+            try
+            {
+                var userRelations = await _databaseService.GetUserRelationsForUser(userId);
+                return Ok(userRelations);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
         [HttpGet("climbGroup")]
         public async Task<IActionResult> GetClimbGroups()
         {
@@ -608,5 +622,8 @@ namespace BoulderBuddyAPI.Services
         Task SendFriendRequest(string senderUserId, string receiverUserName);
         Task AcceptFriendRequest(string senderUserId, string receiverUserId);
         Task RejectFriendRequest(string senderUserId, string receiverUserId);
+
+        //method for getting user relations for a specific user
+        Task<List<UserRelation>> GetUserRelationsForUser(string userId);
     }
 }

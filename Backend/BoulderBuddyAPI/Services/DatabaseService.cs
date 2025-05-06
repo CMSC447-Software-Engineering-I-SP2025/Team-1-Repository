@@ -527,5 +527,15 @@ namespace BoulderBuddyAPI.Services
         {
             await DeleteFromUserRelationTable(new { User1Id = senderUserId, User2Id = receiverUserId });
         }
+
+        public Task<List<UserRelation>> GetUserRelationsForUser(string userId)
+        {
+            return ExecuteSelectCommand<UserRelation>(@"
+                SELECT 
+                    User1Id, User2Id, RelationType, RequestDate, FriendSince
+                FROM UserRelation
+                WHERE User1Id = @UserId OR User2Id = @UserId;",
+                new { UserId = userId });
+        }
     }
 }
