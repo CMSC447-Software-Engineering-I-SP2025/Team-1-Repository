@@ -513,6 +513,50 @@ namespace BoulderBuddyAPI.Controllers
             }
         }
 
+        //Handle Friend Requests
+
+        [HttpPost("sendFriendRequest")]
+        public async Task<IActionResult> SendFriendRequest(string receiverUserName, string senderUserId)
+        {
+            try
+            {
+                await _databaseService.SendFriendRequest(senderUserId, receiverUserName);
+                return Ok(new { message = "Friend request sent successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        [HttpPost("acceptFriendRequest")]
+        public async Task<IActionResult> AcceptFriendRequest(string senderUserId, string receiverUserId)
+        {
+            try
+            {
+                await _databaseService.AcceptFriendRequest(senderUserId, receiverUserId);
+                return Ok(new { message = "Friend request accepted successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        [HttpDelete("rejectFriendRequest")]
+        public async Task<IActionResult> RejectFriendRequest(string senderUserId, string receiverUserId)
+        {
+            try
+            {
+                // Use the existing delete method with object parameters to remove the pending friend request
+                await _databaseService.DeleteFromUserRelationTable($"{senderUserId}:{receiverUserId}");
+                return Ok(new { message = "Friend request rejected successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
     }
 }
 
@@ -559,5 +603,10 @@ namespace BoulderBuddyAPI.Services
         Task<List<ClimbGroupEvent>> GetClimbGroupEvents();
         Task<List<Badge>> GetBadges();
         Task<List<BadgeRelation>> GetBadgeRelations();
+
+        //methods for handling friend requests
+        Task SendFriendRequest(string senderUserId, string receiverUserName);
+        Task AcceptFriendRequest(string senderUserId, string receiverUserId);
+        Task RejectFriendRequest(string senderUserId, string receiverUserId);
     }
 }

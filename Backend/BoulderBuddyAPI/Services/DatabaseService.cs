@@ -464,5 +464,68 @@ namespace BoulderBuddyAPI.Services
             }
 
         }
+
+        //Handle friend requests
+        public async Task SendFriendRequest(string senderUserId, string receiverUserName)
+        {
+            using (var connection = new SqliteConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+
+                // Get the UserId of the receiver based on their username
+                string getUserIdQuery = "SELECT UserId FROM User WHERE FirstName || ' ' || LastName = @ReceiverUserName";
+                using (var getUserIdCommand = new SqliteCommand(getUserIdQuery, connection))
+                {
+                    getUserIdCommand.Parameters.AddWithValue("@ReceiverUserName", receiverUserName);
+                    var receiverUserId = await getUserIdCommand.ExecuteScalarAsync();
+
+                    if (receiverUserId == null)
+                    {
+                        throw new Exception("Receiver user not found.");
+                    }
+
+                    // Insert the friend request into the UserRelation table
+                    string insertQuery = @"
+                        INSERT INTO UserRelation (User1Id, User2Id, RelationType, RequestDate)
+                        VALUES (@SenderUserId, @ReceiverUserId, 'pending_user1', current_timestamp)";
+                    using (var insertCommand = new SqliteCommand(insertQuery, connection))
+                    {
+                        insertCommand.Parameters.AddWithValue("@SenderUserId", senderUserId);
+                        insertCommand.Parameters.AddWithValue("@ReceiverUserId", receiverUserId.ToString());
+                        await insertCommand.ExecuteNonQueryAsync();
+                    }
+                }
+            }
+        }
+
+        public async Task AcceptFriendRequest(string senderUserId, string receiverUserId)
+        {
+            using (var connection = new SqliteConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+
+                // Update the UserRelation table to set the relation type to 'friends'
+                string updateQuery = @"
+                    UPDATE UserRelation
+                    SET RelationType = 'friends', FriendSince = current_timestamp
+                    WHERE User1Id = @SenderUserId AND User2Id = @ReceiverUserId AND RelationType = 'pending_user1'";
+                using (var updateCommand = new SqliteCommand(updateQuery, connection))
+                {
+                    updateCommand.Parameters.AddWithValue("@SenderUserId", senderUserId);
+                    updateCommand.Parameters.AddWithValue("@ReceiverUserId", receiverUserId);
+
+                    int rowsAffected = await updateCommand.ExecuteNonQueryAsync();
+                    if (rowsAffected == 0)
+                    {
+                        throw new Exception("No pending friend request found.");
+                    }
+                }
+            }
+        }
+
+        public async Task RejectFriendRequest(string senderUserId, string receiverUserId)
+        {
+            await DeleteFromUserRelationTable(new { User1Id = senderUserId, User2Id = receiverUserId });
+        }
     }
 }
