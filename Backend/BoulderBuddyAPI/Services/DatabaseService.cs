@@ -234,7 +234,7 @@ namespace BoulderBuddyAPI.Services
         public Task<List<ClimbGroupRelation>> GetClimbGroupRelations() =>
             ExecuteSelectCommand<ClimbGroupRelation>(@"
                 SELECT 
-                    ClimbGroupRelationId, GroupId, UserId, RelationType, 
+                    GroupId, UserId, RelationType, 
                     InviteDate, MemberSince 
                 FROM ClimbGroupRelation;", new object());
 
