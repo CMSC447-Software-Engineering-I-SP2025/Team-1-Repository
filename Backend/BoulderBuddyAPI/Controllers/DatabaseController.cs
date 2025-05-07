@@ -360,20 +360,6 @@ namespace BoulderBuddyAPI.Controllers
             }
         }
 
-        [HttpDelete("userRelation/{userRelationId}")]
-        public async Task<IActionResult> DeleteUserRelation(string userRelationId)
-        {
-            try
-            {
-                await _databaseService.DeleteFromUserRelationTable(userRelationId);
-                return Ok();
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
-        }
-
         [HttpDelete("review/{reviewId}")]
         public async Task<IActionResult> DeleteReview(string reviewId)
         {
@@ -480,6 +466,7 @@ namespace BoulderBuddyAPI.Controllers
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"Error updating review: {ex.Message}");
                 return StatusCode(500, new { message = ex.Message });
             }
         }
@@ -576,8 +563,7 @@ namespace BoulderBuddyAPI.Controllers
         {
             try
             {
-                // Use the existing delete method with object parameters to remove the pending friend request
-                await _databaseService.DeleteFromUserRelationTable($"{senderUserId}:{receiverUserId}");
+                await _databaseService.RejectFriendRequest(senderUserId, receiverUserId);
                 return Ok(new { message = "Friend request rejected successfully." });
             }
             catch (Exception ex)
@@ -622,13 +608,13 @@ namespace BoulderBuddyAPI.Services
 
         //methods for deleteing data from the database
         Task DeleteFromUserTable(string userId);
-        Task DeleteFromUserRelationTable(string userRelationId);
         Task DeleteFromReviewTable(string reviewId);
         Task DeleteFromClimbGroupTable(string climbGroupId);
         Task DeleteFromClimbGroupRelationTable(string groupId, string userId);
         Task DeleteFromClimbGroupEventTable(string eventId);
         Task DeleteFromBadgeTable(string badgeId);
         Task DeleteFromBadgeRelationTable(string userId, string badgeId);
+        Task DeleteFromUserRelationTable(string userRelationId);
 
         //methods for updating data in the database
         Task UpdateUser(string userId, object parameters);

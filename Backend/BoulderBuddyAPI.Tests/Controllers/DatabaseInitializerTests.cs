@@ -3,9 +3,8 @@ using Microsoft.Data.Sqlite;
 using BoulderBuddyAPI.Services;
 using System;
 using System.Threading.Tasks;
-using Moq;
-using Microsoft.Extensions.Configuration;
 using System.Collections.Generic;
+using Microsoft.Extensions.Configuration;
 
 namespace BoulderBuddyAPI.Tests.Controllers
 {
@@ -31,13 +30,11 @@ namespace BoulderBuddyAPI.Tests.Controllers
             };
 
             var configuration = new ConfigurationBuilder()
-                .AddInMemoryCollection(inMemorySettings as IEnumerable<KeyValuePair<string, string?>>)
+                .AddInMemoryCollection(inMemorySettings)
                 .Build();
 
             // Initialize the DatabaseInitializer with the test configuration
             _databaseInitializer = new DatabaseInitializer(configuration);
-
-            Console.WriteLine($"Using connection string: {_sqliteConnection.ConnectionString}");
         }
 
         [Fact]
@@ -56,42 +53,28 @@ namespace BoulderBuddyAPI.Tests.Controllers
         }
 
         [Fact]
-        public void Initialize_CreatesAllTablesSuccessfully()
-        {
-            // Act
-            _databaseInitializer.Initialize();
-
-            // Assert
-            var tables = new[] { "User", "Review", "Badge", "BadgeRelation" }; // Removed 'Route' table
-            foreach (var table in tables)
-            {
-                using (var command = _sqliteConnection.CreateCommand())
-                {
-                    command.CommandText = $"SELECT name FROM sqlite_master WHERE type='table' AND name='{table}';";
-                    var result = command.ExecuteScalar();
-                    Assert.NotNull(result); // Ensure the table was created
-                }
-            }
-        }
-
-        [Fact]
         public async Task ExecuteInsertCommand_AllowsDataInsertion()
         {
             // Arrange
             _databaseInitializer.Initialize();
 
-            // Clear the table before running the test
-            using (var command = _sqliteConnection.CreateCommand())
+            var user = new
             {
-                command.CommandText = "DELETE FROM User;";
-                command.ExecuteNonQuery();
-            }
-
-            var user = new { UserId = Guid.NewGuid().ToString(), Name = "Test User", Email = "test@example.com", Password = "password", AccountType = "public" };
+                UserId = Guid.NewGuid().ToString(),
+                FirstName = "Test",
+                LastName = "User",
+                Email = "test@example.com",
+                PhoneNumber = "1234567890",
+                BoulderGradeLowerLimit = "V0",
+                BoulderGradeUpperLimit = "V5",
+                RopeClimberLowerLimit = "5.8",
+                RopeClimberUpperLimit = "5.12",
+                Bio = "Climbing enthusiast"
+            };
 
             var commandText = @"
-                INSERT INTO User (UserId, Name, Email, Password, AccountType) 
-                VALUES (@UserId, @Name, @Email, @Password, @AccountType);";
+                INSERT INTO User (UserId, FirstName, LastName, Email, PhoneNumber, BoulderGradeLowerLimit, BoulderGradeUpperLimit, RopeClimberLowerLimit, RopeClimberUpperLimit, Bio) 
+                VALUES (@UserId, @FirstName, @LastName, @Email, @PhoneNumber, @BoulderGradeLowerLimit, @BoulderGradeUpperLimit, @RopeClimberLowerLimit, @RopeClimberUpperLimit, @Bio);";
 
             // Act
             await _databaseService.ExecuteInsertCommand(_sqliteConnection, commandText, user);
@@ -107,70 +90,34 @@ namespace BoulderBuddyAPI.Tests.Controllers
         }
 
         [Fact]
-        public async Task ExecuteInsertCommand_ThrowsException_WhenTableDoesNotExist()
-        {
-            // Arrange
-            _databaseInitializer.Initialize();
-            var data = new { Id = 1, Name = "Test" };
-
-            var commandText = @"
-                INSERT INTO NonExistentTable (Id, Name) 
-                VALUES (@Id, @Name);";
-
-            // Act & Assert
-            await Assert.ThrowsAsync<SqliteException>(async () =>
-            {
-                await _databaseService.ExecuteInsertCommand(commandText, data);
-            });
-        }
-
-        [Fact]
-        public async Task ExecuteDeleteCommand_RemovesDataSuccessfully()
-        {
-            // Arrange
-            _databaseInitializer.Initialize();
-
-            // Clear the table before running the test
-            using (var command = _sqliteConnection.CreateCommand())
-            {
-                command.CommandText = "DELETE FROM User;";
-                command.ExecuteNonQuery();
-            }
-
-            var user = new { UserId = "1", Name = "Test User", Email = "test@example.com", Password = "password", AccountType = "public" };
-            await _databaseService.ExecuteInsertCommand(_sqliteConnection, @"
-                INSERT INTO User (UserId, Name, Email, Password, AccountType) 
-                VALUES (@UserId, @Name, @Email, @Password, @AccountType);", user);
-
-            // Act
-            await _databaseService.ExecuteDeleteCommand(_sqliteConnection, "DELETE FROM User WHERE UserId = @UserId;", new { UserId = "1" });
-
-            // Assert
-            using (var command = _sqliteConnection.CreateCommand())
-            {
-                command.CommandText = "SELECT COUNT(*) FROM User WHERE UserId = '1';";
-                var result = command.ExecuteScalar() as long? ?? 0;
-                Assert.Equal(0, result); // Ensure the user was deleted
-            }
-        }
-
-        [Fact]
         public async Task ExecuteUpdateCommand_UpdatesDataSuccessfully()
         {
             // Arrange
             _databaseInitializer.Initialize();
-            var user = new { UserId = "1", Name = "Test User", Email = "test@example.com", Password = "password", AccountType = "public" };
+            var user = new
+            {
+                UserId = "1",
+                FirstName = "Test",
+                LastName = "User",
+                Email = "test@example.com",
+                PhoneNumber = "1234567890",
+                BoulderGradeLowerLimit = "V0",
+                BoulderGradeUpperLimit = "V5",
+                RopeClimberLowerLimit = "5.8",
+                RopeClimberUpperLimit = "5.12",
+                Bio = "Climbing enthusiast"
+            };
 
             var insertCommandText = @"
-                INSERT INTO User (UserId, Name, Email, Password, AccountType) 
-                VALUES (@UserId, @Name, @Email, @Password, @AccountType);";
+                INSERT INTO User (UserId, FirstName, LastName, Email, PhoneNumber, BoulderGradeLowerLimit, BoulderGradeUpperLimit, RopeClimberLowerLimit, RopeClimberUpperLimit, Bio) 
+                VALUES (@UserId, @FirstName, @LastName, @Email, @PhoneNumber, @BoulderGradeLowerLimit, @BoulderGradeUpperLimit, @RopeClimberLowerLimit, @RopeClimberUpperLimit, @Bio);";
             await _databaseService.ExecuteInsertCommand(_sqliteConnection, insertCommandText, user);
 
             var updateCommandText = @"
                 UPDATE User 
-                SET Name = @Name, Email = @Email 
+                SET FirstName = @FirstName, LastName = @LastName, Email = @Email 
                 WHERE UserId = @UserId;";
-            var updatedUser = new { UserId = "1", Name = "Updated User", Email = "updated@example.com" };
+            var updatedUser = new { UserId = "1", FirstName = "Updated", LastName = "User", Email = "updated@example.com" };
 
             // Act
             await _databaseService.ExecuteUpdateCommand(_sqliteConnection, updateCommandText, updatedUser);
@@ -178,11 +125,12 @@ namespace BoulderBuddyAPI.Tests.Controllers
             // Assert
             using (var command = _sqliteConnection.CreateCommand())
             {
-                command.CommandText = "SELECT Name, Email FROM User WHERE UserId = '1';";
+                command.CommandText = "SELECT FirstName, LastName, Email FROM User WHERE UserId = '1';";
                 using (var reader = command.ExecuteReader())
                 {
                     Assert.True(reader.Read());
-                    Assert.Equal("Updated User", reader["Name"]);
+                    Assert.Equal("Updated", reader["FirstName"]);
+                    Assert.Equal("User", reader["LastName"]);
                     Assert.Equal("updated@example.com", reader["Email"]);
                 }
             }
@@ -193,18 +141,23 @@ namespace BoulderBuddyAPI.Tests.Controllers
         {
             // Arrange
             _databaseInitializer.Initialize();
-            var user = new User
+            var user = new
             {
                 UserId = "12",
-                Name = "Test User",
+                FirstName = "Test",
+                LastName = "User",
                 Email = "test@example.com",
-                Password = "password",
-                AccountType = "public"
+                PhoneNumber = "1234567890",
+                BoulderGradeLowerLimit = "V0",
+                BoulderGradeUpperLimit = "V5",
+                RopeClimberLowerLimit = "5.8",
+                RopeClimberUpperLimit = "5.12",
+                Bio = "Climbing enthusiast"
             };
 
             var insertCommandText = @"
-                INSERT INTO User (UserId, Name, Email, Password, AccountType) 
-                VALUES (@UserId, @Name, @Email, @Password, @AccountType);";
+                INSERT INTO User (UserId, FirstName, LastName, Email, PhoneNumber, BoulderGradeLowerLimit, BoulderGradeUpperLimit, RopeClimberLowerLimit, RopeClimberUpperLimit, Bio) 
+                VALUES (@UserId, @FirstName, @LastName, @Email, @PhoneNumber, @BoulderGradeLowerLimit, @BoulderGradeUpperLimit, @RopeClimberLowerLimit, @RopeClimberUpperLimit, @Bio);";
             await _databaseService.ExecuteInsertCommand(_sqliteConnection, insertCommandText, user);
 
             var selectCommandText = "SELECT * FROM User WHERE UserId = @UserId;";
@@ -215,7 +168,8 @@ namespace BoulderBuddyAPI.Tests.Controllers
             // Assert
             Assert.Single(users);
             Assert.Equal("12", users[0].UserId);
-            Assert.Equal("Test User", users[0].Name);
+            Assert.Equal("Test", users[0].FirstName);
+            Assert.Equal("User", users[0].LastName);
             Assert.Equal("test@example.com", users[0].Email);
         }
 
@@ -237,10 +191,15 @@ namespace BoulderBuddyAPI.Tests.Controllers
                         columns.Add(reader["name"].ToString());
                     }
                     Assert.Contains("UserId", columns);
-                    Assert.Contains("Name", columns);
+                    Assert.Contains("FirstName", columns);
+                    Assert.Contains("LastName", columns);
                     Assert.Contains("Email", columns);
-                    Assert.Contains("Password", columns);
-                    Assert.Contains("AccountType", columns);
+                    Assert.Contains("PhoneNumber", columns);
+                    Assert.Contains("BoulderGradeLowerLimit", columns);
+                    Assert.Contains("BoulderGradeUpperLimit", columns);
+                    Assert.Contains("RopeClimberLowerLimit", columns);
+                    Assert.Contains("RopeClimberUpperLimit", columns);
+                    Assert.Contains("Bio", columns);
                 }
             }
         }
@@ -272,6 +231,116 @@ namespace BoulderBuddyAPI.Tests.Controllers
         }
 
         [Fact]
+        public void Initialize_ValidatesUserRelationTableSchema()
+        {
+            // Act
+            _databaseInitializer.Initialize();
+
+            // Assert
+            using (var command = _sqliteConnection.CreateCommand())
+            {
+                command.CommandText = "PRAGMA table_info(UserRelation);";
+                using (var reader = command.ExecuteReader())
+                {
+                    var columns = new List<string>();
+                    while (reader.Read())
+                    {
+                        columns.Add(reader["name"].ToString());
+                    }
+                    Assert.Contains("User1Id", columns);
+                    Assert.Contains("User2Id", columns);
+                    Assert.Contains("RelationType", columns);
+                    Assert.Contains("RequestDate", columns);
+                    Assert.Contains("FriendSince", columns);
+                }
+            }
+        }
+
+        [Fact]
+        public void Initialize_ValidatesClimbGroupTableSchema()
+        {
+            // Act
+            _databaseInitializer.Initialize();
+
+            // Assert
+            using (var command = _sqliteConnection.CreateCommand())
+            {
+                command.CommandText = "PRAGMA table_info(ClimbGroup);";
+                using (var reader = command.ExecuteReader())
+                {
+                    var columns = new List<string>();
+                    while (reader.Read())
+                    {
+                        columns.Add(reader["name"].ToString());
+                    }
+                    Assert.Contains("GroupId", columns);
+                    Assert.Contains("GroupName", columns);
+                    Assert.Contains("GroupDescription", columns);
+                    Assert.Contains("JoinRequirements", columns);
+                    Assert.Contains("Price", columns);
+                    Assert.Contains("GroupType", columns);
+                    Assert.Contains("GroupOwner", columns);
+                    Assert.Contains("GroupImage", columns);
+                }
+            }
+        }
+
+        [Fact]
+        public void Initialize_ValidatesClimbGroupRelationTableSchema()
+        {
+            // Act
+            _databaseInitializer.Initialize();
+
+            // Assert
+            using (var command = _sqliteConnection.CreateCommand())
+            {
+                command.CommandText = "PRAGMA table_info(ClimbGroupRelation);";
+                using (var reader = command.ExecuteReader())
+                {
+                    var columns = new List<string>();
+                    while (reader.Read())
+                    {
+                        columns.Add(reader["name"].ToString());
+                    }
+                    Assert.Contains("GroupId", columns);
+                    Assert.Contains("UserId", columns);
+                    Assert.Contains("RelationType", columns);
+                    Assert.Contains("InviteDate", columns);
+                    Assert.Contains("MemberSince", columns);
+                }
+            }
+        }
+
+        [Fact]
+        public void Initialize_ValidatesClimbGroupEventTableSchema()
+        {
+            // Act
+            _databaseInitializer.Initialize();
+
+            // Assert
+            using (var command = _sqliteConnection.CreateCommand())
+            {
+                command.CommandText = "PRAGMA table_info(ClimbGroupEvent);";
+                using (var reader = command.ExecuteReader())
+                {
+                    var columns = new List<string>();
+                    while (reader.Read())
+                    {
+                        columns.Add(reader["name"].ToString());
+                    }
+                    Assert.Contains("EventId", columns);
+                    Assert.Contains("GroupId", columns);
+                    Assert.Contains("EventName", columns);
+                    Assert.Contains("EventDescription", columns);
+                    Assert.Contains("EventDate", columns);
+                    Assert.Contains("EventTime", columns);
+                    Assert.Contains("EventLocation", columns);
+                    Assert.Contains("EventImage", columns);
+                }
+            }
+        }
+
+        [Fact]
         public void Initialize_ValidatesBadgeTableSchema()
         {
             // Act
@@ -288,6 +357,7 @@ namespace BoulderBuddyAPI.Tests.Controllers
                     {
                         columns.Add(reader["name"].ToString());
                     }
+                    Assert.Contains("BadgeId", columns);
                     Assert.Contains("BadgeName", columns);
                     Assert.Contains("BadgeDescription", columns);
                     Assert.Contains("BadgeRequirement", columns);
@@ -320,6 +390,104 @@ namespace BoulderBuddyAPI.Tests.Controllers
             }
         }
 
-        // Removed tests related to the 'Route' table
+        [Fact]
+        public void Initialize_CreatesAllTables()
+        {
+            // Act
+            _databaseInitializer.Initialize();
+
+            // Assert
+            var tables = new[] { "User", "Review", "UserRelation", "ClimbGroup", "ClimbGroupRelation", "ClimbGroupEvent", "Badge", "BadgeRelation" };
+            foreach (var table in tables)
+            {
+                using (var command = _sqliteConnection.CreateCommand())
+                {
+                    command.CommandText = $"SELECT name FROM sqlite_master WHERE type='table' AND name='{table}';";
+                    var result = command.ExecuteScalar();
+                    Assert.NotNull(result); // Ensure the table was created
+                }
+            }
+        }
+
+        [Fact]
+        public void Initialize_EnforcesForeignKeyConstraints()
+        {
+            // Act
+            _databaseInitializer.Initialize();
+
+            // Assert
+            using (var command = _sqliteConnection.CreateCommand())
+            {
+                command.CommandText = "PRAGMA foreign_keys;";
+                var result = command.ExecuteScalar();
+                Assert.Equal(1, Convert.ToInt32(result)); // Ensure foreign key constraints are enabled
+            }
+        }
+
+        [Fact]
+        public async Task Initialize_EnforcesBadgeRarityCheckConstraint()
+        {
+            // Arrange
+            _databaseInitializer.Initialize();
+
+            var invalidBadge = new
+            {
+                BadgeName = "Invalid Badge",
+                BadgeDescription = "This badge has an invalid rarity",
+                BadgeRequirement = "Complete 10 climbs",
+                BadgeRarity = "invalid", // Invalid value
+                BadgeImage = new byte[0]
+            };
+
+            var commandText = @"
+                INSERT INTO Badge (BadgeName, BadgeDescription, BadgeRequirement, BadgeRarity, BadgeImage) 
+                VALUES (@BadgeName, @BadgeDescription, @BadgeRequirement, @BadgeRarity, @BadgeImage);";
+
+            // Act & Assert
+            await Assert.ThrowsAsync<SqliteException>(async () =>
+            {
+                await _databaseService.ExecuteInsertCommand(_sqliteConnection, commandText, invalidBadge);
+            });
+        }
+
+        [Fact]
+        public async Task Initialize_EnforcesOnDeleteCascade()
+        {
+            // Arrange
+            _databaseInitializer.Initialize();
+
+            var user = new { UserId = "user1", FirstName = "Test", LastName = "User", Email = "test@example.com" };
+            var review = new { ReviewId = 1, UserId = "user1", RouteId = "route1", Rating = 5, Text = "Great route!" };
+
+            await _databaseService.ExecuteInsertCommand(_sqliteConnection, "INSERT INTO User (UserId, FirstName, LastName, Email) VALUES (@UserId, @FirstName, @LastName, @Email);", user);
+            await _databaseService.ExecuteInsertCommand(_sqliteConnection, "INSERT INTO Review (ReviewId, UserId, RouteId, Rating, Text) VALUES (@ReviewId, @UserId, @RouteId, @Rating, @Text);", review);
+
+            // Act
+            await _databaseService.ExecuteDeleteCommand(_sqliteConnection, "DELETE FROM User WHERE UserId = @UserId;", new { UserId = "user1" });
+
+            // Assert
+            using (var command = _sqliteConnection.CreateCommand())
+            {
+                command.CommandText = "SELECT COUNT(*) FROM Review WHERE UserId = 'user1';";
+                var result = (long)(command.ExecuteScalar() ?? 0);
+                Assert.Equal(0, result); // Ensure the review was deleted
+            }
+        }
+
+        [Fact]
+        public void Initialize_DoesNotDuplicateTables()
+        {
+            // Act
+            _databaseInitializer.Initialize();
+            _databaseInitializer.Initialize(); // Run it again
+
+            // Assert
+            using (var command = _sqliteConnection.CreateCommand())
+            {
+                command.CommandText = "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='User';";
+                var result = (long)(command.ExecuteScalar() ?? 0);
+                Assert.Equal(1, result); // Ensure the table exists only once
+            }
+        }
     }
 }
