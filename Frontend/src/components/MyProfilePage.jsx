@@ -28,37 +28,65 @@ const MyProfilePage = ({ onSave }) => {
   const [activeTab, setActiveTab] = useState("editProfile"); // State for active tab
   const [emailError, setEmailError] = useState(""); // State for email error
   const [phoneError, setPhoneError] = useState(""); // State for phone error
-    const maxBioLength = 200; // Maximum character limit for bio
+  const [reviews, setReviews] = useState([]); // Ensure reviews is initialized as an array
+  const [reviewsError, setReviewsError] = useState(""); // State for error handling
 
-    const [userRelation1] = useState({
-        user1ID: "12345",
-        user2ID: "2",
-        relationType: "pending_user1"
-    });
-    const [userRelation2] = useState({
-        user1ID: "12345",
-        user2ID: "1",
-        relationType: "friends"
-    });
+  const maxBioLength = 200; // Maximum character limit for bio
 
-    const [userRelations, setUserRelations] = useState([userRelation1, userRelation2]);
+  const [userRelation1] = useState({
+    user1ID: "12345",
+    user2ID: "2",
+    relationType: "pending_user1",
+  });
+  const [userRelation2] = useState({
+    user1ID: "12345",
+    user2ID: "1",
+    relationType: "friends",
+  });
 
-    const [groupRelation1] = useState({
-        groupID: "1",
-        relationType: "invited"
-    });
-    const [groupRelation2] = useState({
-        groupID: "2",
-        relationType: "member"
-    });
+  const [userRelations, setUserRelations] = useState([
+    userRelation1,
+    userRelation2,
+  ]);
 
-    const [groupRelations, setGroupRelations] = useState([groupRelation1, groupRelation2]);
+  const [groupRelation1] = useState({
+    groupID: "1",
+    relationType: "invited",
+  });
+  const [groupRelation2] = useState({
+    groupID: "2",
+    relationType: "member",
+  });
+
+  const [groupRelations, setGroupRelations] = useState([
+    groupRelation1,
+    groupRelation2,
+  ]);
 
   useEffect(() => {
     if (!loading && authenticatedUser === null) {
       navigate("/login"); // Redirect to login only after loading is complete
     }
   }, [authenticatedUser, loading, navigate]);
+
+  useEffect(() => {
+    if (activeTab === "reviews" && authenticatedUser) {
+      const fetchReviews = async () => {
+        try {
+          const response = await axios.get(
+            `/api/Database/reviewsByUser/${authenticatedUser.id}`
+          );
+          setReviews(response.data); // Update reviews state with fetched data
+          setReviewsError(""); // Clear any previous errors
+        } catch (error) {
+          console.error("Error fetching reviews:", error);
+          setReviewsError("Failed to load reviews. Please try again later.");
+        }
+      };
+
+      fetchReviews();
+    }
+  }, [activeTab, authenticatedUser]);
 
   useEffect(() => {
     window.scrollTo(0, 0); // Scroll to the top of the page
@@ -134,34 +162,38 @@ const MyProfilePage = ({ onSave }) => {
     onSave(updatedUser); // Call the onSave callback with updated user data
   };
 
-    return (authenticatedUser && (
-    authenticatedUser &&<div className="min-h-screen bg-gray-100">
-      <div className="max-w-4xl p-6 mx-auto mt-10 bg-white rounded-lg">
-        {/* Tabs */}
-        <div className="flex justify-between px-4 mb-6 border-b border-gray-300">
-          {["editProfile", "myClimbs", "reviews", "photos", "community"].map((tab) => (
-            <div
-              key={tab}
-              className={`relative pb-3 text-base font-medium transition-all duration-300 cursor-pointer ${
-                activeTab === tab
-                  ? "text-blue-600 border-b-4 border-blue-600"
-                  : "text-gray-500 hover:text-blue-600 hover:border-b-4 hover:border-blue-300"
-              }`}
-              onClick={() => setActiveTab(tab)}
-              style={{ flex: 1, textAlign: "center" }} // Ensure even spacing and alignment
-            >
-              {tab === "editProfile"
-                ? "Edit Profile"
-                : tab === "myClimbs"
-                ? "My Climbs"
-                : tab === "reviews"
-                ? "Reviews"
-                : tab === "photos"
-                ? "Photos"
-                : "Community"}
-            </div>
-          ))}
-        </div>
+  return (
+    authenticatedUser &&
+    authenticatedUser && (
+      <div className="min-h-screen bg-gray-100">
+        <div className="max-w-4xl p-6 mx-auto mt-10 bg-white rounded-lg">
+          {/* Tabs */}
+          <div className="flex justify-between px-4 mb-6 border-b border-gray-300">
+            {["editProfile", "myClimbs", "reviews", "photos", "community"].map(
+              (tab) => (
+                <div
+                  key={tab}
+                  className={`relative pb-3 text-base font-medium transition-all duration-300 cursor-pointer ${
+                    activeTab === tab
+                      ? "text-blue-600 border-b-4 border-blue-600"
+                      : "text-gray-500 hover:text-blue-600 hover:border-b-4 hover:border-blue-300"
+                  }`}
+                  onClick={() => setActiveTab(tab)}
+                  style={{ flex: 1, textAlign: "center" }} // Ensure even spacing and alignment
+                >
+                  {tab === "editProfile"
+                    ? "Edit Profile"
+                    : tab === "myClimbs"
+                    ? "My Climbs"
+                    : tab === "reviews"
+                    ? "Reviews"
+                    : tab === "photos"
+                    ? "Photos"
+                    : "Community"}
+                </div>
+              )
+            )}
+          </div>
 
           {/* Tab Content */}
           {activeTab === "editProfile" && (
@@ -426,57 +458,79 @@ const MyProfilePage = ({ onSave }) => {
           {activeTab === "reviews" && (
             <div>
               <h2 className="text-xl font-bold text-gray-800">Reviews</h2>
-              <p className="text-gray-600">List of reviews will go here.</p>
+              {reviewsError ? (
+                <p className="text-red-500">{reviewsError}</p>
+              ) : !Array.isArray(reviews) || reviews.length === 0 ? ( // Validate reviews is an array
+                <p className="text-gray-600">You have no reviews yet.</p>
+              ) : (
+                <ul className="space-y-4">
+                  {reviews.map((review, index) => (
+                    <li key={index} className="p-4 bg-gray-100 rounded shadow">
+                      <h3 className="text-lg font-semibold">{review.title}</h3>
+                      <p className="text-gray-700">{review.content}</p>
+                      <p className="text-sm text-gray-500">
+                        Posted on: {new Date(review.date).toLocaleDateString()}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
           )}
 
-        {activeTab === "photos" && (
-          <div>
-            <h2 className="text-xl font-bold text-gray-800">Photos</h2>
-            <p className="text-gray-600">Gallery of photos will go here.</p>
-          </div>
+          {activeTab === "photos" && (
+            <div>
+              <h2 className="text-xl font-bold text-gray-800">Photos</h2>
+              <p className="text-gray-600">Gallery of photos will go here.</p>
+            </div>
+          )}
+          {activeTab === "community" && (
+            <div>
+              <h2 className="text-xl font-bold text-gray-800">Friends</h2>
+              <Link to="/add-friend" className="px-3">
+                +
+              </Link>
+              {userRelations.length === 0 ? (
+                <p>You have no friends, haha, loser.</p>
+              ) : (
+                <ul>
+                  {userRelations.map((userRelation, index) => (
+                    <li key={index} style={{ marginBottom: "1rem" }}>
+                      <strong>User1ID:</strong> {userRelation.user1ID} <br />
+                      <strong>User2ID:</strong> {userRelation.user2ID}
+                      <br />
+                      <strong>RelationType:</strong> {userRelation.relationType}
+                    </li>
+                  ))}
+                </ul>
               )}
-              {activeTab === "community" && (
-                  <div>
-                      <h2 className="text-xl font-bold text-gray-800">Friends</h2>
-                      <Link to="/add-friend" className="px-3">
-                          +
+              <h2 className="text-xl font-bold text-gray-800">Groups</h2>
+              <Link to="/add-group" className="px-3">
+                +
+              </Link>
+              {groupRelations.length === 0 ? (
+                <p>You are in no groups, haha, loser.</p>
+              ) : (
+                <ul>
+                  {groupRelations.map((groupRelation, index) => (
+                    <li key={index} style={{ marginBottom: "1rem" }}>
+                      <Link
+                        to="/group"
+                        state={{ groupID: groupRelation.groupID }}
+                        className="px-3"
+                      >
+                        <strong>GroupID:</strong> {groupRelation.groupID} <br />
+                        <strong>RelationType:</strong>{" "}
+                        {groupRelation.relationType}
                       </Link>
-                      {userRelations.length === 0 ? (
-                          <p>You have no friends, haha, loser.</p>
-                      ) : (
-                          <ul>
-                              {userRelations.map((userRelation, index) => (
-                                  <li key={index} style={{ marginBottom: "1rem" }}>
-                                      <strong>User1ID:</strong> {userRelation.user1ID} <br />
-                                      <strong>User2ID:</strong> {userRelation.user2ID}<br />
-                                      <strong>RelationType:</strong> {userRelation.relationType}
-                                  </li>
-                              ))}
-                          </ul>
-                      )}
-                      <h2 className="text-xl font-bold text-gray-800">Groups</h2>
-                      <Link to="/add-group" className="px-3">
-                          +
-                      </Link>
-                      {groupRelations.length === 0 ? (
-                          <p>You are in no groups, haha, loser.</p>
-                      ) : (
-                          <ul>
-                                  {groupRelations.map((groupRelation, index) => (
-                                  <li key={index} style={{ marginBottom: "1rem" }}>
-                                          <Link to="/group" state={{ groupID: groupRelation.groupID }} className="px-3">
-                                          <strong>GroupID:</strong> {groupRelation.groupID} <br />
-                                          <strong>RelationType:</strong> {groupRelation.relationType}
-                                    </Link>
-                                  </li>
-                              ))}
-                          </ul>
-                      )}
-                  </div>
+                    </li>
+                  ))}
+                </ul>
               )}
-      </div>
+            </div>
+          )}
         </div>
+      </div>
     )
   );
 };
