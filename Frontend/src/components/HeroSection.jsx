@@ -42,7 +42,6 @@ const HeroSection = ({
     "Alaska",
     "Arizona",
     "Arkansas",
-    "California",
     "Colorado",
     "Connecticut",
     "Delaware",
