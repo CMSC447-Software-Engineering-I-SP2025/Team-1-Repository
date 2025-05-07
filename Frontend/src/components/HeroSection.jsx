@@ -8,6 +8,8 @@ const HeroSection = ({
   allClimbs,
   isLoading,
   isLoggedIn,
+  stateName,
+  setStateName, // Receive stateName and setStateName
 }) => {
   const [filteredClimbs, setFilteredClimbs] = useState([]);
 
@@ -31,6 +33,63 @@ const HeroSection = ({
     setFilteredClimbs(filtered.slice(0, 15));
   };
 
+  const handleStateChange = (event) => {
+    setStateName(event.target.value);
+  };
+
+  const states = [
+    "Alabama",
+    "Alaska",
+    "Arizona",
+    "Arkansas",
+    "California",
+    "Colorado",
+    "Connecticut",
+    "Delaware",
+    "Florida",
+    "Georgia",
+    "Hawaii",
+    "Idaho",
+    "Illinois",
+    "Indiana",
+    "Iowa",
+    "Kansas",
+    "Kentucky",
+    "Louisiana",
+    "Maine",
+    "Maryland",
+    "Massachusetts",
+    "Michigan",
+    "Minnesota",
+    "Mississippi",
+    "Missouri",
+    "Montana",
+    "Nebraska",
+    "Nevada",
+    "New Hampshire",
+    "New Jersey",
+    "New Mexico",
+    "New York",
+    "North Carolina",
+    "North Dakota",
+    "Ohio",
+    "Oklahoma",
+    "Oregon",
+    "Pennsylvania",
+    "Rhode Island",
+    "South Carolina",
+    "South Dakota",
+    "Tennessee",
+    "Texas",
+    "Utah",
+    "Vermont",
+    "Virginia",
+    "Washington",
+    "West Virginia",
+    "Wisconsin",
+    "Wyoming",
+  ];
+
   if (isLoading) {
     return (
       <section className="h-screen px-4 py-20 pb-10 text-gray-900 bg-gradient-to-r from-blue-100 to-blue-200">
@@ -39,6 +98,26 @@ const HeroSection = ({
             Welcome to Boulder Buddy
           </h1>
           <p className="mb-6 text-xl">Your ultimate climbing companion</p>
+          <div className="mb-6">
+            <label
+              htmlFor="state-select"
+              className="block mb-2 text-lg font-medium text-gray-700"
+            >
+              Select State:
+            </label>
+            <select
+              id="state-select"
+              value={stateName}
+              onChange={handleStateChange}
+              className="px-4 py-2 text-lg border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              {states.map((state) => (
+                <option key={state} value={state}>
+                  {state}
+                </option>
+              ))}
+            </select>
+          </div>
           <SearchBar
             placeholder="Search for a climb by name"
             onInputChange={handleInputChange}
@@ -62,6 +141,26 @@ const HeroSection = ({
           Welcome to Boulder Buddy
         </h1>
         <p className="mb-6 text-xl">Your ultimate climbing companion</p>
+        <div className="mb-6">
+          <label
+            htmlFor="state-select"
+            className="block mb-2 text-lg font-medium text-gray-700"
+          >
+            Select State:
+          </label>
+          <select
+            id="state-select"
+            value={stateName}
+            onChange={handleStateChange}
+            className="px-4 py-2 text-lg border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            {states.map((state) => (
+              <option key={state} value={state}>
+                {state}
+              </option>
+            ))}
+          </select>
+        </div>
         <SearchBar
           placeholder="Search for a climb by name"
           onInputChange={handleInputChange}

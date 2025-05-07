@@ -41,6 +41,10 @@ const App = () => {
     setCurrentUser(updatedUser);
   };
 
+  const handleStateChange = (event) => {
+    setStateName(event.target.value);
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
@@ -94,7 +98,9 @@ const App = () => {
     );
 
     return () => {
-      subscription.unsubscribe();
+      if (subscription && typeof subscription.unsubscribe === "function") {
+        subscription.unsubscribe(); // Ensure unsubscribe is a function
+      }
     };
   }, []);
 
@@ -148,7 +154,7 @@ const App = () => {
             isLoggedIn={!!user}
             setUser={setUser}
             setIsLoggedIn={setIsLoggedIn}
-            setCurrentPage={setCurrentPage} // Pass setCurrentPage to Header
+            setCurrentPage={setCurrentPage}
           />
           <Routes>
             <Route path="/signup" element={<CreateAccountPage />} />
@@ -182,6 +188,8 @@ const App = () => {
                           isLoading={isLoading}
                           recommendedClimbs={recommendedClimbs}
                           isLoggedIn={isLoggedIn}
+                          stateName={stateName} // Pass stateName
+                          setStateName={setStateName} // Pass setStateName
                         />
                       </div>
                       <div className="w-3/4">
@@ -190,7 +198,7 @@ const App = () => {
                           area={selectedArea}
                           setSelectedArea={setSelectedArea}
                           isLoading={isLoading}
-                          setStateName={setStateName}
+                          currentSelectedState={stateName}
                         />
                       </div>
                     </div>
