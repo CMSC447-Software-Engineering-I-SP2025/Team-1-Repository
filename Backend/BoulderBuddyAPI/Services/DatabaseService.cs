@@ -249,6 +249,15 @@ namespace BoulderBuddyAPI.Services
                 SET name = @Name, email = @Email, password = @Password, accountType = @AccountType 
                 WHERE id = @UserId;", parameters);
 
+        //update user settings in user table
+        public Task UpdateUserSettings(object parameters) =>
+            ExecuteUpdateCommand("UPDATE User " + //note: COALESCE(param, ColumnName) means update value only if param is not null
+                "SET " +
+                "AccountType = COALESCE(@AccountType, AccountType), " +
+                "EnableReviewCommentNotifications = COALESCE(@EnableReviewCommentNotifications, EnableReviewCommentNotifications), " +
+                "EnableGroupInviteNotifications = COALESCE(@EnableGroupInviteNotifications, EnableGroupInviteNotifications) " +
+                "WHERE UserId = @UserID", parameters);
+
         //update route table
         public Task UpdateRoute(object parameters) =>
             ExecuteUpdateCommand(@"

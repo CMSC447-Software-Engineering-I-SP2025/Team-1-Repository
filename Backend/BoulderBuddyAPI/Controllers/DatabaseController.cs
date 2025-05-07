@@ -39,6 +39,30 @@ namespace BoulderBuddyAPI.Controllers
             }
         }
 
+        [HttpPost("UpdateUserSettings")]
+        public async Task<IActionResult> PostUserSettings(UserSettingsUpdate newSettings)
+        {
+            //validate expected values
+            if (newSettings.AccountType is not null)
+            {
+                if (newSettings.AccountType != "public" && newSettings.AccountType != "private")
+                    return BadRequest("Invalid AccountType");
+            }
+            if (newSettings.EnableGroupInviteNotifications is not null)
+            {
+                if (newSettings.EnableGroupInviteNotifications != "enable" && newSettings.EnableGroupInviteNotifications != "disable")
+                    return BadRequest("Invalid EnableGroupInviteNotifications");
+            }
+            if (newSettings.EnableReviewCommentNotifications is not null)
+            {
+                if (newSettings.EnableReviewCommentNotifications != "enable" && newSettings.EnableReviewCommentNotifications != "disable")
+                    return BadRequest("Invalid EnableReviewCommentNotifications");
+            }
+
+            await _databaseService.UpdateUserSettings(newSettings);
+            return Ok();
+        }
+
         [HttpPost("route")]
         public async Task<IActionResult> PostRoute([FromBody] Route route)
         {
@@ -303,6 +327,7 @@ namespace BoulderBuddyAPI.Services
         Task<List<ClimbGroupEvent>> GetClimbGroupEvents();
         Task<List<Badge>> GetBadges();
         Task<List<BadgeRelation>> GetBadgeRelations();
+        Task UpdateUserSettings(object parameters);
         Task DeleteFromUserTable(string userId);
         
 
