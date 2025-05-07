@@ -370,9 +370,28 @@ namespace BoulderBuddyAPI.Services
                 await connection.OpenAsync();
                 using (SqliteCommand command = connection.CreateCommand())
                 {
-                    AddParameters(command, parameters);
-                    command.CommandText = commandText;
-                    await command.ExecuteNonQueryAsync();
+                    try
+                    {
+                        AddParameters(command, parameters);
+                        command.CommandText = commandText;
+
+                        Console.WriteLine($"Executing Query: {command.CommandText}");
+                        foreach (var param in command.Parameters)
+                        {
+                            Console.WriteLine($"Parameter: {param}");
+                        }
+
+                        int rowsAffected = await command.ExecuteNonQueryAsync();
+                        if (rowsAffected == 0)
+                        {
+                            Console.WriteLine("No rows were deleted. Check if the record exists.");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error executing delete command: {ex.Message}");
+                        throw;
+                    }
                 }
             }
         }
