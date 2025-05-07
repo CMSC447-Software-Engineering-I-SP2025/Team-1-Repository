@@ -1,3 +1,4 @@
+using System.Reflection.Metadata;
 using System.Text.Json.Serialization;
 
 public class User
@@ -6,8 +7,8 @@ public class User
     public string UserId { get; set; }
     [JsonPropertyName("UserName")]
     public string UserName { get; set; }
-    [JsonPropertyName("Password")]
-    public string Password { get; set; }
+    [JsonPropertyName("ProfileImage")]
+    public Blob ProfileImage { get; set; } 
 
     [JsonPropertyName("FirstName")]
     public string FirstName { get; set; }

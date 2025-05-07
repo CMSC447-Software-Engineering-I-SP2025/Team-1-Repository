@@ -23,7 +23,7 @@ namespace BoulderBuddyAPI.Services
                     CREATE TABLE IF NOT EXISTS User (
                         UserId TEXT PRIMARY KEY,
                         UserName TEXT NOT NULL,
-                        Password TEXT NOT NULL,
+                        ProfileImage BLOB,
                         FirstName TEXT NOT NULL,
                         LastName TEXT NOT NULL,
                         Email TEXT NOT NULL,
@@ -43,6 +43,7 @@ namespace BoulderBuddyAPI.Services
                         Text TEXT,
                         FOREIGN KEY (UserId) REFERENCES User(UserId) ON DELETE CASCADE
                     );
+
                     CREATE TABLE IF NOT EXISTS UserRelation (
                         User1Id TEXT NOT NULL,
                         User2Id TEXT NOT NULL,
@@ -54,6 +55,7 @@ namespace BoulderBuddyAPI.Services
                         FOREIGN KEY (User2Id) REFERENCES User(UserId) ON DELETE CASCADE,
                         CHECK (RelationType IN (""friends"", ""user1_blocked"", ""user2_blocked"", ""both_blocked"", ""pending_user1"", ""pending_user2""))
                     );
+
                     CREATE TABLE IF NOT EXISTS ClimbGroup (
                         GroupId INTEGER PRIMARY KEY AUTOINCREMENT,
                         GroupName TEXT NOT NULL,
@@ -67,6 +69,7 @@ namespace BoulderBuddyAPI.Services
                         CHECK (JoinRequirements IN (""invite_only"", ""paid"", ""open"")),
                         CHECK (GroupType IN (""public"", ""private""))
                     );
+
                     CREATE TABLE IF NOT EXISTS ClimbGroupRelation (
                         GroupId INTEGER NOT NULL,
                         UserId TEXT NOT NULL,
@@ -78,6 +81,7 @@ namespace BoulderBuddyAPI.Services
                         FOREIGN KEY (UserId) REFERENCES User(UserId) ON DELETE CASCADE,
                         CHECK (RelationType IN (""member"", ""owner"", ""admin"", ""banned"", ""invited""))
                     );
+
                     CREATE TABLE IF NOT EXISTS ClimbGroupEvent (
                         EventId INTEGER PRIMARY KEY AUTOINCREMENT,
                         GroupId INTEGER NOT NULL,
@@ -89,6 +93,7 @@ namespace BoulderBuddyAPI.Services
                         EventImage BLOB,
                         FOREIGN KEY (GroupId) REFERENCES ClimbGroup(GroupId) ON DELETE CASCADE
                     );
+
                     CREATE TABLE IF NOT EXISTS Badge (
                         BadgeId INTEGER PRIMARY KEY AUTOINCREMENT,
                         BadgeName TEXT NOT NULL,
@@ -98,12 +103,22 @@ namespace BoulderBuddyAPI.Services
                         BadgeImage BLOB,
                         CHECK (BadgeRarity IN (""common"", ""uncommon"", ""rare""))
                     );
+
                     CREATE TABLE IF NOT EXISTS BadgeRelation (
                         UserId TEXT NOT NULL,
                         BadgeId INTEGER NOT NULL,
                         PRIMARY KEY (UserId, BadgeId),
                         FOREIGN KEY (UserId) REFERENCES User(UserId) ON DELETE CASCADE,
                         FOREIGN KEY (BadgeId) REFERENCES Badge(BadgeId) ON DELETE CASCADE
+                    );
+
+                    CREATE TABLE IF NOT EXISTS Picture (
+                        PictureId INTEGER PRIMARY KEY AUTOINCREMENT,
+                        UserId TEXT NOT NULL,
+                        RouteId TEXT NOT NULL,
+                        Image BLOB NOT NULL,
+                        UploadDate TEXT NOT NULL DEFAULT current_timestamp,
+                        FOREIGN KEY (UserId) REFERENCES User(UserId) ON DELETE CASCADE
                     );
                 ";
 

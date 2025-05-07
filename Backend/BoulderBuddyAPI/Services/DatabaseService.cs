@@ -58,12 +58,12 @@ namespace BoulderBuddyAPI.Services
         public Task InsertIntoUserTable(object parameters) =>
             ExecuteInsertCommand(@"
                 INSERT INTO User (
-                    UserId, UserName, Password, FirstName, LastName, Email, PhoneNumber, 
+                    UserId, UserName, ProfileImage, FirstName, LastName, Email, PhoneNumber, 
                     BoulderGradeLowerLimit, BoulderGradeUpperLimit, 
                     RopeClimberLowerLimit, RopeClimberUpperLimit, Bio
                 ) 
                 VALUES (
-                    @UserId, @UserName, @Password, @FirstName, @LastName, @Email, @PhoneNumber, 
+                    @UserId, @UserName, @ProfileImage, @FirstName, @LastName, @Email, @PhoneNumber, 
                     @BoulderGradeLowerLimit, @BoulderGradeUpperLimit, 
                     @RopeClimberLowerLimit, @RopeClimberUpperLimit, @Bio
                 );", parameters);
@@ -103,7 +103,32 @@ namespace BoulderBuddyAPI.Services
                 INSERT INTO BadgeRelation (UserId, BadgeId) 
                 VALUES (@UserId, @BadgeId);", parameters);
 
-        
+        //******Handle images and blobs******//
+
+        // Add a new picture to the Picture table
+        public Task AddPicture(object parameters) =>
+            ExecuteInsertCommand(@"
+                INSERT INTO Picture (UserId, RouteId, Image, UploadDate) 
+                VALUES (@UserId, @RouteId, @Image, current_timestamp);", parameters);
+
+        // Delete a picture from the Picture table
+        public Task DeletePicture(int pictureId) =>
+            ExecuteInsertCommand(@"
+                DELETE FROM Picture 
+                WHERE PictureId = @PictureId;", new { PictureId = pictureId });
+
+        // Update an existing picture in the Picture table
+        public Task UpdatePicture(int pictureId, object parameters) =>
+            ExecuteInsertCommand(@"
+                UPDATE Picture 
+                SET 
+                    UserId = @UserId,
+                    RouteId = @RouteId,
+                    Image = @Image,
+                    UploadDate = current_timestamp
+                WHERE PictureId = @PictureId;", 
+                new { PictureId = pictureId, parameters });
+
         //execute select command
         public async Task<List<T>> ExecuteSelectCommand<T>(string commandText, object parameters)
         {
@@ -179,7 +204,7 @@ namespace BoulderBuddyAPI.Services
         public Task<List<User>> GetUsers() =>
             ExecuteSelectCommand<User>(@"
                 SELECT 
-                    UserId, UserName, Password, FirstName, LastName, Email, PhoneNumber, 
+                    UserId, UserName, ProfileImage, FirstName, LastName, Email, PhoneNumber, 
                     BoulderGradeLowerLimit, BoulderGradeUpperLimit, 
                     RopeClimberLowerLimit, RopeClimberUpperLimit, Bio 
                 FROM User;", new object());
@@ -304,6 +329,8 @@ namespace BoulderBuddyAPI.Services
             ExecuteUpdateCommand(@"
                 UPDATE User 
                 SET 
+                    UserName = @UserName,
+                    ProfileImage = @ProfileImage,
                     FirstName = @FirstName, 
                     LastName = @LastName, 
                     Email = @Email, 
@@ -689,7 +716,7 @@ namespace BoulderBuddyAPI.Services
         public Task<List<User>> GetGroupMembers(string groupId) =>
             ExecuteSelectCommand<User>(@"
                 SELECT 
-                    User.UserId, User.UserName, User.FirstName, User.LastName, 
+                    User.UserId, User.UserName, User.ProfileImage, User.FirstName, User.LastName, 
                     User.Email, User.PhoneNumber, User.BoulderGradeLowerLimit, 
                     User.BoulderGradeUpperLimit, User.RopeClimberLowerLimit, 
                     User.RopeClimberUpperLimit, User.Bio
@@ -697,5 +724,8 @@ namespace BoulderBuddyAPI.Services
                 JOIN User ON ClimbGroupRelation.UserId = User.UserId
                 WHERE ClimbGroupRelation.GroupId = @GroupId AND ClimbGroupRelation.RelationType = 'member';",
                 new { GroupId = groupId });
+
+
+        
     }
 }

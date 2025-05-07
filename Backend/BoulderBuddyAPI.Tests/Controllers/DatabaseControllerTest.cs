@@ -40,7 +40,6 @@ namespace BoulderBuddyAPI.Tests.Controllers
             {
                 UserId = "testuser1",
                 UserName = "testusername",
-                Password = "securepassword",
                 FirstName = "Test",
                 LastName = "User",
                 Email = "testuser@example.com",
@@ -49,15 +48,16 @@ namespace BoulderBuddyAPI.Tests.Controllers
                 BoulderGradeUpperLimit = "V5",
                 RopeClimberLowerLimit = "5.8",
                 RopeClimberUpperLimit = "5.12",
-                Bio = "Climbing enthusiast"
+                Bio = "Climbing enthusiast",
             };
 
-            _mockDatabaseService.Setup(service => service.InsertIntoUserTable(user)).Returns(Task.CompletedTask);
+            _mockDatabaseService.Setup(service => service.InsertIntoUserTable(It.IsAny<object>())).Returns(Task.CompletedTask);
 
             var result = await _controller.PostUser(user);
 
             var okResult = Assert.IsType<OkObjectResult>(result);
             Assert.Equal(200, okResult.StatusCode);
+            Assert.Equal("User created successfully", ((dynamic)okResult.Value).message);
         }
 
         [Fact]
@@ -113,6 +113,7 @@ namespace BoulderBuddyAPI.Tests.Controllers
                 new User
                 {
                     UserId = "testuser1",
+                    UserName = "testusername",
                     FirstName = "Test",
                     LastName = "User",
                     Email = "testuser@example.com",
@@ -411,7 +412,6 @@ namespace BoulderBuddyAPI.Tests.Controllers
             {
                 UserId = "testuser1",
                 UserName = "updatedusername",
-                Password = "updatedpassword",
                 FirstName = "Updated",
                 LastName = "User",
                 Email = "updated@example.com",
@@ -423,12 +423,13 @@ namespace BoulderBuddyAPI.Tests.Controllers
                 Bio = "Updated bio"
             };
 
-            _mockDatabaseService.Setup(service => service.UpdateUser(user.UserId, user)).Returns(Task.CompletedTask);
+            _mockDatabaseService.Setup(service => service.UpdateUser(user.UserId, It.IsAny<object>())).Returns(Task.CompletedTask);
 
             var result = await _controller.UpdateUser(user.UserId, user);
 
             var okResult = Assert.IsType<OkObjectResult>(result);
             Assert.Equal(200, okResult.StatusCode);
+            Assert.Equal("User updated successfully", ((dynamic)okResult.Value).message);
         }
 
         [Fact]
@@ -533,6 +534,66 @@ namespace BoulderBuddyAPI.Tests.Controllers
 
             var okResult = Assert.IsType<OkObjectResult>(result);
             Assert.Equal(200, okResult.StatusCode);
+        }
+
+        // Test for AddPicture
+        [Fact]
+        public async Task AddPicture_ValidPicture_ReturnsOk()
+        {
+            var picture = new Picture
+            {
+                PictureId = 1,
+                UploadDate = DateTime.UtcNow,
+                UserId = "user1",
+                RouteId = "route1",
+                Image = new byte[] { 0x01, 0x02, 0x03 }
+            };
+
+            _mockDatabaseService.Setup(service => service.AddPicture(It.IsAny<object>())).Returns(Task.CompletedTask);
+
+            var result = await _controller.AddPicture(picture);
+
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            Assert.Equal(200, okResult.StatusCode);
+            Assert.Equal("Picture added successfully", ((dynamic)okResult.Value).message);
+        }
+
+        // Test for DeletePicture
+        [Fact]
+        public async Task DeletePicture_ValidPictureId_ReturnsOk()
+        {
+            var pictureId = 1;
+
+            _mockDatabaseService.Setup(service => service.DeletePicture(pictureId)).Returns(Task.CompletedTask);
+
+            var result = await _controller.DeletePicture(pictureId);
+
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            Assert.Equal(200, okResult.StatusCode);
+            Assert.Equal("Picture deleted successfully", ((dynamic)okResult.Value).message);
+        }
+
+        // Test for UpdatePicture
+        [Fact]
+        public async Task UpdatePicture_ValidPicture_ReturnsOk()
+        {
+            var pictureId = 1;
+            var picture = new Picture
+            {
+                PictureId = 1,
+                UploadDate = DateTime.UtcNow,
+                UserId = "user1",
+                RouteId = "route1",
+                Image = new byte[] { 0x04, 0x05, 0x06 }
+            };
+
+            _mockDatabaseService.Setup(service => service.UpdatePicture(pictureId, It.IsAny<object>())).Returns(Task.CompletedTask);
+
+            var result = await _controller.UpdatePicture(pictureId, picture);
+
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            Assert.Equal(200, okResult.StatusCode);
+            Assert.Equal("Picture updated successfully", ((dynamic)okResult.Value).message);
         }
     }
 }
