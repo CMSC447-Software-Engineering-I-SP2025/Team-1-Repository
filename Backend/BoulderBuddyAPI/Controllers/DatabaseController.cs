@@ -383,6 +383,34 @@ namespace BoulderBuddyAPI.Controllers
             }
         }
 
+        [HttpGet("groupsByUser/{userId}")]
+        public async Task<IActionResult> GetGroupsByUserId(string userId)
+        {
+            try
+            {
+                var groups = await _databaseService.GetGroupsByUserId(userId);
+                return Ok(groups);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        [HttpGet("reviewsByUser/{userId}")]
+        public async Task<IActionResult> GetReviewsByUserId(string userId)
+        {
+            try
+            {
+                var reviews = await _databaseService.GetReviewsByUserId(userId);
+                return Ok(reviews);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
         // DELETE methods for deleting data from the database
 
         [HttpDelete("users/{userId}")]
@@ -744,5 +772,11 @@ namespace BoulderBuddyAPI.Services
         
         //method for getting group members
         Task<List<User>> GetGroupMembers(string groupId);
+
+        //method for getting groups by user ID
+        Task<List<ClimbGroup>> GetGroupsByUserId(string userId);
+
+        //method for getting reviews by user ID
+        Task<List<Review>> GetReviewsByUserId(string userId);
     }
 }

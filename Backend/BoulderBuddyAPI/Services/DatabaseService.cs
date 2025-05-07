@@ -725,7 +725,34 @@ namespace BoulderBuddyAPI.Services
                 WHERE ClimbGroupRelation.GroupId = @GroupId AND ClimbGroupRelation.RelationType = 'member';",
                 new { GroupId = groupId });
 
+        // Get groups by UserId
+        public Task<List<ClimbGroup>> GetGroupsByUserId(string userId) =>
+            ExecuteSelectCommand<ClimbGroup>(@"
+                SELECT 
+                    ClimbGroup.GroupName, 
+                    ClimbGroup.GroupDescription, 
+                    ClimbGroup.JoinRequirements, 
+                    ClimbGroup.GroupType, 
+                    ClimbGroup.Price, 
+                    ClimbGroup.GroupOwner
+                FROM ClimbGroupRelation
+                JOIN ClimbGroup ON ClimbGroupRelation.GroupId = ClimbGroup.GroupId
+                WHERE ClimbGroupRelation.UserId = @UserId;",
+                new { UserId = userId });
 
-        
+        // Get reviews by UserId
+        public Task<List<Review>> GetReviewsByUserId(string userId) =>
+            ExecuteSelectCommand<Review>(@"
+                SELECT 
+                    Review.ReviewId, 
+                    Review.UserId, 
+                    Review.RouteId, 
+                    Review.Rating, 
+                    Review.Text,
+                    User.UserName AS UserName
+                FROM Review
+                JOIN User ON Review.UserId = User.UserId
+                WHERE Review.UserId = @UserId;",
+                new { UserId = userId });
     }
 }

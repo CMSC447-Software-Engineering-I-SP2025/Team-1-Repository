@@ -8,7 +8,7 @@ public class User
     [JsonPropertyName("UserName")]
     public string UserName { get; set; }
     [JsonPropertyName("ProfileImage")]
-    public Blob ProfileImage { get; set; } 
+    public byte[] ProfileImage { get; set; } 
 
     [JsonPropertyName("FirstName")]
     public string FirstName { get; set; }
@@ -37,6 +37,6 @@ public class User
     [JsonPropertyName("Bio")]
     public string Bio { get; set; }
 
-    // Add a parameterless constructor to satisfy the 'new()' constraint
+    //parameterless constructor
     public User() { }
 }
