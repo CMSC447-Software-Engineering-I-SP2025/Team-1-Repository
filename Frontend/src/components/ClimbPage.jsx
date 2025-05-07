@@ -10,6 +10,7 @@ const ClimbPage = ({ selectedClimb }) => {
   }
 
   const [score, setScore] = useState("");
+  const [photos, setPhotos] = useState([]);
 
   useEffect(() => {
     const fetchAvg = async () => {
@@ -28,11 +29,65 @@ const ClimbPage = ({ selectedClimb }) => {
       }
     };
 
+    const fetchClimbPhoto = async () => {
+      try {
+        const query = `
+          query PhotoURLsByAreaOrClimbID {
+            climbMediaPagination(
+              input: {climbUuid: "${selectedClimb.id}", maxFiles: 10}
+            ) {
+              mediaConnection {
+                edges {
+                  node {
+                    mediaUrl
+                  }
+                }
+              }
+            }
+          }
+        `;
+
+        const res = await axios.post(
+          "https://api.openbeta.io/",
+          { query },
+          { headers: { "Content-Type": "application/json" } }
+        );
+        const photoUrls =
+          res.data.data.climbMediaPagination.mediaConnection.edges.map(
+            (edge) => `https://media.openbeta.io${edge.node.mediaUrl}`
+          );
+        setPhotos(photoUrls);
+        console.log("Climb Photo:", res.data);
+      } catch (err) {
+        console.error("Could not fetch climb photo:", err);
+      }
+    };
+
+    fetchClimbPhoto();
     fetchAvg();
   }, [selectedClimb]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-gradient-to-r from-blue-100 to-blue-200">
+      <div className="w-full max-w-4xl overflow-x-auto">
+        <h2 className="text-3xl font-semibold text-center text-gray-800">
+          Photos
+        </h2>
+        <div className="flex gap-4 mt-4">
+          {photos.length > 0 ? (
+            photos.map((url, index) => (
+              <img
+                key={index}
+                src={url}
+                alt={`Climb photo ${index + 1}`}
+                className="object-cover w-auto h-40 rounded shadow"
+              />
+            ))
+          ) : (
+            <p className="text-center text-gray-500">No photos available.</p>
+          )}
+        </div>
+      </div>
       <h1 className="text-5xl font-extrabold text-center text-gray-900">
         {selectedClimb.name}
       </h1>
