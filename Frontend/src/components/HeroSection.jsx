@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios"; // Import axios for API calls
 import SearchBar from "./SearchBar";
 import RecommendationTab from "./RecommendationTab";
 import { FaSpinner } from "react-icons/fa";
@@ -26,11 +27,25 @@ const HeroSection = ({
     console.log("Climb selected:", climb);
   };
 
-  const handleInputChange = (searchTerm) => {
-    const filtered = allClimbs.filter((climb) =>
-      climb.name.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-    setFilteredClimbs(filtered.slice(0, 15));
+  const handleInputChange = async (searchTerm) => {
+    try {
+      const response = await axios.post(
+        "https://localhost:7195/Search/StateWithFilters",
+        { State: stateName, SearchTerm: searchTerm }
+      );
+      console.log("Search results:", response.data);
+
+      const allClimbsFromAreas = response.data.flatMap((area) =>
+        (area.climbs || []).map((climb) => ({
+          ...climb,
+          area: area,
+        }))
+      );
+      console.log("All climbs with area info:", allClimbsFromAreas);
+      setFilteredClimbs(allClimbsFromAreas.slice(0, 15));
+    } catch (error) {
+      console.error("Error fetching search results:", error);
+    }
   };
 
   const handleStateChange = (event) => {
@@ -175,7 +190,7 @@ const HeroSection = ({
               >
                 <div className="font-bold truncate">{climb.name}</div>
                 <div className="text-sm text-gray-600 truncate">
-                  {climb.area.areaName}
+                  {climb.area.areaName || "Unknown Area"}
                 </div>
               </li>
             ))}

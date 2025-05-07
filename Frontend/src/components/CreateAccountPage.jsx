@@ -1,14 +1,14 @@
-import React, { useState } from 'react';
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
-import { supabase } from '../lib/supabaseClient'; 
+import React, { useState } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "../lib/supabaseClient";
 import "./css/CreateAccountPage.css";
 
 const CreateAccountPage = () => {
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [accountType, setAccountType] = useState(''); // Default empty string
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [accountType, setAccountType] = useState(""); // Default empty string
   const [passwordTouched, setPasswordTouched] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [session, setSession] = useState(null);
@@ -22,13 +22,22 @@ const CreateAccountPage = () => {
       specialChar: /[!@#$%^&*]/.test(password),
     };
 
-    const metCriteria = [rules.lowercase, rules.uppercase, rules.number, rules.specialChar].filter(Boolean).length;
+    const metCriteria = [
+      rules.lowercase,
+      rules.uppercase,
+      rules.number,
+      rules.specialChar,
+    ].filter(Boolean).length;
 
     return {
       ...rules,
-      valid: rules.length && rules.lowercase && rules.uppercase && rules.number && rules.specialChar,
+      valid:
+        rules.length &&
+        rules.lowercase &&
+        rules.uppercase &&
+        rules.number &&
+        rules.specialChar,
     };
-    
   };
 
   const passwordRules = checkPasswordRules(password);
@@ -44,10 +53,10 @@ const CreateAccountPage = () => {
 
     // Check if user already exists
     const { data: existingUser, error: fetchError } = await supabase
-    .from("users")
-    .select("*")
-    .eq("email", email)
-    .maybeSingle();
+      .from("users")
+      .select("*")
+      .eq("email", email)
+      .maybeSingle();
 
     if (fetchError) {
       alert(`Error checking existing user: ${fetchError.message}`);
@@ -74,11 +83,10 @@ const CreateAccountPage = () => {
     if (user) {
       console.log("Account created for user:", user);
       // Insert user data into the "users" table
-      const { error: insertError } = await supabase.from('users').insert({
+      const { error: insertError } = await supabase.from("users").insert({
         user_id: user.id, // Ensure this matches auth.uid()
-        name: username,
-        email: email,
-        account_type: "private", 
+        name: user.user_metadata.full_name,
+        email: user.email,
       });
 
       if (insertError) {
@@ -92,32 +100,31 @@ const CreateAccountPage = () => {
       Name: username,
       Email: email,
       Password: password,
-      AccountType: "private" 
     };
-  
+
     try {
-      const response = await fetch('http://localhost:5091/api/Database/user', {
-        method: 'POST',
+      const response = await fetch("http://localhost:5091/api/Database/user", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(accountData),
       });
-  
+
       if (!response.ok) {
         const errorInfo = await response.json();
-        console.error('Error creating account:', errorInfo);
-        alert('Error creating account');
+        console.error("Error creating account:", errorInfo);
+        alert("Error creating account");
         return;
       }
-  
+
       const responseData = await response.json();
       alert(`Account created for ${username}`);
-      navigate('/login'); // Redirect to login page after account creation
-      console.log('Response Data:', responseData);
+      navigate("/login"); // Redirect to login page after account creation
+      console.log("Response Data:", responseData);
     } catch (error) {
-      console.error('Network error while creating account:', error);
-      alert('Network error while creating account');
+      console.error("Network error while creating account:", error);
+      alert("Network error while creating account");
     }
   };
 
@@ -149,7 +156,7 @@ const CreateAccountPage = () => {
           <div className="form-group password-group">
             <div className="password-input-wrapper">
               <input
-                type={showPassword ? "text" : "password"} 
+                type={showPassword ? "text" : "password"}
                 placeholder="Password"
                 value={password}
                 onChange={(e) => {
@@ -160,21 +167,37 @@ const CreateAccountPage = () => {
               />
               <span
                 className="toggle-password"
-                onClick={() => setShowPassword(!showPassword)} 
+                onClick={() => setShowPassword(!showPassword)}
               >
-                {showPassword ? "🙈" : "👁️" }
+                {showPassword ? "🙈" : "👁️"}
               </span>
             </div>
             {passwordTouched && (
               <div className="password-requirements">
                 <p>Your password must contain:</p>
                 <ul>
-                  <li className={passwordRules.length ? "valid" : ""}>At least 10 characters</li>
-                  <li className={passwordRules.valid ? "valid" : ""}>At least 1 of the following:</li>
-                  <li className={passwordRules.lowercase ? "valid" : ""}> - Lower case letters (a-z)</li>
-                  <li className={passwordRules.uppercase ? "valid" : ""}> - Upper case letters (A-Z)</li>
-                  <li className={passwordRules.number ? "valid" : ""}> - Numbers (0-9)</li>
-                  <li className={passwordRules.specialChar ? "valid" : ""}> - Special characters (e.g. !@#$%^&*)</li>
+                  <li className={passwordRules.length ? "valid" : ""}>
+                    At least 10 characters
+                  </li>
+                  <li className={passwordRules.valid ? "valid" : ""}>
+                    At least 1 of the following:
+                  </li>
+                  <li className={passwordRules.lowercase ? "valid" : ""}>
+                    {" "}
+                    - Lower case letters (a-z)
+                  </li>
+                  <li className={passwordRules.uppercase ? "valid" : ""}>
+                    {" "}
+                    - Upper case letters (A-Z)
+                  </li>
+                  <li className={passwordRules.number ? "valid" : ""}>
+                    {" "}
+                    - Numbers (0-9)
+                  </li>
+                  <li className={passwordRules.specialChar ? "valid" : ""}>
+                    {" "}
+                    - Special characters (e.g. !@#$%^&*)
+                  </li>
                 </ul>
               </div>
             )}
