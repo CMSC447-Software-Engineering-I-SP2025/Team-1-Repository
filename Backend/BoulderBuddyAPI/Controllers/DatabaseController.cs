@@ -31,7 +31,21 @@ namespace BoulderBuddyAPI.Controllers
 
             try
             {
-                await _databaseService.InsertIntoUserTable(user);
+                await _databaseService.InsertIntoUserTable(new
+                {
+                    user.UserId,
+                    user.UserName,
+                    user.ProfileImage, 
+                    user.FirstName,
+                    user.LastName,
+                    user.Email,
+                    user.PhoneNumber,
+                    user.BoulderGradeLowerLimit,
+                    user.BoulderGradeUpperLimit,
+                    user.RopeClimberLowerLimit,
+                    user.RopeClimberUpperLimit,
+                    user.Bio
+                });
                 return Ok(new { message = "User created successfully" });
             }
             catch (Exception ex)
@@ -166,6 +180,31 @@ namespace BoulderBuddyAPI.Controllers
             {
                 await _databaseService.InsertIntoBadgeRelationTable(badgeRelation);
                 return Ok(new { message = "Badge relation created successfully" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        // POST: Add a new picture
+        [HttpPost("picture")]
+        public async Task<IActionResult> AddPicture([FromBody] Picture picture)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                await _databaseService.AddPicture(new
+                {
+                    picture.UserId,
+                    picture.RouteId,
+                    picture.Image
+                });
+                return Ok(new { message = "Picture added successfully" });
             }
             catch (Exception ex)
             {
@@ -344,6 +383,34 @@ namespace BoulderBuddyAPI.Controllers
             }
         }
 
+        [HttpGet("groupsByUser/{userId}")]
+        public async Task<IActionResult> GetGroupsByUserId(string userId)
+        {
+            try
+            {
+                var groups = await _databaseService.GetGroupsByUserId(userId);
+                return Ok(groups);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        [HttpGet("reviewsByUser/{userId}")]
+        public async Task<IActionResult> GetReviewsByUserId(string userId)
+        {
+            try
+            {
+                var reviews = await _databaseService.GetReviewsByUserId(userId);
+                return Ok(reviews);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
         // DELETE methods for deleting data from the database
 
         [HttpDelete("users/{userId}")]
@@ -352,20 +419,6 @@ namespace BoulderBuddyAPI.Controllers
             try
             {
                 await _databaseService.DeleteFromUserTable(userId);
-                return Ok();
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
-        }
-
-        [HttpDelete("userRelation/{userRelationId}")]
-        public async Task<IActionResult> DeleteUserRelation(string userRelationId)
-        {
-            try
-            {
-                await _databaseService.DeleteFromUserRelationTable(userRelationId);
                 return Ok();
             }
             catch (Exception ex)
@@ -444,6 +497,21 @@ namespace BoulderBuddyAPI.Controllers
             }
         }
 
+        // DELETE: Delete a picture by ID
+        [HttpDelete("picture/{pictureId}")]
+        public async Task<IActionResult> DeletePicture(int pictureId)
+        {
+            try
+            {
+                await _databaseService.DeletePicture(pictureId);
+                return Ok(new { message = "Picture deleted successfully" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
         // Update methods for updating data in the database
 
         [HttpPut("user/{userId}")]
@@ -456,7 +524,21 @@ namespace BoulderBuddyAPI.Controllers
 
             try
             {
-                await _databaseService.UpdateUser(userId, user);
+                // Ensure ProfileImage is handled correctly
+                await _databaseService.UpdateUser(userId, new
+                {
+                    user.UserName,
+                    user.ProfileImage, // ProfileImage is now included
+                    user.FirstName,
+                    user.LastName,
+                    user.Email,
+                    user.PhoneNumber,
+                    user.BoulderGradeLowerLimit,
+                    user.BoulderGradeUpperLimit,
+                    user.RopeClimberLowerLimit,
+                    user.RopeClimberUpperLimit,
+                    user.Bio
+                });
                 return Ok(new { message = "User updated successfully" });
             }
             catch (Exception ex)
@@ -480,6 +562,7 @@ namespace BoulderBuddyAPI.Controllers
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"Error updating review: {ex.Message}");
                 return StatusCode(500, new { message = ex.Message });
             }
         }
@@ -541,6 +624,31 @@ namespace BoulderBuddyAPI.Controllers
             }
         }
 
+        // PUT: Update an existing picture
+        [HttpPut("picture/{pictureId}")]
+        public async Task<IActionResult> UpdatePicture(int pictureId, [FromBody] Picture picture)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                await _databaseService.UpdatePicture(pictureId, new
+                {
+                    picture.UserId,
+                    picture.RouteId,
+                    picture.Image
+                });
+                return Ok(new { message = "Picture updated successfully" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
         //Handle Friend Requests
 
         [HttpPost("sendFriendRequest")]
@@ -576,8 +684,7 @@ namespace BoulderBuddyAPI.Controllers
         {
             try
             {
-                // Use the existing delete method with object parameters to remove the pending friend request
-                await _databaseService.DeleteFromUserRelationTable($"{senderUserId}:{receiverUserId}");
+                await _databaseService.RejectFriendRequest(senderUserId, receiverUserId);
                 return Ok(new { message = "Friend request rejected successfully." });
             }
             catch (Exception ex)
@@ -619,16 +726,18 @@ namespace BoulderBuddyAPI.Services
         Task InsertIntoClimbGroupEventTable(object parameters);
         Task InsertIntoBadgeTable(object parameters);
         Task InsertIntoBadgeRelationTable(object parameters);
+        Task AddPicture(object parameters);
 
         //methods for deleteing data from the database
         Task DeleteFromUserTable(string userId);
-        Task DeleteFromUserRelationTable(string userRelationId);
         Task DeleteFromReviewTable(string reviewId);
         Task DeleteFromClimbGroupTable(string climbGroupId);
         Task DeleteFromClimbGroupRelationTable(string groupId, string userId);
         Task DeleteFromClimbGroupEventTable(string eventId);
         Task DeleteFromBadgeTable(string badgeId);
         Task DeleteFromBadgeRelationTable(string userId, string badgeId);
+        Task DeleteFromUserRelationTable(string userRelationId);
+        Task DeletePicture(int pictureId);
 
         //methods for updating data in the database
         Task UpdateUser(string userId, object parameters);
@@ -636,6 +745,7 @@ namespace BoulderBuddyAPI.Services
         Task UpdateClimbGroup(string climbGroupId, object parameters);
         Task UpdateClimbGroupEvent(string eventId, object parameters);
         Task UpdateBadge(string badgeId, object parameters);
+        Task UpdatePicture(int pictureId, object parameters);
 
         //methods for getting data from the database
         Task<List<User>> GetUsers();
@@ -662,5 +772,11 @@ namespace BoulderBuddyAPI.Services
         
         //method for getting group members
         Task<List<User>> GetGroupMembers(string groupId);
+
+        //method for getting groups by user ID
+        Task<List<ClimbGroup>> GetGroupsByUserId(string userId);
+
+        //method for getting reviews by user ID
+        Task<List<Review>> GetReviewsByUserId(string userId);
     }
 }

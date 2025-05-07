@@ -2,6 +2,8 @@ using System.Text.Json.Serialization;
 
 public class Review
 {
+    [JsonPropertyName("ReviewId")]
+    public required long ReviewId { get; set; }
     [JsonPropertyName("UserId")]
     public required string UserId { get; set; }
 

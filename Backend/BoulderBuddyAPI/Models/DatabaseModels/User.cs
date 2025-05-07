@@ -1,9 +1,14 @@
+using System.Reflection.Metadata;
 using System.Text.Json.Serialization;
 
 public class User
 {
     [JsonPropertyName("UserId")]
     public string UserId { get; set; }
+    [JsonPropertyName("UserName")]
+    public string UserName { get; set; }
+    [JsonPropertyName("ProfileImage")]
+    public byte[] ProfileImage { get; set; } 
 
     [JsonPropertyName("FirstName")]
     public string FirstName { get; set; }
@@ -32,6 +37,6 @@ public class User
     [JsonPropertyName("Bio")]
     public string Bio { get; set; }
 
-    // Add a parameterless constructor to satisfy the 'new()' constraint
+    //parameterless constructor
     public User() { }
 }

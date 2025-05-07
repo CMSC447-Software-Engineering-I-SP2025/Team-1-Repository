@@ -58,12 +58,12 @@ namespace BoulderBuddyAPI.Services
         public Task InsertIntoUserTable(object parameters) =>
             ExecuteInsertCommand(@"
                 INSERT INTO User (
-                    UserId, FirstName, LastName, Email, PhoneNumber, 
+                    UserId, UserName, ProfileImage, FirstName, LastName, Email, PhoneNumber, 
                     BoulderGradeLowerLimit, BoulderGradeUpperLimit, 
                     RopeClimberLowerLimit, RopeClimberUpperLimit, Bio
                 ) 
                 VALUES (
-                    @UserId, @FirstName, @LastName, @Email, @PhoneNumber, 
+                    @UserId, @UserName, @ProfileImage, @FirstName, @LastName, @Email, @PhoneNumber, 
                     @BoulderGradeLowerLimit, @BoulderGradeUpperLimit, 
                     @RopeClimberLowerLimit, @RopeClimberUpperLimit, @Bio
                 );", parameters);
@@ -103,7 +103,32 @@ namespace BoulderBuddyAPI.Services
                 INSERT INTO BadgeRelation (UserId, BadgeId) 
                 VALUES (@UserId, @BadgeId);", parameters);
 
-        
+        //******Handle images and blobs******//
+
+        // Add a new picture to the Picture table
+        public Task AddPicture(object parameters) =>
+            ExecuteInsertCommand(@"
+                INSERT INTO Picture (UserId, RouteId, Image, UploadDate) 
+                VALUES (@UserId, @RouteId, @Image, current_timestamp);", parameters);
+
+        // Delete a picture from the Picture table
+        public Task DeletePicture(int pictureId) =>
+            ExecuteInsertCommand(@"
+                DELETE FROM Picture 
+                WHERE PictureId = @PictureId;", new { PictureId = pictureId });
+
+        // Update an existing picture in the Picture table
+        public Task UpdatePicture(int pictureId, object parameters) =>
+            ExecuteInsertCommand(@"
+                UPDATE Picture 
+                SET 
+                    UserId = @UserId,
+                    RouteId = @RouteId,
+                    Image = @Image,
+                    UploadDate = current_timestamp
+                WHERE PictureId = @PictureId;", 
+                new { PictureId = pictureId, parameters });
+
         //execute select command
         public async Task<List<T>> ExecuteSelectCommand<T>(string commandText, object parameters)
         {
@@ -179,7 +204,7 @@ namespace BoulderBuddyAPI.Services
         public Task<List<User>> GetUsers() =>
             ExecuteSelectCommand<User>(@"
                 SELECT 
-                    UserId, FirstName, LastName, Email, PhoneNumber, 
+                    UserId, UserName, ProfileImage, FirstName, LastName, Email, PhoneNumber, 
                     BoulderGradeLowerLimit, BoulderGradeUpperLimit, 
                     RopeClimberLowerLimit, RopeClimberUpperLimit, Bio 
                 FROM User;", new object());
@@ -271,7 +296,19 @@ namespace BoulderBuddyAPI.Services
                 {
                     AddParameters(command, parameters);
                     command.CommandText = commandText;
-                    await command.ExecuteNonQueryAsync();
+
+                    // Log the query and parameters
+                    Console.WriteLine($"Executing Query: {command.CommandText}");
+                    foreach (SqliteParameter param in command.Parameters)
+                    {
+                        Console.WriteLine($"Parameter: {param.ParameterName} = {param.Value}");
+                    }
+
+                    int rowsAffected = await command.ExecuteNonQueryAsync();
+                    if (rowsAffected == 0)
+                    {
+                        Console.WriteLine("No rows were updated. Check if the ReviewId exists.");
+                    }
                 }
             }
         }
@@ -292,6 +329,8 @@ namespace BoulderBuddyAPI.Services
             ExecuteUpdateCommand(@"
                 UPDATE User 
                 SET 
+                    UserName = @UserName,
+                    ProfileImage = @ProfileImage,
                     FirstName = @FirstName, 
                     LastName = @LastName, 
                     Email = @Email, 
@@ -305,12 +344,22 @@ namespace BoulderBuddyAPI.Services
                 parameters);
 
         //update review table
-        public Task UpdateReview(string reviewId, object parameters) =>
-            ExecuteUpdateCommand(@"
+        public Task UpdateReview(string reviewId, object parameters)
+        {
+            // Flatten the parameters object
+            var flattenedParameters = new
+            {
+                ReviewId = reviewId,
+                ((dynamic)parameters).Rating,
+                ((dynamic)parameters).Text
+            };
+
+            return ExecuteUpdateCommand(@"
                 UPDATE Review 
                 SET Rating = @Rating, Text = @Text 
-                WHERE ReviewId = @ReviewId;", 
-                new { ReviewId = reviewId, parameters });
+                WHERE ReviewId = @ReviewId;",
+                flattenedParameters);
+        }
 
         //update user relation table
         public Task UpdateUserRelation(object parameters) =>
@@ -320,47 +369,108 @@ namespace BoulderBuddyAPI.Services
                 WHERE User1Id = @User1Id AND User2Id = @User2Id;", parameters);
 
         //update climb group table
-        public Task UpdateClimbGroup(string groupId, object parameters) =>
-            ExecuteUpdateCommand(@"
+        public Task UpdateClimbGroup(string groupId, object parameters)
+        {
+            // Flatten the parameters object
+            var flattenedParameters = new
+            {
+                GroupId = groupId,
+                ((dynamic)parameters).GroupName,
+                ((dynamic)parameters).GroupDescription,
+                ((dynamic)parameters).JoinRequirements,
+                ((dynamic)parameters).Price,
+                ((dynamic)parameters).GroupType,
+                ((dynamic)parameters).GroupOwner,
+                ((dynamic)parameters).GroupImage
+            };
+
+            return ExecuteUpdateCommand(@"
                 UPDATE ClimbGroup 
                 SET GroupName = @GroupName, GroupDescription = @GroupDescription, JoinRequirements = @JoinRequirements, 
                     Price = @Price, GroupType = @GroupType, GroupOwner = @GroupOwner, GroupImage = @GroupImage 
-                WHERE GroupId = @GroupId;", 
-                new { GroupId = groupId, parameters });
+                WHERE GroupId = @GroupId;",
+                flattenedParameters);
+        }
 
         //update climb group relation table
-        public Task UpdateClimbGroupRelation(string groupId, string userId, object parameters) =>
-            ExecuteUpdateCommand(@"
+        public Task UpdateClimbGroupRelation(string groupId, string userId, object parameters)
+        {
+            var flattenedParameters = new
+            {
+                GroupId = groupId,
+                UserId = userId,
+                ((dynamic)parameters).RelationType,
+                ((dynamic)parameters).InviteDate,
+                ((dynamic)parameters).MemberSince
+            };
+
+            return ExecuteUpdateCommand(@"
                 UPDATE ClimbGroupRelation 
                 SET RelationType = @RelationType, InviteDate = @InviteDate, MemberSince = @MemberSince 
-                WHERE GroupId = @GroupId AND UserId = @UserId;", 
-                new { GroupId = groupId, UserId = userId, parameters });
+                WHERE GroupId = @GroupId AND UserId = @UserId;",
+                flattenedParameters);
+        }
 
         //update climb group event table
-        public Task UpdateClimbGroupEvent(string eventId, object parameters) =>
-            ExecuteUpdateCommand(@"
+        public Task UpdateClimbGroupEvent(string eventId, object parameters)
+        {
+            var flattenedParameters = new
+            {
+                EventId = eventId,
+                ((dynamic)parameters).EventName,
+                ((dynamic)parameters).EventDescription,
+                ((dynamic)parameters).EventDate,
+                ((dynamic)parameters).EventTime,
+                ((dynamic)parameters).EventLocation,
+                ((dynamic)parameters).EventImage
+            };
+
+            return ExecuteUpdateCommand(@"
                 UPDATE ClimbGroupEvent 
                 SET EventName = @EventName, EventDescription = @EventDescription, EventDate = @EventDate, 
                     EventTime = @EventTime, EventLocation = @EventLocation, EventImage = @EventImage 
-                WHERE EventId = @EventId;", 
-                new { EventId = eventId, parameters });
+                WHERE EventId = @EventId;",
+                flattenedParameters);
+        }
 
         //update badge table
-        public Task UpdateBadge(string badgeId, object parameters) =>
-            ExecuteUpdateCommand(@"
+        public Task UpdateBadge(string badgeId, object parameters)
+        {
+            var flattenedParameters = new
+            {
+                BadgeId = badgeId,
+                ((dynamic)parameters).BadgeName,
+                ((dynamic)parameters).BadgeDescription,
+                ((dynamic)parameters).BadgeRequirement,
+                ((dynamic)parameters).BadgeRarity,
+                ((dynamic)parameters).BadgeImage
+            };
+
+            return ExecuteUpdateCommand(@"
                 UPDATE Badge 
                 SET BadgeName = @BadgeName, BadgeDescription = @BadgeDescription, BadgeRequirement = @BadgeRequirement, 
                     BadgeRarity = @BadgeRarity, BadgeImage = @BadgeImage 
-                WHERE BadgeId = @BadgeId;", 
-                new { BadgeId = badgeId, parameters });
+                WHERE BadgeId = @BadgeId;",
+                flattenedParameters);
+        }
 
         //update badge relation table
-        public Task UpdateBadgeRelation(string userId, string badgeId, object parameters) =>
-            ExecuteUpdateCommand(@"
+
+        public Task UpdateBadgeRelation(string userId, string badgeId, object parameters)
+        {
+            var flattenedParameters = new
+            {
+                UserId = userId,
+                BadgeId = badgeId
+
+            };
+
+            return ExecuteUpdateCommand(@"
                 UPDATE BadgeRelation 
                 SET UserId = @UserId, BadgeId = @BadgeId 
-                WHERE UserId = @UserId AND BadgeId = @BadgeId;", 
-                new { UserId = userId, BadgeId = badgeId, parameters });
+                WHERE UserId = @UserId AND BadgeId = @BadgeId;",
+                flattenedParameters);
+        }
 
         //execute delete command
         public async Task ExecuteDeleteCommand(string commandText, object parameters)
@@ -603,17 +713,46 @@ namespace BoulderBuddyAPI.Services
             }
         }
 
-        public Task<List<User>> GetGroupMembers(string groupId)
-        {
-            return ExecuteSelectCommand<User>(@"
+        public Task<List<User>> GetGroupMembers(string groupId) =>
+            ExecuteSelectCommand<User>(@"
                 SELECT 
-                    User.UserId, User.FirstName, User.LastName, User.Email, User.PhoneNumber, 
-                    User.BoulderGradeLowerLimit, User.BoulderGradeUpperLimit, 
-                    User.RopeClimberLowerLimit, User.RopeClimberUpperLimit, User.Bio
+                    User.UserId, User.UserName, User.ProfileImage, User.FirstName, User.LastName, 
+                    User.Email, User.PhoneNumber, User.BoulderGradeLowerLimit, 
+                    User.BoulderGradeUpperLimit, User.RopeClimberLowerLimit, 
+                    User.RopeClimberUpperLimit, User.Bio
                 FROM ClimbGroupRelation
                 JOIN User ON ClimbGroupRelation.UserId = User.UserId
                 WHERE ClimbGroupRelation.GroupId = @GroupId AND ClimbGroupRelation.RelationType = 'member';",
                 new { GroupId = groupId });
-        }
+
+        // Get groups by UserId
+        public Task<List<ClimbGroup>> GetGroupsByUserId(string userId) =>
+            ExecuteSelectCommand<ClimbGroup>(@"
+                SELECT 
+                    ClimbGroup.GroupName, 
+                    ClimbGroup.GroupDescription, 
+                    ClimbGroup.JoinRequirements, 
+                    ClimbGroup.GroupType, 
+                    ClimbGroup.Price, 
+                    ClimbGroup.GroupOwner
+                FROM ClimbGroupRelation
+                JOIN ClimbGroup ON ClimbGroupRelation.GroupId = ClimbGroup.GroupId
+                WHERE ClimbGroupRelation.UserId = @UserId;",
+                new { UserId = userId });
+
+        // Get reviews by UserId
+        public Task<List<Review>> GetReviewsByUserId(string userId) =>
+            ExecuteSelectCommand<Review>(@"
+                SELECT 
+                    Review.ReviewId, 
+                    Review.UserId, 
+                    Review.RouteId, 
+                    Review.Rating, 
+                    Review.Text,
+                    User.UserName AS UserName
+                FROM Review
+                JOIN User ON Review.UserId = User.UserId
+                WHERE Review.UserId = @UserId;",
+                new { UserId = userId });
     }
 }
