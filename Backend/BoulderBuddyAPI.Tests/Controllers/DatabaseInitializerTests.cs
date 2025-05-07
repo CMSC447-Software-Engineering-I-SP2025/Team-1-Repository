@@ -40,7 +40,6 @@ namespace BoulderBuddyAPI.Tests.Controllers
             Console.WriteLine($"Using connection string: {_sqliteConnection.ConnectionString}");
         }
 
-
         [Fact]
         public void Initialize_CreatesTablesSuccessfully()
         {
@@ -63,7 +62,7 @@ namespace BoulderBuddyAPI.Tests.Controllers
             _databaseInitializer.Initialize();
 
             // Assert
-            var tables = new[] { "User", "Review", "Badge", "BadgeRelation" }; // Add all table names here
+            var tables = new[] { "User", "Review", "Badge", "BadgeRelation" }; // Removed 'Route' table
             foreach (var table in tables)
             {
                 using (var command = _sqliteConnection.CreateCommand())
@@ -320,5 +319,7 @@ namespace BoulderBuddyAPI.Tests.Controllers
                 }
             }
         }
+
+        // Removed tests related to the 'Route' table
     }
 }

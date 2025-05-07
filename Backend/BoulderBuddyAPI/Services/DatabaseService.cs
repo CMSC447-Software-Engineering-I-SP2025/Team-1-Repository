@@ -57,23 +57,21 @@ namespace BoulderBuddyAPI.Services
         //insert into database
         public Task InsertIntoUserTable(object parameters) =>
             ExecuteInsertCommand(@"
-                INSERT INTO User (UserId, Name, Email, Password, AccountType) 
-                VALUES (@UserId, @Name, @Email, @Password, @AccountType);", parameters);
-
-        public Task InsertIntoRouteTable(object parameters) =>
-            ExecuteInsertCommand(@"
-                INSERT INTO Route (RouteId, Name, Grade, Longitude, Latitude, Picture) 
-                VALUES (@RouteId, @Name, @Grade, @Longitude, @Latitude, @Picture);", parameters);
+                INSERT INTO User (
+                    UserId, FirstName, LastName, Email, PhoneNumber, 
+                    BoulderGradeLowerLimit, BoulderGradeUpperLimit, 
+                    RopeClimberLowerLimit, RopeClimberUpperLimit, Bio
+                ) 
+                VALUES (
+                    @UserId, @FirstName, @LastName, @Email, @PhoneNumber, 
+                    @BoulderGradeLowerLimit, @BoulderGradeUpperLimit, 
+                    @RopeClimberLowerLimit, @RopeClimberUpperLimit, @Bio
+                );", parameters);
 
         public Task InsertIntoReviewTable(object parameters) =>
             ExecuteInsertCommand(@"
                 INSERT INTO Review (UserId, RouteId, Rating, Text) 
                 VALUES (@UserId, @RouteId, @Rating, @Text);", parameters);
-
-        public Task InsertIntoRecommendationTable(object parameters) =>
-            ExecuteInsertCommand(@"
-                INSERT INTO Recommendation (RouteId) 
-                VALUES (@RouteId);", parameters);
 
         public Task InsertIntoUserRelationTable(object parameters) =>
             ExecuteInsertCommand(@"
@@ -97,8 +95,8 @@ namespace BoulderBuddyAPI.Services
 
         public Task InsertIntoBadgeTable(object parameters) =>
             ExecuteInsertCommand(@"
-                INSERT INTO Badge (BadgeId, BadgeName, BadgeDescription, BadgeRequirement, BadgeRarity, BadgeImage) 
-                VALUES (@BadgeId, @BadgeName, @BadgeDescription, @BadgeRequirement, @BadgeRarity, @BadgeImage);", parameters);
+                INSERT INTO Badge (BadgeName, BadgeDescription, BadgeRequirement, BadgeRarity, BadgeImage) 
+                VALUES ( @BadgeName, @BadgeDescription, @BadgeRequirement, @BadgeRarity, @BadgeImage);", parameters);
 
         public Task InsertIntoBadgeRelationTable(object parameters) =>
             ExecuteInsertCommand(@"
@@ -124,8 +122,23 @@ namespace BoulderBuddyAPI.Services
                             T result = Activator.CreateInstance<T>();
                             foreach (var property in typeof(T).GetProperties())
                             {
-                                var value = reader[property.Name];
-                                property.SetValue(result, value == DBNull.Value ? null : value);
+                                try
+                                {
+                                    if (!reader.IsDBNull(reader.GetOrdinal(property.Name)))
+                                    {
+                                        var value = reader[property.Name];
+                                        if (value.GetType() != property.PropertyType)
+                                        {
+                                            // Handle type conversion
+                                            value = Convert.ChangeType(value, property.PropertyType);
+                                        }
+                                        property.SetValue(result, value);
+                                    }
+                                }
+                                catch (Exception ex)
+                                {
+                                    Console.WriteLine($"Error mapping property {property.Name}: {ex.Message}");
+                                }
                             }
                             results.Add(result);
                         }
@@ -164,22 +177,36 @@ namespace BoulderBuddyAPI.Services
 
         //select from user table
         public Task<List<User>> GetUsers() =>
-            ExecuteSelectCommand<User>("SELECT * FROM User", new object());
+            ExecuteSelectCommand<User>(@"
+                SELECT 
+                    UserId, FirstName, LastName, Email, PhoneNumber, 
+                    BoulderGradeLowerLimit, BoulderGradeUpperLimit, 
+                    RopeClimberLowerLimit, RopeClimberUpperLimit, Bio 
+                FROM User;", new object());
 
-        //select from route table
-        public Task<List<Route>> GetRoutes() =>
-            ExecuteSelectCommand<Route>("SELECT * FROM Route", new object());
         //select from review table
         public Task<List<Review>> GetReviews() =>
-            ExecuteSelectCommand<Review>("SELECT * FROM Review", new object());
+            ExecuteSelectCommand<Review>(@"
+                SELECT 
+                    Review.ReviewId, Review.UserId, Review.RouteId, Review.Rating, Review.Text,
+                    User.FirstName || ' ' || User.LastName AS UserName
+                FROM Review
+                JOIN User ON Review.UserId = User.UserId;", new object());
 
         //select 10 random reviews for a specific climb
         public Task<List<Review>> GetTenReviews(string RouteID) =>
-            ExecuteSelectCommand<Review>("SELECT Review.*, User.Name as UserName " +
-                "FROM Review " +
-                "JOIN User ON Review.UserId=User.UserId " +
-                $"WHERE Review.RouteID='{RouteID}' " +
-                "ORDER BY RANDOM() LIMIT 10", new object());
+            ExecuteSelectCommand<Review>(@"
+                SELECT 
+                    Review.ReviewId, 
+                    Review.UserId, 
+                    Review.RouteId, 
+                    Review.Rating, 
+                    Review.Text,
+                    User.FirstName || ' ' || User.LastName AS UserName
+                FROM Review
+                JOIN User ON Review.UserId = User.UserId
+                WHERE Review.RouteId = @RouteID
+                ORDER BY RANDOM() LIMIT 10;", new { RouteID });
         
         //get average rating for a specific climb
         public Task<List<SingleItemWrapper<double>>> GetAvgReview(string RouteID) =>
@@ -188,33 +215,51 @@ namespace BoulderBuddyAPI.Services
                 $"WHERE RouteID='{RouteID}'", new object());
 
 
-        //select from recommendation table
-        public Task<List<Recommendation>> GetRecommendations() =>
-            ExecuteSelectCommand<Recommendation>("SELECT * FROM Recommendation", new object());
-
         //select from user relation table
         public Task<List<UserRelation>> GetUserRelations() =>
-            ExecuteSelectCommand<UserRelation>("SELECT * FROM UserRelation", null);
+            ExecuteSelectCommand<UserRelation>(@"
+                SELECT 
+                    User1Id, User2Id, RelationType, RequestDate, FriendSince 
+                FROM UserRelation;", new object());
 
         //select from climb group table
         public Task<List<ClimbGroup>> GetClimbGroups() =>
-            ExecuteSelectCommand<ClimbGroup>("SELECT * FROM ClimbGroup", null);
+            ExecuteSelectCommand<ClimbGroup>(@"
+                SELECT 
+                    GroupId, GroupName, GroupDescription, JoinRequirements, 
+                    Price, GroupType, GroupOwner, GroupImage 
+                FROM ClimbGroup;", new object());
 
         //select from climb group relation table
         public Task<List<ClimbGroupRelation>> GetClimbGroupRelations() =>
-            ExecuteSelectCommand<ClimbGroupRelation>("SELECT * FROM ClimbGroupRelation", null);
+            ExecuteSelectCommand<ClimbGroupRelation>(@"
+                SELECT 
+                    GroupId, UserId, RelationType, 
+                    InviteDate, MemberSince 
+                FROM ClimbGroupRelation;", new object());
 
         //select from climb group event table
         public Task<List<ClimbGroupEvent>> GetClimbGroupEvents() =>
-            ExecuteSelectCommand<ClimbGroupEvent>("SELECT * FROM ClimbGroupEvent", null);
+            ExecuteSelectCommand<ClimbGroupEvent>(@"
+                SELECT 
+                    EventId, GroupId, EventName, EventDescription, EventDate, 
+                    EventTime, EventLocation, EventImage 
+                FROM ClimbGroupEvent;", new object());
 
         //select from badge table
         public Task<List<Badge>> GetBadges() =>
-            ExecuteSelectCommand<Badge>("SELECT * FROM Badge", null);
+            ExecuteSelectCommand<Badge>(@"
+                SELECT 
+                    BadgeId, BadgeName, BadgeDescription, BadgeRequirement, 
+                    BadgeRarity, BadgeImage 
+                FROM Badge;", new object());
 
         //select from badge relation table
         public Task<List<BadgeRelation>> GetBadgeRelations() =>
-            ExecuteSelectCommand<BadgeRelation>("SELECT * FROM BadgeRelation", null);
+            ExecuteSelectCommand<BadgeRelation>(@"
+                SELECT 
+                    BadgeRelationId, UserId, BadgeId 
+                FROM BadgeRelation;", new object());
 
         //excute update command
         public async Task ExecuteUpdateCommand(string commandText, object parameters)
@@ -246,16 +291,18 @@ namespace BoulderBuddyAPI.Services
         public Task UpdateUser(string userId, object parameters) =>
             ExecuteUpdateCommand(@"
                 UPDATE User 
-                SET Name = @Name, Email = @Email, Password = @Password, AccountType = @AccountType 
-                WHERE UserId = @UserId;", 
-                new { UserId = userId, parameters });
-
-        //update route table
-        public Task UpdateRoute(object parameters) =>
-            ExecuteUpdateCommand(@"
-                UPDATE Route 
-                SET name = @Name, grade = @Grade, longitude = @Longitude, latitude = @Latitude, picture = @Picture 
-                WHERE id = @RouteId;", parameters);
+                SET 
+                    FirstName = @FirstName, 
+                    LastName = @LastName, 
+                    Email = @Email, 
+                    PhoneNumber = @PhoneNumber, 
+                    BoulderGradeLowerLimit = @BoulderGradeLowerLimit, 
+                    BoulderGradeUpperLimit = @BoulderGradeUpperLimit, 
+                    RopeClimberLowerLimit = @RopeClimberLowerLimit, 
+                    RopeClimberUpperLimit = @RopeClimberUpperLimit, 
+                    Bio = @Bio
+                WHERE UserId = @UserId;",
+                parameters);
 
         //update review table
         public Task UpdateReview(string reviewId, object parameters) =>
@@ -265,20 +312,12 @@ namespace BoulderBuddyAPI.Services
                 WHERE ReviewId = @ReviewId;", 
                 new { ReviewId = reviewId, parameters });
 
-        //update recommendation table
-    public Task UpdateRecommendation(string recommendationId, object parameters) =>
-        ExecuteUpdateCommand(@"
-            UPDATE Recommendation 
-            SET RouteId = @RouteId 
-            WHERE RecommendationId = @RecommendationId;", 
-            new { RecommendationId = recommendationId, parameters });
-
         //update user relation table
         public Task UpdateUserRelation(object parameters) =>
             ExecuteUpdateCommand(@"
                 UPDATE UserRelation 
-                SET relationType = @RelationType, requestDate = @RequestDate, friendSince = @FriendSince 
-                WHERE user1Id = @User1Id AND user2Id = @User2Id;", parameters);
+                SET RelationType = @RelationType, RequestDate = @RequestDate, FriendSince = @FriendSince 
+                WHERE User1Id = @User1Id AND User2Id = @User2Id;", parameters);
 
         //update climb group table
         public Task UpdateClimbGroup(string groupId, object parameters) =>
@@ -290,12 +329,12 @@ namespace BoulderBuddyAPI.Services
                 new { GroupId = groupId, parameters });
 
         //update climb group relation table
-        public Task UpdateClimbGroupRelation(string climbGroupRelationId, object parameters) =>
+        public Task UpdateClimbGroupRelation(string groupId, string userId, object parameters) =>
             ExecuteUpdateCommand(@"
                 UPDATE ClimbGroupRelation 
                 SET RelationType = @RelationType, InviteDate = @InviteDate, MemberSince = @MemberSince 
-                WHERE ClimbGroupRelationId = @ClimbGroupRelationId;", 
-                new { ClimbGroupRelationId = climbGroupRelationId, parameters });
+                WHERE GroupId = @GroupId AND UserId = @UserId;", 
+                new { GroupId = groupId, UserId = userId, parameters });
 
         //update climb group event table
         public Task UpdateClimbGroupEvent(string eventId, object parameters) =>
@@ -316,12 +355,12 @@ namespace BoulderBuddyAPI.Services
                 new { BadgeId = badgeId, parameters });
 
         //update badge relation table
-        public Task UpdateBadgeRelation(string badgeRelationId, object parameters) =>
+        public Task UpdateBadgeRelation(string userId, string badgeId, object parameters) =>
             ExecuteUpdateCommand(@"
                 UPDATE BadgeRelation 
                 SET UserId = @UserId, BadgeId = @BadgeId 
-                WHERE BadgeRelationId = @BadgeRelationId;", 
-                new { BadgeRelationId = badgeRelationId, parameters });
+                WHERE UserId = @UserId AND BadgeId = @BadgeId;", 
+                new { UserId = userId, BadgeId = badgeId, parameters });
 
         //execute delete command
         public async Task ExecuteDeleteCommand(string commandText, object parameters)
@@ -331,9 +370,28 @@ namespace BoulderBuddyAPI.Services
                 await connection.OpenAsync();
                 using (SqliteCommand command = connection.CreateCommand())
                 {
-                    AddParameters(command, parameters);
-                    command.CommandText = commandText;
-                    await command.ExecuteNonQueryAsync();
+                    try
+                    {
+                        AddParameters(command, parameters);
+                        command.CommandText = commandText;
+
+                        Console.WriteLine($"Executing Query: {command.CommandText}");
+                        foreach (var param in command.Parameters)
+                        {
+                            Console.WriteLine($"Parameter: {param}");
+                        }
+
+                        int rowsAffected = await command.ExecuteNonQueryAsync();
+                        if (rowsAffected == 0)
+                        {
+                            Console.WriteLine("No rows were deleted. Check if the record exists.");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Error executing delete command: {ex.Message}");
+                        throw;
+                    }
                 }
             }
         }
@@ -351,38 +409,30 @@ namespace BoulderBuddyAPI.Services
 
         //delete from user table
         public Task DeleteFromUserTable(object parameters) =>
-            ExecuteDeleteCommand("DELETE FROM User WHERE id = @UserId;", parameters);
+            ExecuteDeleteCommand("DELETE FROM User WHERE UserId = @UserId;", parameters);
 
         public Task DeleteFromUserTable(string userId) =>
-            ExecuteDeleteCommand("DELETE FROM User WHERE id = @UserId;", new { UserId = userId });    
-
-        //delete from route table
-        public Task DeleteFromRouteTable(object parameters) =>
-            ExecuteDeleteCommand("DELETE FROM Route WHERE id = @RouteId;", parameters);
-
+            ExecuteDeleteCommand("DELETE FROM User WHERE UserId = @UserId;", new { UserId = userId });    
 
         //delete from review table
         public Task DeleteFromReviewTable(string reviewId) =>
             ExecuteDeleteCommand("DELETE FROM Review WHERE ReviewId = @ReviewId;", new { ReviewId = reviewId });
 
-        //delete from recommendation table
-        public Task DeleteFromRecommendationTable(object parameters) =>
-            ExecuteDeleteCommand("DELETE FROM Recommendation WHERE routeId = @RouteId;", parameters);
-
         //delete from user relation table
         public Task DeleteFromUserRelationTable(object parameters) =>
-            ExecuteDeleteCommand("DELETE FROM UserRelation WHERE user1Id = @User1Id AND user2Id = @User2Id;", parameters);
+            ExecuteDeleteCommand("DELETE FROM UserRelation WHERE User1Id = @User1Id AND User2Id = @User2Id;", parameters);
 
         public Task DeleteFromUserRelationTable(string userRelationId) =>
-            ExecuteDeleteCommand("DELETE FROM UserRelation WHERE UserRelationId = @UserRelationId;", new { UserRelationId = userRelationId });
+            ExecuteDeleteCommand("DELETE FROM UserRelation WHERE User1Id = @User1Id;", new { UserRelationId = userRelationId });
 
         //delete from climb group table
         public Task DeleteFromClimbGroupTable(string climbGroupId) =>
             ExecuteDeleteCommand("DELETE FROM ClimbGroup WHERE GroupId = @GroupId;", new { GroupId = climbGroupId });
 
         //delete from climb group relation table
-        public Task DeleteFromClimbGroupRelationTable(string climbGroupRelationId) =>
-            ExecuteDeleteCommand("DELETE FROM ClimbGroupRelation WHERE ClimbGroupRelationId = @ClimbGroupRelationId;", new { ClimbGroupRelationId = climbGroupRelationId });
+        public Task DeleteFromClimbGroupRelationTable(string groupId, string userId) =>
+            ExecuteDeleteCommand("DELETE FROM ClimbGroupRelation WHERE GroupId = @GroupId AND UserId = @UserId;", 
+                new { GroupId = groupId, UserId = userId });
 
         //delete from climb group event table
         public Task DeleteFromClimbGroupEventTable(string eventId) =>
@@ -393,8 +443,8 @@ namespace BoulderBuddyAPI.Services
             ExecuteDeleteCommand("DELETE FROM Badge WHERE BadgeId = @BadgeId;", new { BadgeId = badgeId });
 
         //delete from badge relation table
-        public Task DeleteFromBadgeRelationTable(string badgeRelationId) =>
-             ExecuteDeleteCommand("DELETE FROM BadgeRelation WHERE BadgeRelationId = @BadgeRelationId;", new { BadgeRelationId = badgeRelationId });
+        public Task DeleteFromBadgeRelationTable(string userId, string badgeId) =>
+            ExecuteDeleteCommand("DELETE FROM BadgeRelation WHERE UserId = @UserId AND BadgeId = @BadgeId;", new { UserId = userId, BadgeId = badgeId });
 
         //for testing purposes only
         public async Task<T> ExecuteQueryCommand<T>(string query, object parameters)
@@ -432,6 +482,138 @@ namespace BoulderBuddyAPI.Services
                 return result == DBNull.Value ? default : (T)result;
             }
 
+        }
+
+        //Handle friend requests
+        public async Task SendFriendRequest(string senderUserId, string receiverUserName)
+        {
+            using (var connection = new SqliteConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+
+                // Get the UserId of the receiver based on their username
+                string getUserIdQuery = "SELECT UserId FROM User WHERE FirstName || ' ' || LastName = @ReceiverUserName";
+                using (var getUserIdCommand = new SqliteCommand(getUserIdQuery, connection))
+                {
+                    getUserIdCommand.Parameters.AddWithValue("@ReceiverUserName", receiverUserName);
+                    var receiverUserId = await getUserIdCommand.ExecuteScalarAsync();
+
+                    if (receiverUserId == null)
+                    {
+                        throw new Exception("Receiver user not found.");
+                    }
+
+                    // Insert the friend request into the UserRelation table
+                    string insertQuery = @"
+                        INSERT INTO UserRelation (User1Id, User2Id, RelationType, RequestDate)
+                        VALUES (@SenderUserId, @ReceiverUserId, 'pending_user1', current_timestamp)";
+                    using (var insertCommand = new SqliteCommand(insertQuery, connection))
+                    {
+                        insertCommand.Parameters.AddWithValue("@SenderUserId", senderUserId);
+                        insertCommand.Parameters.AddWithValue("@ReceiverUserId", receiverUserId.ToString());
+                        await insertCommand.ExecuteNonQueryAsync();
+                    }
+                }
+            }
+        }
+
+        public async Task AcceptFriendRequest(string senderUserId, string receiverUserId)
+        {
+            using (var connection = new SqliteConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+
+                // Update the UserRelation table to set the relation type to 'friends'
+                string updateQuery = @"
+                    UPDATE UserRelation
+                    SET RelationType = 'friends', FriendSince = current_timestamp
+                    WHERE User1Id = @SenderUserId AND User2Id = @ReceiverUserId AND RelationType = 'pending_user1'";
+                using (var updateCommand = new SqliteCommand(updateQuery, connection))
+                {
+                    updateCommand.Parameters.AddWithValue("@SenderUserId", senderUserId);
+                    updateCommand.Parameters.AddWithValue("@ReceiverUserId", receiverUserId);
+
+                    int rowsAffected = await updateCommand.ExecuteNonQueryAsync();
+                    if (rowsAffected == 0)
+                    {
+                        throw new Exception("No pending friend request found.");
+                    }
+                }
+            }
+        }
+
+        public async Task RejectFriendRequest(string senderUserId, string receiverUserId)
+        {
+            await DeleteFromUserRelationTable(new { User1Id = senderUserId, User2Id = receiverUserId });
+        }
+
+        public Task<List<UserRelation>> GetUserRelationsForUser(string userId)
+        {
+            return ExecuteSelectCommand<UserRelation>(@"
+                SELECT 
+                    User1Id, User2Id, RelationType, RequestDate, FriendSince
+                FROM UserRelation
+                WHERE User1Id = @UserId OR User2Id = @UserId;",
+                new { UserId = userId });
+        }
+
+        //group functions
+        public async Task JoinGroup(string userId, string groupName)
+        {
+            using (var connection = new SqliteConnection(_connectionString))
+            {
+                await connection.OpenAsync();
+
+                // Retrieve the group entry requirements and GroupId
+                string getGroupQuery = @"
+                    SELECT GroupId, JoinRequirements 
+                    FROM ClimbGroup 
+                    WHERE GroupName = @GroupName";
+                using (var getGroupCommand = new SqliteCommand(getGroupQuery, connection))
+                {
+                    getGroupCommand.Parameters.AddWithValue("@GroupName", groupName);
+                    using (var reader = await getGroupCommand.ExecuteReaderAsync())
+                    {
+                        if (!await reader.ReadAsync())
+                        {
+                            throw new Exception("Group not found.");
+                        }
+
+                        var groupId = reader["GroupId"].ToString();
+                        var joinRequirements = reader["JoinRequirements"].ToString();
+
+                        // Check if the group is open
+                        if (joinRequirements != "open")
+                        {
+                            throw new Exception("Group is closed to new members.");
+                        }
+
+                        // Insert a new group relation
+                        string insertRelationQuery = @"
+                            INSERT INTO ClimbGroupRelation (GroupId, UserId, RelationType, MemberSince)
+                            VALUES (@GroupId, @UserId, 'member', current_timestamp)";
+                        using (var insertCommand = new SqliteCommand(insertRelationQuery, connection))
+                        {
+                            insertCommand.Parameters.AddWithValue("@GroupId", groupId);
+                            insertCommand.Parameters.AddWithValue("@UserId", userId);
+                            await insertCommand.ExecuteNonQueryAsync();
+                        }
+                    }
+                }
+            }
+        }
+
+        public Task<List<User>> GetGroupMembers(string groupId)
+        {
+            return ExecuteSelectCommand<User>(@"
+                SELECT 
+                    User.UserId, User.FirstName, User.LastName, User.Email, User.PhoneNumber, 
+                    User.BoulderGradeLowerLimit, User.BoulderGradeUpperLimit, 
+                    User.RopeClimberLowerLimit, User.RopeClimberUpperLimit, User.Bio
+                FROM ClimbGroupRelation
+                JOIN User ON ClimbGroupRelation.UserId = User.UserId
+                WHERE ClimbGroupRelation.GroupId = @GroupId AND ClimbGroupRelation.RelationType = 'member';",
+                new { GroupId = groupId });
         }
     }
 }

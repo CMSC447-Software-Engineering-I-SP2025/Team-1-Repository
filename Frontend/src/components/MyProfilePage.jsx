@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useUser } from "./UserProvider";
 import { useLocation } from "react-router-dom";
 import defaultProfilePic from "../../assets/default-profile.jpg";
+import { Link } from "react-router-dom";
+import axios from "axios";
 
 const MyProfilePage = ({ onSave }) => {
   const location = useLocation(); // Get the location object from React Router
@@ -26,7 +28,31 @@ const MyProfilePage = ({ onSave }) => {
   const [activeTab, setActiveTab] = useState("editProfile"); // State for active tab
   const [emailError, setEmailError] = useState(""); // State for email error
   const [phoneError, setPhoneError] = useState(""); // State for phone error
-  const maxBioLength = 200; // Maximum character limit for bio
+    const maxBioLength = 200; // Maximum character limit for bio
+
+    const [userRelation1] = useState({
+        user1ID: "12345",
+        user2ID: "2",
+        relationType: "pending_user1"
+    });
+    const [userRelation2] = useState({
+        user1ID: "12345",
+        user2ID: "1",
+        relationType: "friends"
+    });
+
+    const [userRelations, setUserRelations] = useState([userRelation1, userRelation2]);
+
+    const [groupRelation1] = useState({
+        groupID: "1",
+        relationType: "invited"
+    });
+    const [groupRelation2] = useState({
+        groupID: "2",
+        relationType: "member"
+    });
+
+    const [groupRelations, setGroupRelations] = useState([groupRelation1, groupRelation2]);
 
   useEffect(() => {
     if (!loading && authenticatedUser === null) {
@@ -108,33 +134,34 @@ const MyProfilePage = ({ onSave }) => {
     onSave(updatedUser); // Call the onSave callback with updated user data
   };
 
-  return (
-    authenticatedUser && (
-      <div className="min-h-screen bg-gray-100">
-        <div className="max-w-4xl p-6 mx-auto mt-10 bg-white rounded-lg">
-          {/* Tabs */}
-          <div className="flex justify-between px-4 mb-6 border-b border-gray-300">
-            {["editProfile", "myClimbs", "reviews", "photos"].map((tab) => (
-              <div
-                key={tab}
-                className={`relative pb-3 text-base font-medium transition-all duration-300 cursor-pointer ${
-                  activeTab === tab
-                    ? "text-blue-600 border-b-4 border-blue-600"
-                    : "text-gray-500 hover:text-blue-600 hover:border-b-4 hover:border-blue-300"
-                }`}
-                onClick={() => setActiveTab(tab)}
-                style={{ flex: 1, textAlign: "center" }} // Ensure even spacing and alignment
-              >
-                {tab === "editProfile"
-                  ? "Edit Profile"
-                  : tab === "myClimbs"
-                  ? "My Climbs"
-                  : tab === "reviews"
-                  ? "Reviews"
-                  : "Photos"}
-              </div>
-            ))}
-          </div>
+    return (authenticatedUser && (
+    authenticatedUser &&<div className="min-h-screen bg-gray-100">
+      <div className="max-w-4xl p-6 mx-auto mt-10 bg-white rounded-lg">
+        {/* Tabs */}
+        <div className="flex justify-between px-4 mb-6 border-b border-gray-300">
+          {["editProfile", "myClimbs", "reviews", "photos", "community"].map((tab) => (
+            <div
+              key={tab}
+              className={`relative pb-3 text-base font-medium transition-all duration-300 cursor-pointer ${
+                activeTab === tab
+                  ? "text-blue-600 border-b-4 border-blue-600"
+                  : "text-gray-500 hover:text-blue-600 hover:border-b-4 hover:border-blue-300"
+              }`}
+              onClick={() => setActiveTab(tab)}
+              style={{ flex: 1, textAlign: "center" }} // Ensure even spacing and alignment
+            >
+              {tab === "editProfile"
+                ? "Edit Profile"
+                : tab === "myClimbs"
+                ? "My Climbs"
+                : tab === "reviews"
+                ? "Reviews"
+                : tab === "photos"
+                ? "Photos"
+                : "Community"}
+            </div>
+          ))}
+        </div>
 
           {/* Tab Content */}
           {activeTab === "editProfile" && (
@@ -403,14 +430,53 @@ const MyProfilePage = ({ onSave }) => {
             </div>
           )}
 
-          {activeTab === "photos" && (
-            <div>
-              <h2 className="text-xl font-bold text-gray-800">Photos</h2>
-              <p className="text-gray-600">Gallery of photos will go here.</p>
-            </div>
-          )}
-        </div>
+        {activeTab === "photos" && (
+          <div>
+            <h2 className="text-xl font-bold text-gray-800">Photos</h2>
+            <p className="text-gray-600">Gallery of photos will go here.</p>
+          </div>
+              )}
+              {activeTab === "community" && (
+                  <div>
+                      <h2 className="text-xl font-bold text-gray-800">Friends</h2>
+                      <Link to="/add-friend" className="px-3">
+                          +
+                      </Link>
+                      {userRelations.length === 0 ? (
+                          <p>You have no friends, haha, loser.</p>
+                      ) : (
+                          <ul>
+                              {userRelations.map((userRelation, index) => (
+                                  <li key={index} style={{ marginBottom: "1rem" }}>
+                                      <strong>User1ID:</strong> {userRelation.user1ID} <br />
+                                      <strong>User2ID:</strong> {userRelation.user2ID}<br />
+                                      <strong>RelationType:</strong> {userRelation.relationType}
+                                  </li>
+                              ))}
+                          </ul>
+                      )}
+                      <h2 className="text-xl font-bold text-gray-800">Groups</h2>
+                      <Link to="/add-group" className="px-3">
+                          +
+                      </Link>
+                      {groupRelations.length === 0 ? (
+                          <p>You are in no groups, haha, loser.</p>
+                      ) : (
+                          <ul>
+                                  {groupRelations.map((groupRelation, index) => (
+                                  <li key={index} style={{ marginBottom: "1rem" }}>
+                                          <Link to="/group" state={{ groupID: groupRelation.groupID }} className="px-3">
+                                          <strong>GroupID:</strong> {groupRelation.groupID} <br />
+                                          <strong>RelationType:</strong> {groupRelation.relationType}
+                                    </Link>
+                                  </li>
+                              ))}
+                          </ul>
+                      )}
+                  </div>
+              )}
       </div>
+        </div>
     )
   );
 };

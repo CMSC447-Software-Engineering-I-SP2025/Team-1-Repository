@@ -61,36 +61,12 @@ namespace BoulderBuddyAPI.Tests.Controllers
         }
 
         [Fact]
-        public async Task PostRoute_ValidRoute_ReturnsOk()
-        {
-            var route = new Route { RouteId = "1", Name = "Test Route", Grade = "5.10", Longitude = "0.0", Latitude = "0.0" };
-            _mockDatabaseService.Setup(service => service.InsertIntoRouteTable(route)).Returns(Task.CompletedTask);
-
-            var result = await _controller.PostRoute(route);
-
-            var okResult = Assert.IsType<OkObjectResult>(result);
-            Assert.Equal(200, okResult.StatusCode);
-        }
-
-        [Fact]
         public async Task PostReview_ValidReview_ReturnsOk()
         {
             var review = new Review { UserId = "1", RouteId = "1", Rating = 5, Text = "Great route!" };
             _mockDatabaseService.Setup(service => service.InsertIntoReviewTable(review)).Returns(Task.CompletedTask);
 
             var result = await _controller.PostReview(review);
-
-            var okResult = Assert.IsType<OkObjectResult>(result);
-            Assert.Equal(200, okResult.StatusCode);
-        }
-
-        [Fact]
-        public async Task PostRecommendation_ValidRecommendation_ReturnsOk()
-        {
-            var recommendation = new Recommendation { RouteId = "1" };
-            _mockDatabaseService.Setup(service => service.InsertIntoRecommendationTable(recommendation)).Returns(Task.CompletedTask);
-
-            var result = await _controller.PostRecommendation(recommendation);
 
             var okResult = Assert.IsType<OkObjectResult>(result);
             Assert.Equal(200, okResult.StatusCode);
@@ -110,19 +86,6 @@ namespace BoulderBuddyAPI.Tests.Controllers
         }
 
         [Fact]
-        public async Task GetRoutes_ReturnsOk()
-        {
-            var routes = new List<Route> { new Route { RouteId = "1", Name = "Test Route", Grade = "5.10", Longitude = "0.0", Latitude = "0.0" } };
-            _mockDatabaseService.Setup(service => service.GetRoutes()).ReturnsAsync(routes);
-
-            var result = await _controller.GetRoutes();
-
-            var okResult = Assert.IsType<OkObjectResult>(result);
-            Assert.Equal(200, okResult.StatusCode);
-            Assert.Equal(routes, okResult.Value);
-        }
-
-        [Fact]
         public async Task GetReviews_ReturnsOk()
         {
             var reviews = new List<Review> { new Review { UserId = "1", RouteId = "1", Rating = 5, Text = "Test Review" } };
@@ -133,19 +96,6 @@ namespace BoulderBuddyAPI.Tests.Controllers
             var okResult = Assert.IsType<OkObjectResult>(result);
             Assert.Equal(200, okResult.StatusCode);
             Assert.Equal(reviews, okResult.Value);
-        }
-
-        [Fact]
-        public async Task GetRecommendations_ReturnsOk()
-        {
-            var recommendations = new List<Recommendation> { new Recommendation {RouteId = "1" } };
-            _mockDatabaseService.Setup(service => service.GetRecommendations()).ReturnsAsync(recommendations);
-
-            var result = await _controller.GetRecommendations();
-
-            var okResult = Assert.IsType<OkObjectResult>(result);
-            Assert.Equal(200, okResult.StatusCode);
-            Assert.Equal(recommendations, okResult.Value);
         }
 
         [Fact]
@@ -162,7 +112,5 @@ namespace BoulderBuddyAPI.Tests.Controllers
             var okResult = Assert.IsType<OkResult>(result);
             Assert.Equal(200, okResult.StatusCode);
         }
-
-
     }
 }

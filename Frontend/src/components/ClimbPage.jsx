@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 
-const ClimbPage = ({ selectedClimb }) => {
+const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
   if (!selectedClimb) {
     return <div className="text-center text-gray-500">No climb selected</div>;
   }

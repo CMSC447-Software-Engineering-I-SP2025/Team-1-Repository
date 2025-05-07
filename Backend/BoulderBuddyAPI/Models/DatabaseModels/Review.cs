@@ -16,4 +16,5 @@ public class Review
 
     [JsonPropertyName("Text")]
     public required string Text { get; set; }
+    
 }
