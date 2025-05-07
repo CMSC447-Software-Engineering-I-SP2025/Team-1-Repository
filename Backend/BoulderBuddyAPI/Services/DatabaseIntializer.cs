@@ -26,7 +26,11 @@ namespace BoulderBuddyAPI.Services
                         Email TEXT,
                         Password TEXT NOT NULL,
                         AccountType TEXT NOT NULL,
-                        CHECK (AccountType IN (""public"", ""private""))
+                        EnableReviewCommentNotifications TEXT NOT NULL DEFAULT ""enable"",
+                        EnableGroupInviteNotifications TEXT NOT NULL DEFAULT ""enable"",
+                        CHECK (AccountType IN (""public"", ""private"")),
+                        CHECK (EnableReviewCommentNotifications IN (""enable"", ""disable"")),
+                        CHECK (EnableGroupInviteNotifications IN (""enable"", ""disable""))
                     );
                     CREATE TABLE IF NOT EXISTS Review (
                         ReviewId INTEGER PRIMARY KEY AUTOINCREMENT,
