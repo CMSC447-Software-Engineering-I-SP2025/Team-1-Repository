@@ -105,6 +105,17 @@ query ClimbsInArea {
           yds
         }
         safety
+        type {
+          aid
+          alpine
+          bouldering
+          ice
+          mixed
+          snow
+          sport
+          tr
+          trad
+        }
       }
       children {
         areaName
@@ -128,6 +139,17 @@ query ClimbsInArea {
             yds
           }
           safety
+          type {
+            aid
+            alpine
+            bouldering
+            ice
+            mixed
+            snow
+            sport
+            tr
+            trad
+          }
         }
         children {
           areaName
@@ -151,6 +173,17 @@ query ClimbsInArea {
               yds
             }
             safety
+            type {
+              aid
+              alpine
+              bouldering
+              ice
+              mixed
+              snow
+              sport
+              tr
+              trad
+            }
           }
           children {
             areaName
@@ -174,6 +207,17 @@ query ClimbsInArea {
                 yds
               }
               safety
+              type {
+                aid
+                alpine
+                bouldering
+                ice
+                mixed
+                snow
+                sport
+                tr
+                trad
+              }
             }
             children {
               areaName
@@ -197,6 +241,17 @@ query ClimbsInArea {
                   yds
                 }
                 safety
+                type {
+                  aid
+                  alpine
+                  bouldering
+                  ice
+                  mixed
+                  snow
+                  sport
+                  tr
+                  trad
+                }
               }
               children {
                 areaName
@@ -220,6 +275,17 @@ query ClimbsInArea {
                     yds
                   }
                   safety
+                  type {
+                    aid
+                    alpine
+                    bouldering
+                    ice
+                    mixed
+                    snow
+                    sport
+                    tr
+                    trad
+                  }
                 }
                 children {
                   areaName
@@ -243,6 +309,17 @@ query ClimbsInArea {
                       yds
                     }
                     safety
+                    type {
+                      aid
+                      alpine
+                      bouldering
+                      ice
+                      mixed
+                      snow
+                      sport
+                      tr
+                      trad
+                    }
                   }
                   children {
                     areaName
@@ -266,6 +343,17 @@ query ClimbsInArea {
                         yds
                       }
                       safety
+                      type {
+                        aid
+                        alpine
+                        bouldering
+                        ice
+                        mixed
+                        snow
+                        sport
+                        tr
+                        trad
+                      }
                     }
                     children {
                       areaName
@@ -289,6 +377,17 @@ query ClimbsInArea {
                           yds
                         }
                         safety
+                        type {
+                          aid
+                          alpine
+                          bouldering
+                          ice
+                          mixed
+                          snow
+                          sport
+                          tr
+                          trad
+                        }
                       }
                       children {
                         areaName
@@ -312,6 +411,17 @@ query ClimbsInArea {
                             yds
                           }
                           safety
+                          type {
+                            aid
+                            alpine
+                            bouldering
+                            ice
+                            mixed
+                            snow
+                            sport
+                            tr
+                            trad
+                          }
                         }
                       }
                     }
