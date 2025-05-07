@@ -51,6 +51,12 @@ namespace BoulderBuddyAPI.Services
                         FOREIGN KEY (User2Id) REFERENCES User(UserId),
                         CHECK (RelationType IN (""friends"", ""user1_blocked"", ""user2_blocked"", ""both_blocked"", ""pending_user1"", ""pending_user2""))
                     );
+                    CREATE TABLE IF NOT EXISTS FavoriteClimb (
+                        UserId TEXT NOT NULL,
+                        ClimbId TEXT NOT NULL,
+                        PRIMARY KEY (UserId, ClimbId),
+                        FOREIGN KEY (UserId) REFERENCES User(UserId)
+                    );
                     CREATE TABLE IF NOT EXISTS ClimbGroup (
                         GroupId INTEGER PRIMARY KEY AUTOINCREMENT,
                         GroupName TEXT NOT NULL,
