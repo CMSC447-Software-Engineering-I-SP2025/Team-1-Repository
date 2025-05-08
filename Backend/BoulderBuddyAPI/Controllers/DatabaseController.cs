@@ -120,6 +120,20 @@ namespace BoulderBuddyAPI.Controllers
             }
         }
 
+        [HttpPost("FavoriteClimb")]
+        public async Task<IActionResult> PostFavoriteClimb(FavoriteClimb favorite)
+        {
+            try
+            {
+                await _databaseService.InsertIntoFavoriteClimbTable(favorite);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
         [HttpGet("user")]
         public async Task<IActionResult> GetUsers()
         {
@@ -315,6 +329,7 @@ namespace BoulderBuddyAPI.Services
         Task InsertIntoRouteTable(object parameters);
         Task InsertIntoReviewTable(object parameters);
         Task InsertIntoRecommendationTable(object parameters);
+        Task InsertIntoFavoriteClimbTable(object parameters);
         Task<List<User>> GetUsers();
         Task<List<Route>> GetRoutes();
         Task<List<Review>> GetReviews();

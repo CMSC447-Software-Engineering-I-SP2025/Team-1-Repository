@@ -104,8 +104,12 @@ namespace BoulderBuddyAPI.Services
             ExecuteInsertCommand(@"
                 INSERT INTO BadgeRelation (UserId, BadgeId) 
                 VALUES (@UserId, @BadgeId);", parameters);
+        public Task InsertIntoFavoriteClimbTable(object parameters) =>
+            ExecuteInsertCommand(@"
+                INSERT INTO FavoriteClimb (UserId, ClimbId)
+                VALUES (@UserId, @ClimbId)", parameters);
 
-        
+
         //execute select command
         public async Task<List<T>> ExecuteSelectCommand<T>(string commandText, object parameters)
         {
