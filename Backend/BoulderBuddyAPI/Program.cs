@@ -77,8 +77,13 @@ namespace BoulderBuddyAPI
 
             foreach (var state in eastOfTheMississippi)
             {
+                var watch = System.Diagnostics.Stopwatch.StartNew();
                 await obqs.QuerySubAreasInArea(state);
-                await Task.Delay(7000); //offset OpenBeta requests by 7 seconds 
+                watch.Stop();
+
+                //offset OpenBeta requests by 7 seconds (when they didn't cache hit)
+                if (watch.ElapsedMilliseconds > 500)
+                    await Task.Delay(7000);
             }
         }
     }
