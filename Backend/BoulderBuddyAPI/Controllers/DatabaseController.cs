@@ -227,6 +227,24 @@ namespace BoulderBuddyAPI.Controllers
                 return StatusCode(500, new { message = ex.Message });
             }
         }
+        // GET: Get a user by ID
+        [HttpGet("user/{userId}")]
+        public async Task<IActionResult> GetUserById(string userId)
+        {
+            try
+            {
+                var user = await _databaseService.GetUserById(userId);
+                if (user == null)
+                {
+                    return NotFound(new { message = "User not found" });
+                }
+                return Ok(user);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
 
         [HttpGet("review")]
         public async Task<IActionResult> GetReviews()
@@ -778,5 +796,8 @@ namespace BoulderBuddyAPI.Services
 
         //method for getting reviews by user ID
         Task<List<Review>> GetReviewsByUserId(string userId);
+
+        //method for getting user by ID
+        Task<User> GetUserById(string userId);
     }
 }

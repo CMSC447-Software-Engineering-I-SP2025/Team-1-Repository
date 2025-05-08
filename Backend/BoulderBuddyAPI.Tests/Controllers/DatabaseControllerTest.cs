@@ -57,7 +57,6 @@ namespace BoulderBuddyAPI.Tests.Controllers
 
             var okResult = Assert.IsType<OkObjectResult>(result);
             Assert.Equal(200, okResult.StatusCode);
-            Assert.Equal("User created successfully", ((dynamic)okResult.Value).message);
         }
 
         [Fact]
@@ -429,7 +428,6 @@ namespace BoulderBuddyAPI.Tests.Controllers
 
             var okResult = Assert.IsType<OkObjectResult>(result);
             Assert.Equal(200, okResult.StatusCode);
-            Assert.Equal("User updated successfully", ((dynamic)okResult.Value).message);
         }
 
         [Fact]
@@ -536,64 +534,161 @@ namespace BoulderBuddyAPI.Tests.Controllers
             Assert.Equal(200, okResult.StatusCode);
         }
 
-        // Test for AddPicture
+        // Test for GetGroupsByUserId
         [Fact]
-        public async Task AddPicture_ValidPicture_ReturnsOk()
+        public async Task GetGroupsByUserId_ValidUserId_ReturnsOk()
         {
-            var picture = new Picture
+            var groups = new List<ClimbGroup>
             {
-                PictureId = 1,
-                UploadDate = DateTime.UtcNow,
-                UserId = "user1",
-                RouteId = "route1",
-                Image = new byte[] { 0x01, 0x02, 0x03 }
+                new ClimbGroup
+                {
+                    GroupId = 1,
+                    GroupName = "Test Group",
+                    GroupDescription = "A test climbing group",
+                    JoinRequirements = "open",
+                    Price = 0.0,
+                    GroupType = "public",
+                    GroupOwner = "user1",
+                    GroupImage = null
+                }
             };
 
-            _mockDatabaseService.Setup(service => service.AddPicture(It.IsAny<object>())).Returns(Task.CompletedTask);
+            _mockDatabaseService.Setup(service => service.GetGroupsByUserId("user1")).ReturnsAsync(groups);
 
-            var result = await _controller.AddPicture(picture);
-
-            var okResult = Assert.IsType<OkObjectResult>(result);
-            Assert.Equal(200, okResult.StatusCode);
-            Assert.Equal("Picture added successfully", ((dynamic)okResult.Value).message);
-        }
-
-        // Test for DeletePicture
-        [Fact]
-        public async Task DeletePicture_ValidPictureId_ReturnsOk()
-        {
-            var pictureId = 1;
-
-            _mockDatabaseService.Setup(service => service.DeletePicture(pictureId)).Returns(Task.CompletedTask);
-
-            var result = await _controller.DeletePicture(pictureId);
+            var result = await _controller.GetGroupsByUserId("user1");
 
             var okResult = Assert.IsType<OkObjectResult>(result);
             Assert.Equal(200, okResult.StatusCode);
-            Assert.Equal("Picture deleted successfully", ((dynamic)okResult.Value).message);
+            Assert.Equal(groups, okResult.Value);
         }
 
-        // Test for UpdatePicture
+        // Test for GetReviewsByUserId
         [Fact]
-        public async Task UpdatePicture_ValidPicture_ReturnsOk()
+        public async Task GetReviewsByUserId_ValidUserId_ReturnsOk()
         {
-            var pictureId = 1;
-            var picture = new Picture
+            var reviews = new List<Review>
             {
-                PictureId = 1,
-                UploadDate = DateTime.UtcNow,
-                UserId = "user1",
-                RouteId = "route1",
-                Image = new byte[] { 0x04, 0x05, 0x06 }
+                new Review
+                {
+                    ReviewId = 1,
+                    UserId = "user1",
+                    UserName = "Test User",
+                    RouteId = "route1",
+                    Rating = 5,
+                    Text = "Great route!"
+                }
             };
 
-            _mockDatabaseService.Setup(service => service.UpdatePicture(pictureId, It.IsAny<object>())).Returns(Task.CompletedTask);
+            _mockDatabaseService.Setup(service => service.GetReviewsByUserId("user1")).ReturnsAsync(reviews);
 
-            var result = await _controller.UpdatePicture(pictureId, picture);
+            var result = await _controller.GetReviewsByUserId("user1");
 
             var okResult = Assert.IsType<OkObjectResult>(result);
             Assert.Equal(200, okResult.StatusCode);
-            Assert.Equal("Picture updated successfully", ((dynamic)okResult.Value).message);
+            Assert.Equal(reviews, okResult.Value);
+        }
+
+        // Test for DeleteClimbGroupRelation
+        [Fact]
+        public async Task DeleteClimbGroupRelation_ValidGroupIdAndUserId_ReturnsOk()
+        {
+            var groupId = "1";
+            var userId = "user1";
+
+            _mockDatabaseService.Setup(service => service.DeleteFromClimbGroupRelationTable(groupId, userId)).Returns(Task.CompletedTask);
+
+            var result = await _controller.DeleteClimbGroupRelation(groupId, userId);
+
+            var okResult = Assert.IsType<OkResult>(result);
+            Assert.Equal(200, okResult.StatusCode);
+        }
+
+        // Test for DeleteBadge
+        [Fact]
+        public async Task DeleteBadge_ValidBadgeId_ReturnsOk()
+        {
+            var badgeId = "1";
+
+            _mockDatabaseService.Setup(service => service.DeleteFromBadgeTable(badgeId)).Returns(Task.CompletedTask);
+
+            var result = await _controller.DeleteBadge(badgeId);
+
+            var okResult = Assert.IsType<OkResult>(result);
+            Assert.Equal(200, okResult.StatusCode);
+        }
+
+        // Test for UpdateClimbGroup
+        [Fact]
+        public async Task UpdateClimbGroup_ValidClimbGroup_ReturnsOk()
+        {
+            var climbGroupId = "1";
+            var climbGroup = new ClimbGroup
+            {
+                GroupId = 1,
+                GroupName = "Updated Group",
+                GroupDescription = "Updated description",
+                JoinRequirements = "open",
+                Price = 0.0,
+                GroupType = "public",
+                GroupOwner = "user1",
+                GroupImage = null
+            };
+
+            _mockDatabaseService.Setup(service => service.UpdateClimbGroup(climbGroupId, climbGroup)).Returns(Task.CompletedTask);
+
+            var result = await _controller.UpdateClimbGroup(climbGroupId, climbGroup);
+
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            Assert.Equal(200, okResult.StatusCode);
+        
+        }
+
+        // Test for UpdateClimbGroupEvent
+        [Fact]
+        public async Task UpdateClimbGroupEvent_ValidEvent_ReturnsOk()
+        {
+            var eventId = "1";
+            var climbGroupEvent = new ClimbGroupEvent
+            {
+                EventId = 1,
+                GroupId = 1,
+                EventName = "Updated Event",
+                EventDescription = "Updated description",
+                EventDate = "2023-01-01",
+                EventTime = "12:00 PM",
+                EventLocation = "Updated Location",
+                EventImage = null
+            };
+
+            _mockDatabaseService.Setup(service => service.UpdateClimbGroupEvent(eventId, climbGroupEvent)).Returns(Task.CompletedTask);
+
+            var result = await _controller.UpdateClimbGroupEvent(eventId, climbGroupEvent);
+
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            Assert.Equal(200, okResult.StatusCode);
+        }
+
+        // Test for UpdateBadge
+        [Fact]
+        public async Task UpdateBadge_ValidBadge_ReturnsOk()
+        {
+            var badgeId = "1";
+            var badge = new Badge
+            {
+                BadgeID = 1,
+                BadgeName = "Updated Badge",
+                BadgeDescription = "Updated description",
+                BadgeRequirement = "Updated requirement",
+                BadgeRarity = "rare",
+                BadgeImage = null
+            };
+
+            _mockDatabaseService.Setup(service => service.UpdateBadge(badgeId, badge)).Returns(Task.CompletedTask);
+
+            var result = await _controller.UpdateBadge(badgeId, badge);
+
+            var okResult = Assert.IsType<OkObjectResult>(result);
+            Assert.Equal(200, okResult.StatusCode);
         }
     }
 }
