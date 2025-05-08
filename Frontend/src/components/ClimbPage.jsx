@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import axios from "axios";
 import { useUser } from "./UserProvider";
 
-const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
+const ClimbPage = ({ selectedClimb, isLoggedIn, currentUser }) => {
   if (!selectedClimb) {
     return <div className="text-center text-gray-500">No climb selected</div>;
   }
@@ -16,8 +16,6 @@ const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
   const [newReview, setNewReview] = useState("");
   const [reviewError, setReviewError] = useState("");
   const [newRating, setNewRating] = useState(0);
-  const { user: authenticatedUser, loading } = useUser();
-  const user = authenticatedUser || {};
   const [rating, setRating] = useState(""); // Rating will be a string to match your model
   const [description, setDescription] = useState("");
 
@@ -112,7 +110,7 @@ const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
   };
 
   const handleReviewSubmit = async () => {
-    console.log("Submitting review for user:", user.id); // Log user ID
+    console.log("Submitting review for user:", currentUser.UserId); // Log user ID
     if (!newReview.trim()) {
       setReviewError("Review cannot be empty.");
       return;
@@ -124,11 +122,11 @@ const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
 
     const reviewData = {
       ReviewID: 99,
-      UserId: user.id,
+      UserId: currentUser.UserId,
       RouteId: selectedClimb.id,
       Rating: newRating * 2, // Convert to a scale of 10 if required by the backend
       Text: newReview, // Use the correct field name expected by the backend
-      UserName: user.UserName,
+      UserName: currentUser.UserName,
     };
 
     console.log("Submitting review data:", reviewData); // Log the request payload
