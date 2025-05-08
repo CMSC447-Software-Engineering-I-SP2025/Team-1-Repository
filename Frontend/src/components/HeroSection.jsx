@@ -52,6 +52,55 @@ const HeroSection = ({
     setStateName(event.target.value);
   };
 
+  const handleSaveChanges = async (event) => {
+    event.preventDefault();
+
+    // Validate email
+    if (!validateEmail(email)) {
+      setEmailError("Please enter a valid email address.");
+      return;
+    } else {
+      setEmailError("");
+    }
+
+    // Validate phone
+    if (!validatePhone(phone)) {
+      setPhoneError("Please enter a valid phone number (10-15 digits).");
+      return;
+    } else {
+      setPhoneError("");
+    }
+
+    try {
+      const updatedUser = {
+        ...currentUser,
+        firstName,
+        lastName,
+        email,
+        phone,
+        bio,
+      };
+
+      // Update user in the database
+      const response = await axios.put(
+        `/api/Database/user/${currentUser.id}`,
+        updatedUser,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      console.log("User updated successfully:", response.data);
+
+      // Update currentUser state
+      setCurrentUser(response.data);
+    } catch (error) {
+      console.error("Error updating user:", error);
+    }
+  };
+
   const states = [
     "Alabama",
     "Alaska",

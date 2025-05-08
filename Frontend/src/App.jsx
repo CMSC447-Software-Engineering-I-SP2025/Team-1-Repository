@@ -30,20 +30,47 @@ const App = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [recommendedClimbs, setRecommendedClimbs] = useState([]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [currentUser, setCurrentUser] = useState({
-    id: "",
-    firstName: "",
-    lastName: "",
-    email: "",
-    phone: "",
-    phoneCountry: "",
-    boulderGradeRange: { min: "", max: "" },
-    ropeGradeRange: { min: "", max: "" },
-  });
   const [stateName, setStateName] = useState("Maryland");
+  const [currentUser, setCurrentUser] = useState(null);
 
-  const handleSaveUser = (updatedUser) => {
-    setCurrentUser(updatedUser);
+  const getCurrentUser = async () => {
+    try {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (session?.user) {
+        const response = await axios.get(
+          `https://localhost:7195/api/Database/user/${session.user.id}`
+        );
+        setCurrentUser(response.data);
+        return response.data;
+      }
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+      return null;
+    }
+  };
+
+  const handleSaveUser = async (updatedUser) => {
+    try {
+      if (!user?.id) {
+        throw new Error("User ID is required to update the user.");
+      }
+      console.log("Updating user:", updatedUser);
+      const response = await axios.put(
+        `https://localhost:7195/api/Database/user/${user.id}`,
+        updatedUser,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      console.log("User updated successfully:", response.data);
+      setCurrentUser(response.data);
+    } catch (error) {
+      console.error("Error updating user data:", error);
+    }
   };
 
   const handleStateChange = (event) => {
@@ -91,35 +118,53 @@ const App = () => {
       } = await supabase.auth.getSession();
       setUser(session?.user || null);
       setIsLoggedIn(!!session?.user);
+
+      if (session?.user) {
+        try {
+          const response = await axios.get(
+            `https://localhost:7195/api/Database/user/${session.user.id}`
+          );
+          setCurrentUser(response.data);
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+        }
+      }
     };
 
     fetchUser();
+  }, []);
 
+  useEffect(() => {
+    if (currentUser) {
+      console.log("Current user:", currentUser.Email);
+    }
+  }, [currentUser]);
+
+  useEffect(() => {
     const { data: subscription } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setUser(session?.user || null);
         setIsLoggedIn(!!session?.user);
+
+        if (session?.user) {
+          axios
+            .get(`https://localhost:7195/api/Database/user/${session.user.id}`)
+            .then((response) => {
+              setCurrentUser(response.data);
+            })
+            .catch((error) => {
+              console.error(
+                "Error fetching user data on auth state change:",
+                error
+              );
+            });
+        }
       }
     );
 
-    const setupUser = async () => {
-      try {
-        console.log("User:", user);
-        const response = await axios.post(
-          "https://localhost:7195/api/Database/user",
-          { userId: user.userId }
-        );
-        console.log("User data:", response.data);
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-      }
-    };
-
-    setupUser();
-
     return () => {
       if (subscription && typeof subscription.unsubscribe === "function") {
-        subscription.unsubscribe(); // Ensure unsubscribe is a function
+        subscription.unsubscribe();
       }
     };
   }, []);
@@ -180,9 +225,17 @@ const App = () => {
             <Route path="/signup" element={<CreateAccountPage />} />
             <Route
               path="/login"
-              element={<LoginPage OnLoginClick={setCurrentPage} />} // Pass setCurrentPage as OnLoginClick
+              element={<LoginPage OnLoginClick={setCurrentPage} />}
             />
-            <Route path="/profile" element={<MyProfilePage />} />
+            <Route
+              path="/profile"
+              element={
+                <MyProfilePage
+                  currentUser={currentUser}
+                  onSave={handleSaveUser}
+                />
+              }
+            />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/create-account" element={<CreateAccountPage />} />
             <Route
@@ -212,8 +265,8 @@ const App = () => {
                           isLoading={isLoading}
                           recommendedClimbs={recommendedClimbs}
                           isLoggedIn={isLoggedIn}
-                          stateName={stateName} // Pass stateName
-                          setStateName={setStateName} // Pass setStateName
+                          stateName={stateName}
+                          setStateName={setStateName}
                         />
                       </div>
                       <div className="w-3/4">
@@ -243,7 +296,10 @@ const App = () => {
                   );
                 } else if (currentPage === "profile") {
                   return (
-                    <MyProfilePage user={currentUser} onSave={handleSaveUser} />
+                    <MyProfilePage
+                      currentUser={currentUser}
+                      onSave={handleSaveUser}
+                    />
                   );
                 } else if (currentPage === "settings") {
                   return <SettingsPage />;
