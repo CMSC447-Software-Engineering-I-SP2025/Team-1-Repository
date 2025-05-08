@@ -3,6 +3,7 @@ namespace BoulderBuddyAPI.Models
     public class SearchWithFiltersOptions
     {
         public string State { get; set; }
+        public string? SearchTerm { get; set; }
         public DistanceFromCenterOptions? DistOptions { get; set; }
         public string? MinFont { get; set; }
         public string? MaxFont { get; set; }
