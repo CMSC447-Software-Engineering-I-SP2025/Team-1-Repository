@@ -2,6 +2,8 @@ using System.Text.Json.Serialization;
 
 public class ClimbGroup
 {
+    [JsonPropertyName("GroupId")]
+    public int GroupId { get; set; }
     [JsonPropertyName("GroupName")]
     public required string GroupName { get; set; }
     [JsonPropertyName("GroupDescription")]
@@ -9,7 +11,7 @@ public class ClimbGroup
     [JsonPropertyName("JoinRequirements")]
     public required string JoinRequirements { get; set; }
     [JsonPropertyName("Price")]
-    public float Price { get; set; }
+    public required double Price { get; set; }
     [JsonPropertyName("GroupType")]
     public required string GroupType { get; set; }
     [JsonPropertyName("GroupOwner")]

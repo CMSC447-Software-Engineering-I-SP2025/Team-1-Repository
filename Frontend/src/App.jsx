@@ -4,20 +4,24 @@ import { supabase } from "./lib/supabaseClient";
 import { UserProvider } from "./components/UserProvider";
 import LoginPage from "./components/LoginPage";
 import CreateReview from "./components/CreateReview";
+import AddFriendPage from "./components/AddFriendPage";
+import AddGroupPage from "./components/AddGroupPage";
 import CreateAccountPage from "./components/CreateAccountPage";
 import Header from "./components/Header";
 import HeroSection from "./components/HeroSection";
 import WorldMap from "./components/WorldMap";
 import ClimbPage from "./components/ClimbPage";
 import AreaPage from "./components/AreaPage";
+import GroupPage from "./components/GroupPage";
 import MyProfilePage from "./components/MyProfilePage";
 import SettingsPage from "./components/SettingsPage";
 import ForgotPassword from "./components/ForgotPassword";
 import ViewReviewsPage from "./components/ViewReviewsPage";
+import CreateEventPage from "./components/CreateEventPage";
+import axios from "axios";
 
 const App = () => {
   const [user, setUser] = useState(null);
-
   const [selectedClimb, setSelectedClimb] = useState(null);
   const [currentPage, setCurrentPage] = useState("home");
   const [selectedArea, setSelectedArea] = useState(null);
@@ -26,20 +30,33 @@ const App = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [recommendedClimbs, setRecommendedClimbs] = useState([]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [currentUser, setCurrentUser] = useState({
-    id: "12345",
-    firstName: "John",
-    lastName: "Doe",
-    email: "johndoe@example.com",
-    phone: "1234567890",
-    phoneCountry: "+1",
-    boulderGradeRange: { min: "V0", max: "V5" },
-    ropeGradeRange: { min: "5.8", max: "5.12" },
-  });
   const [stateName, setStateName] = useState("Maryland");
+  const [currentUser, setCurrentUser] = useState(null);
 
-  const handleSaveUser = (updatedUser) => {
-    setCurrentUser(updatedUser);
+  const handleSaveUser = async (updatedUser) => {
+    try {
+      if (!user?.id) {
+        throw new Error("User ID is required to update the user.");
+      }
+      console.log("Updating user:", updatedUser);
+      const response = await axios.put(
+        `https://localhost:7195/api/Database/user/${updatedUser.UserId}`,
+        updatedUser,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      console.log("User updated successfully:", response.data);
+      setCurrentUser(updatedUser);
+    } catch (error) {
+      console.error("Error updating user data:", error);
+    }
+  };
+
+  const handleStateChange = (event) => {
+    setStateName(event.target.value);
   };
 
   useEffect(() => {
@@ -83,19 +100,54 @@ const App = () => {
       } = await supabase.auth.getSession();
       setUser(session?.user || null);
       setIsLoggedIn(!!session?.user);
+
+      if (session?.user) {
+        try {
+          const response = await axios.get(
+            `https://localhost:7195/api/Database/user/${session.user.id}`
+          );
+          setCurrentUser(response.data);
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+        }
+      }
     };
 
     fetchUser();
+  }, []);
 
+  useEffect(() => {
+    if (currentUser) {
+      console.log("Current user:", currentUser.Email);
+    }
+  }, [currentUser]);
+
+  useEffect(() => {
     const { data: subscription } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setUser(session?.user || null);
         setIsLoggedIn(!!session?.user);
+
+        if (session?.user) {
+          axios
+            .get(`https://localhost:7195/api/Database/user/${session.user.id}`)
+            .then((response) => {
+              setCurrentUser(response.data);
+            })
+            .catch((error) => {
+              console.error(
+                "Error fetching user data on auth state change:",
+                error
+              );
+            });
+        }
       }
     );
 
     return () => {
-      subscription.unsubscribe(); // Correctly call unsubscribe
+      if (subscription && typeof subscription.unsubscribe === "function") {
+        subscription.unsubscribe();
+      }
     };
   }, []);
 
@@ -149,15 +201,23 @@ const App = () => {
             isLoggedIn={!!user}
             setUser={setUser}
             setIsLoggedIn={setIsLoggedIn}
-            setCurrentPage={setCurrentPage} // Pass setCurrentPage to Header
+            setCurrentPage={setCurrentPage}
           />
           <Routes>
             <Route path="/signup" element={<CreateAccountPage />} />
             <Route
               path="/login"
-              element={<LoginPage OnLoginClick={setCurrentPage} />} // Pass setCurrentPage as OnLoginClick
+              element={<LoginPage OnLoginClick={setCurrentPage} />}
             />
-            <Route path="/profile" element={<MyProfilePage />} />
+            <Route
+              path="/profile"
+              element={
+                <MyProfilePage
+                  currentUser={currentUser}
+                  onSave={handleSaveUser}
+                />
+              }
+            />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/create-account" element={<CreateAccountPage />} />
             <Route
@@ -168,6 +228,10 @@ const App = () => {
               path="/create-review"
               element={<CreateReview selectedClimb={selectedClimb} />}
             />
+            <Route path="/add-friend" element={<AddFriendPage />} />
+            <Route path="/add-group" element={<AddGroupPage />} />
+            <Route path="/group" element={<GroupPage />} />
+            <Route path="/create-event" element={<CreateEventPage />} />
 
             <Route
               path="/"
@@ -183,6 +247,8 @@ const App = () => {
                           isLoading={isLoading}
                           recommendedClimbs={recommendedClimbs}
                           isLoggedIn={isLoggedIn}
+                          stateName={stateName}
+                          setStateName={setStateName}
                         />
                       </div>
                       <div className="w-3/4">
@@ -191,13 +257,18 @@ const App = () => {
                           area={selectedArea}
                           setSelectedArea={setSelectedArea}
                           isLoading={isLoading}
-                          setStateName={setStateName}
+                          currentSelectedState={stateName}
                         />
                       </div>
                     </div>
                   );
                 } else if (currentPage === "climb") {
-                  return <ClimbPage selectedClimb={selectedClimb} />;
+                  return (
+                    <ClimbPage
+                      selectedClimb={selectedClimb}
+                      isLoggedIn={isLoggedIn}
+                    />
+                  );
                 } else if (currentPage === "area") {
                   return (
                     <AreaPage
@@ -207,7 +278,10 @@ const App = () => {
                   );
                 } else if (currentPage === "profile") {
                   return (
-                    <MyProfilePage user={currentUser} onSave={handleSaveUser} />
+                    <MyProfilePage
+                      currentUser={currentUser}
+                      onSave={handleSaveUser}
+                    />
                   );
                 } else if (currentPage === "settings") {
                   return <SettingsPage />;

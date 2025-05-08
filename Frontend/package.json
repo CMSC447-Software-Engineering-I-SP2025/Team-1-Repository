@@ -10,9 +10,11 @@
     "serve": "vite preview"
   },
   "dependencies": {
+    "@apollo/client": "^3.13.8",
     "@supabase/supabase-js": "^2.49.4",
     "axios": "^1.8.4",
     "boulder-buddy": "file:",
+    "graphql": "^16.11.0",
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "react-icons": "^5.5.0",

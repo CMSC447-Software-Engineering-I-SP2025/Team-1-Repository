@@ -2,6 +2,8 @@ using System.Text.Json.Serialization;
 
 public class ClimbGroupEvent
 {
+    [JsonPropertyName("EventId")]
+    public required long EventId { get; set; }
     [JsonPropertyName("GroupId")]
     public required long GroupId { get; set; }
     [JsonPropertyName("EventName")]

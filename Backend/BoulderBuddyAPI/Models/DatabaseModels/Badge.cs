@@ -2,6 +2,9 @@ using System.Text.Json.Serialization;
 
 public class Badge
 {
+    
+    [JsonPropertyName("BadgeID")]
+    public required int BadgeID { get; set; }
     [JsonPropertyName("BadgeName")]
     public required String BadgeName { get; set; }
     [JsonPropertyName("BadgeDescription")]
