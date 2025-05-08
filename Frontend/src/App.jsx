@@ -18,6 +18,7 @@ import SettingsPage from "./components/SettingsPage";
 import ForgotPassword from "./components/ForgotPassword";
 import ViewReviewsPage from "./components/ViewReviewsPage";
 import CreateEventPage from "./components/CreateEventPage";
+import axios from "axios";
 
 const App = () => {
   const [user, setUser] = useState(null);
@@ -30,14 +31,14 @@ const App = () => {
   const [recommendedClimbs, setRecommendedClimbs] = useState([]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentUser, setCurrentUser] = useState({
-    id: "12345",
-    firstName: "John",
-    lastName: "Doe",
-    email: "johndoe@example.com",
-    phone: "1234567890",
-    phoneCountry: "+1",
-    boulderGradeRange: { min: "V0", max: "V5" },
-    ropeGradeRange: { min: "5.8", max: "5.12" },
+    id: "",
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    phoneCountry: "",
+    boulderGradeRange: { min: "", max: "" },
+    ropeGradeRange: { min: "", max: "" },
   });
   const [stateName, setStateName] = useState("Maryland");
 
@@ -100,6 +101,21 @@ const App = () => {
         setIsLoggedIn(!!session?.user);
       }
     );
+
+    const setupUser = async () => {
+      try {
+        console.log("User:", user);
+        const response = await axios.post(
+          "https://localhost:7195/api/Database/user",
+          { userId: user.userId }
+        );
+        console.log("User data:", response.data);
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+
+    setupUser();
 
     return () => {
       if (subscription && typeof subscription.unsubscribe === "function") {
@@ -169,12 +185,18 @@ const App = () => {
             <Route path="/profile" element={<MyProfilePage />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/create-account" element={<CreateAccountPage />} />
-            <Route path="/view-reviews" element={<ViewReviewsPage selectedClimb={selectedClimb} />} />
-            <Route path="/create-review" element={<CreateReview selectedClimb={selectedClimb} />} /> 
-            <Route path="/add-friend" element={<AddFriendPage />} /> 
-                      <Route path="/add-group" element={<AddGroupPage />} />
-                      <Route path="/group" element={<GroupPage />} />
-                      <Route path="/create-event" element={<CreateEventPage />} /> 
+            <Route
+              path="/view-reviews"
+              element={<ViewReviewsPage selectedClimb={selectedClimb} />}
+            />
+            <Route
+              path="/create-review"
+              element={<CreateReview selectedClimb={selectedClimb} />}
+            />
+            <Route path="/add-friend" element={<AddFriendPage />} />
+            <Route path="/add-group" element={<AddGroupPage />} />
+            <Route path="/group" element={<GroupPage />} />
+            <Route path="/create-event" element={<CreateEventPage />} />
 
             <Route
               path="/"
@@ -206,7 +228,12 @@ const App = () => {
                     </div>
                   );
                 } else if (currentPage === "climb") {
-                    return <ClimbPage selectedClimb={selectedClimb} isLoggedIn = {isLoggedIn} />;
+                  return (
+                    <ClimbPage
+                      selectedClimb={selectedClimb}
+                      isLoggedIn={isLoggedIn}
+                    />
+                  );
                 } else if (currentPage === "area") {
                   return (
                     <AreaPage

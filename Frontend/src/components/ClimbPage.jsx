@@ -123,10 +123,12 @@ const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
     }
 
     const reviewData = {
+      ReviewID: 99,
       UserId: user.id,
       RouteId: selectedClimb.id,
       Rating: newRating * 2, // Convert to a scale of 10 if required by the backend
-      Text: newReview,
+      Text: newReview, // Use the correct field name expected by the backend
+      UserName: user.UserName,
     };
 
     console.log("Submitting review data:", reviewData); // Log the request payload
@@ -358,6 +360,8 @@ const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
                     key={index}
                     className="p-4 text-gray-800 bg-white rounded-lg shadow-md"
                   >
+                    <strong>User:</strong> {review.UserName || "Anonymous"}
+                    <br />
                     <strong>Rating:</strong> {review.Rating / 2} / 5
                     <br />
                     <strong>Review:</strong> {review.Text}

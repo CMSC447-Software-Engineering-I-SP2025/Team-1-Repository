@@ -41,7 +41,6 @@ const CreateAccountPage = () => {
   };
 
   const passwordRules = checkPasswordRules(password);
-  const navigate = useNavigate();
 
   const handleCreateAccount = async (e) => {
     e.preventDefault();
@@ -85,8 +84,9 @@ const CreateAccountPage = () => {
       // Insert user data into the "users" table
       const { error: insertError } = await supabase.from("users").insert({
         user_id: user.id, // Ensure this matches auth.uid()
-        name: user.user_metadata.full_name,
+        name: user.user_metadata.full_name || username, // Fallback to username if full_name is not available
         email: user.email,
+        account_type: accountType || "private", // Default to "standard" if accountType is empty
       });
 
       if (insertError) {
@@ -95,12 +95,22 @@ const CreateAccountPage = () => {
       }
     }
 
+    // MAKE SURE THIS MATCHES THE SCHEMA IN THE DATABASE
     const accountData = {
       UserId: user.id,
-      Name: username,
+      UserName: username,
+      FirstName: "",
+      LastName: "",
       Email: email,
-      Password: password,
+      PhoneNumber: "",
+      Bio: "",
+      ProfileImage: "",
+      BoulderGradeLowerLimit: "",
+      BoulderGradeUpperLimit: "",
+      RopeClimberLowerLimit: "",
+      RopeClimberUpperLimit: "",
     };
+    console.log("Account Data:", accountData);
 
     try {
       const response = await fetch("http://localhost:5091/api/Database/user", {
@@ -120,7 +130,6 @@ const CreateAccountPage = () => {
 
       const responseData = await response.json();
       alert(`Account created for ${username}`);
-      navigate("/login"); // Redirect to login page after account creation
       console.log("Response Data:", responseData);
     } catch (error) {
       console.error("Network error while creating account:", error);
