@@ -267,6 +267,7 @@ const App = () => {
                     <ClimbPage
                       selectedClimb={selectedClimb}
                       isLoggedIn={isLoggedIn}
+                      currentUser={currentUser}
                     />
                   );
                 } else if (currentPage === "area") {
