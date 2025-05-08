@@ -31,6 +31,9 @@ const MyProfilePage = ({ onSave }) => {
   const [reviews, setReviews] = useState([]); // Ensure reviews is initialized as an array
   const [reviewsError, setReviewsError] = useState(""); // State for error handling
 
+  const [fontSize, setFontSize] = useState(
+    () => localStorage.getItem("fontSize") || "text-base"
+  ); // State for font size
   const maxBioLength = 200; // Maximum character limit for bio
 
   const [userRelation1] = useState({
@@ -90,6 +93,15 @@ const MyProfilePage = ({ onSave }) => {
 
   useEffect(() => {
     window.scrollTo(0, 0); // Scroll to the top of the page
+  }, []);
+
+  useEffect(() => {
+    const storedTheme = localStorage.getItem("theme") || "light";
+    if (storedTheme === "dark") {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
   }, []);
 
   const validateEmail = (email) => {
@@ -165,7 +177,9 @@ const MyProfilePage = ({ onSave }) => {
   return (
     authenticatedUser &&
     authenticatedUser && (
-      <div className="min-h-screen bg-gray-100">
+      <div
+        className={`min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-white ${fontSize}`}
+      >
         <div className="max-w-4xl p-6 mx-auto mt-10 bg-white rounded-lg">
           {/* Tabs */}
           <div className="flex justify-between px-4 mb-6 border-b border-gray-300">
