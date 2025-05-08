@@ -489,5 +489,52 @@ namespace BoulderBuddyAPI.Tests.Controllers
                 Assert.Equal(1, result); // Ensure the table exists only once
             }
         }
+
+        [Fact]
+        public async Task BadgeRelationTable_EnforcesForeignKeyConstraint()
+        {
+            // Arrange
+            _databaseInitializer.Initialize();
+
+            var invalidBadgeRelation = new
+            {
+                UserId = "nonExistentUser",
+                BadgeId = 999
+            };
+
+            var commandText = @"
+                INSERT INTO BadgeRelation (UserId, BadgeId)
+                VALUES (@UserId, @BadgeId);";
+
+            // Act & Assert
+            await Assert.ThrowsAsync<SqliteException>(async () =>
+            {
+                await _databaseService.ExecuteInsertCommand(_sqliteConnection, commandText, invalidBadgeRelation);
+            });
+        }
+
+        [Fact]
+        public async Task ClimbGroupRelationTable_EnforcesRelationTypeConstraint()
+        {
+            // Arrange
+            _databaseInitializer.Initialize();
+
+            var invalidRelation = new
+            {
+                GroupId = 1,
+                UserId = "validUser",
+                RelationType = "invalidType"
+            };
+
+            var commandText = @"
+                INSERT INTO ClimbGroupRelation (GroupId, UserId, RelationType)
+                VALUES (@GroupId, @UserId, @RelationType);";
+
+            // Act & Assert
+            await Assert.ThrowsAsync<SqliteException>(async () =>
+            {
+                await _databaseService.ExecuteInsertCommand(_sqliteConnection, commandText, invalidRelation);
+            });
+        }
     }
 }

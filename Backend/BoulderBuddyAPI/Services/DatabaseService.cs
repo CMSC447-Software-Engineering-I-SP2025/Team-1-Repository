@@ -754,5 +754,16 @@ namespace BoulderBuddyAPI.Services
                 JOIN User ON Review.UserId = User.UserId
                 WHERE Review.UserId = @UserId;",
                 new { UserId = userId });
+
+        //get user by id
+        public Task<User> GetUserById(string userId) =>
+            ExecuteSelectCommand<User>(@"
+                SELECT 
+                    UserId, UserName, ProfileImage, FirstName, LastName, Email, PhoneNumber, 
+                    BoulderGradeLowerLimit, BoulderGradeUpperLimit, 
+                    RopeClimberLowerLimit, RopeClimberUpperLimit, Bio
+                FROM User
+                WHERE UserId = @UserId;",
+                new { UserId = userId }).ContinueWith(task => task.Result.FirstOrDefault());
     }
 }

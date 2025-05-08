@@ -5,8 +5,10 @@ public class User
 {
     [JsonPropertyName("UserId")]
     public string UserId { get; set; }
+
     [JsonPropertyName("UserName")]
     public string UserName { get; set; }
+    
     [JsonPropertyName("ProfileImage")]
     public byte[] ProfileImage { get; set; } 
 
