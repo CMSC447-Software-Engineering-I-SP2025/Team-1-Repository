@@ -325,8 +325,25 @@ namespace BoulderBuddyAPI.Services
         }
 
         //update user table
-        public Task UpdateUser(string userId, object parameters) =>
-            ExecuteUpdateCommand(@"
+        public Task UpdateUser(string userId, object parameters)
+        {
+            var flattenedParameters = new
+            {
+                UserId = userId,
+                ((dynamic)parameters).UserName,
+                ((dynamic)parameters).ProfileImage,
+                ((dynamic)parameters).FirstName,
+                ((dynamic)parameters).LastName,
+                ((dynamic)parameters).Email,
+                ((dynamic)parameters).PhoneNumber,
+                ((dynamic)parameters).BoulderGradeLowerLimit,
+                ((dynamic)parameters).BoulderGradeUpperLimit,
+                ((dynamic)parameters).RopeClimberLowerLimit,
+                ((dynamic)parameters).RopeClimberUpperLimit,
+                ((dynamic)parameters).Bio
+            };
+
+            return ExecuteUpdateCommand(@"
                 UPDATE User 
                 SET 
                     UserName = @UserName,
@@ -341,7 +358,8 @@ namespace BoulderBuddyAPI.Services
                     RopeClimberUpperLimit = @RopeClimberUpperLimit, 
                     Bio = @Bio
                 WHERE UserId = @UserId;",
-                parameters);
+                flattenedParameters);
+        }
 
         //update review table
         public Task UpdateReview(string reviewId, object parameters)

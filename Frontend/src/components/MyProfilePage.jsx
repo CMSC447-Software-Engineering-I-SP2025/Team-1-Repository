@@ -21,7 +21,7 @@ const MyProfilePage = ({ onSave, currentUser }) => {
   const [username, setUsername] = useState("");
 
   useEffect(() => {
-    if (currentUser) {
+    if (activeTab === "reviews" && currentUser) {
       const fetchReviews = async () => {
         try {
           console.log("Fetching reviews for user ID:", currentUser.UserId);
@@ -30,7 +30,7 @@ const MyProfilePage = ({ onSave, currentUser }) => {
           );
           setReviews(response.data); // Update reviews state with fetched data
           setReviewsError(""); // Clear any previous errors
-          console.log("Fetched reviews:", reviews);
+          console.log("Fetched reviews:", response.data);
         } catch (error) {
           console.error("Error fetching reviews:", error);
           setReviewsError("Failed to load reviews. Please try again later.");
@@ -49,23 +49,6 @@ const MyProfilePage = ({ onSave, currentUser }) => {
       setPhone(currentUser.PhoneNumber || "");
       setBio(currentUser.Bio || "");
       setUsername(currentUser.UserName || "");
-
-      const fetchReviews = async () => {
-        try {
-          console.log("Fetching reviews for user ID:", currentUser.UserId);
-          const response = await axios.get(
-            `/api/Database/reviewsByUser/${currentUser.UserId}`
-          );
-          setReviews(response.data); // Update reviews state with fetched data
-          setReviewsError(""); // Clear any previous errors
-          console.log("Fetched reviews:", reviews);
-        } catch (error) {
-          console.error("Error fetching reviews:", error);
-          setReviewsError("Failed to load reviews. Please try again later.");
-        }
-      };
-
-      fetchReviews();
     }
   }, [currentUser]);
 

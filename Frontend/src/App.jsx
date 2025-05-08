@@ -33,24 +33,6 @@ const App = () => {
   const [stateName, setStateName] = useState("Maryland");
   const [currentUser, setCurrentUser] = useState(null);
 
-  const getCurrentUser = async () => {
-    try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (session?.user) {
-        const response = await axios.get(
-          `https://localhost:7195/api/Database/user/${session.user.id}`
-        );
-        setCurrentUser(response.data);
-        return response.data;
-      }
-    } catch (error) {
-      console.error("Error fetching user data:", error);
-      return null;
-    }
-  };
-
   const handleSaveUser = async (updatedUser) => {
     try {
       if (!user?.id) {
@@ -58,7 +40,7 @@ const App = () => {
       }
       console.log("Updating user:", updatedUser);
       const response = await axios.put(
-        `https://localhost:7195/api/Database/user/${user.id}`,
+        `https://localhost:7195/api/Database/user/${updatedUser.UserId}`,
         updatedUser,
         {
           headers: {
@@ -67,7 +49,7 @@ const App = () => {
         }
       );
       console.log("User updated successfully:", response.data);
-      setCurrentUser(response.data);
+      setCurrentUser(updatedUser);
     } catch (error) {
       console.error("Error updating user data:", error);
     }

@@ -542,7 +542,7 @@ namespace BoulderBuddyAPI.Controllers
 
             try
             {
-                // Ensure ProfileImage is handled correctly
+                
                 await _databaseService.UpdateUser(userId, new
                 {
                     user.UserName,
