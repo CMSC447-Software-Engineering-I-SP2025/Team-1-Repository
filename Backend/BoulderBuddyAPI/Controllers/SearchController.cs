@@ -155,6 +155,27 @@ public class SearchController : ControllerBase
                 return false;
         }
 
+        if (c.type is null)
+            return false;
+        if (options.IsAidType is not null && options.IsAidType != c.type.aid)
+            return false;
+        if (options.IsAlpineType is not null && options.IsAlpineType != c.type.alpine)
+            return false;
+        if (options.IsBoulderingType is not null && options.IsBoulderingType != c.type.bouldering)
+            return false;
+        if (options.IsIceType is not null && options.IsIceType != c.type.ice)
+            return false;
+        if (options.IsMixedType is not null && options.IsMixedType != c.type.mixed)
+            return false;
+        if (options.IsSnowType is not null && options.IsSnowType != c.type.snow)
+            return false;
+        if (options.IsSportType is not null && options.IsSportType != c.type.sport)
+            return false;
+        if (options.IsTrType is not null && options.IsTrType != c.type.tr)
+            return false;
+        if (options.IsTradType is not null && options.IsTradType != c.type.trad)
+            return false;
+
         return true;
     }
 
