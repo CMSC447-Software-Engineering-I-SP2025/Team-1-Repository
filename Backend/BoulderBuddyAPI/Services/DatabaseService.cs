@@ -398,6 +398,9 @@ namespace BoulderBuddyAPI.Services
         public Task DeleteFromBadgeRelationTable(object parameters) =>
             ExecuteDeleteCommand("DELETE FROM BadgeRelation WHERE userId = @UserId AND badgeId = @BadgeId;", parameters);
 
+        public Task DeleteFromFavoriteClimbTable(FavoriteClimb parameters) =>
+            ExecuteDeleteCommand(@"DELETE FROM FavoriteClimb WHERE userId = @UserId AND climbId = @ClimbId;", parameters);
+
         public async Task<T> ExecuteQueryCommand<T>(string query, object parameters)
         {
             using (var connection = _sqliteConnection ?? new SqliteConnection(_configuration["ConnectionStrings:DefaultConnection"]))

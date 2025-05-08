@@ -331,6 +331,20 @@ namespace BoulderBuddyAPI.Controllers
                 return StatusCode(500, new { message = ex.Message });
             }
         }
+
+        [HttpDelete("FavoriteClimb")]
+        public async Task<IActionResult> DeleteFavoriteClimb(FavoriteClimb favorite)
+        {
+            try
+            {
+                await _databaseService.DeleteFromFavoriteClimbTable(favorite);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
     }
 }
 
@@ -360,7 +374,6 @@ namespace BoulderBuddyAPI.Services
         Task<List<FavoriteClimb>> GetFavoriteClimbs(string UserID);
         Task UpdateUserSettings(object parameters);
         Task DeleteFromUserTable(string userId);
-        
-
+        Task DeleteFromFavoriteClimbTable(FavoriteClimb favorite);
     }
 }
