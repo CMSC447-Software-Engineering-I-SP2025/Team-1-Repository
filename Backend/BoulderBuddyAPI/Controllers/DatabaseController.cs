@@ -303,6 +303,21 @@ namespace BoulderBuddyAPI.Controllers
             }
         }
 
+        [HttpGet("FavoriteClimb")]
+        public async Task<IActionResult> GetFavoriteClimbs(string userID)
+        {
+            try
+            {
+                var favorites = await _databaseService.GetFavoriteClimbs(userID);
+                var climbIDs = favorites.Select(f => f.ClimbId).ToList(); //we already know userID, we only need to return climbID
+                return Ok(climbIDs);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
         [HttpDelete("users/{userId}")]
         public async Task<IActionResult> DeleteUser(string userId)
         {
@@ -342,6 +357,7 @@ namespace BoulderBuddyAPI.Services
         Task<List<ClimbGroupEvent>> GetClimbGroupEvents();
         Task<List<Badge>> GetBadges();
         Task<List<BadgeRelation>> GetBadgeRelations();
+        Task<List<FavoriteClimb>> GetFavoriteClimbs(string UserID);
         Task UpdateUserSettings(object parameters);
         Task DeleteFromUserTable(string userId);
         

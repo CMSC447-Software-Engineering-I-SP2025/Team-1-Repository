@@ -220,6 +220,9 @@ namespace BoulderBuddyAPI.Services
         public Task<List<BadgeRelation>> GetBadgeRelations() =>
             ExecuteSelectCommand<BadgeRelation>("SELECT * FROM BadgeRelation", null);
 
+        public Task<List<FavoriteClimb>> GetFavoriteClimbs(string UserID) =>
+            ExecuteSelectCommand<FavoriteClimb>($"SELECT * FROM FavoriteClimb WHERE userId = '{UserID}';", new object());
+
         //excute update command
         public async Task ExecuteUpdateCommand(string commandText, object parameters)
         {
