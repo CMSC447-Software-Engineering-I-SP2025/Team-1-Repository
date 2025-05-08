@@ -9,6 +9,8 @@ const MyProfilePage = ({ onSave, currentUser }) => {
   const [activeTab, setActiveTab] = useState("editProfile"); // State for active tab
   const [emailError, setEmailError] = useState(""); // State for email error
   const [phoneError, setPhoneError] = useState(""); // State for phone error
+  const [firstNameError, setFirstNameError] = useState(""); // State for first name error
+  const [lastNameError, setLastNameError] = useState(""); // State for last name error
   const [reviews, setReviews] = useState([]); // Ensure reviews is initialized as an array
   const [reviewsError, setReviewsError] = useState(""); // State for error handling
   const maxBioLength = 200; // Maximum character limit for bio
@@ -65,10 +67,28 @@ const MyProfilePage = ({ onSave, currentUser }) => {
   const handleSaveChanges = async (event) => {
     event.preventDefault();
 
+    let hasError = false;
+
+    // Validate first name
+    if (!firstName.trim()) {
+      setFirstNameError("First name cannot be empty.");
+      hasError = true;
+    } else {
+      setFirstNameError("");
+    }
+
+    // Validate last name
+    if (!lastName.trim()) {
+      setLastNameError("Last name cannot be empty.");
+      hasError = true;
+    } else {
+      setLastNameError("");
+    }
+
     // Validate email
     if (!validateEmail(email)) {
       setEmailError("Please enter a valid email address.");
-      return;
+      hasError = true;
     } else {
       setEmailError("");
     }
@@ -76,10 +96,12 @@ const MyProfilePage = ({ onSave, currentUser }) => {
     // Validate phone
     if (!validatePhone(phone)) {
       setPhoneError("Please enter a valid phone number (10-15 digits).");
-      return;
+      hasError = true;
     } else {
       setPhoneError("");
     }
+
+    if (hasError) return;
 
     // Call the onSave callback with all updated fields
     onSave({
@@ -159,8 +181,17 @@ const MyProfilePage = ({ onSave, currentUser }) => {
                   type="text"
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className={`w-full px-4 py-2 border ${
+                    firstNameError ? "border-red-500" : "border-gray-300"
+                  } rounded focus:outline-none focus:ring-2 ${
+                    firstNameError
+                      ? "focus:ring-red-500"
+                      : "focus:ring-blue-500"
+                  }`}
                 />
+                {firstNameError && (
+                  <p className="mt-1 text-sm text-red-500">{firstNameError}</p>
+                )}
               </div>
               <div className="w-1/2">
                 <label className="block mb-2 text-sm font-medium text-gray-700">
@@ -170,8 +201,15 @@ const MyProfilePage = ({ onSave, currentUser }) => {
                   type="text"
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
-                  className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className={`w-full px-4 py-2 border ${
+                    lastNameError ? "border-red-500" : "border-gray-300"
+                  } rounded focus:outline-none focus:ring-2 ${
+                    lastNameError ? "focus:ring-red-500" : "focus:ring-blue-500"
+                  }`}
                 />
+                {lastNameError && (
+                  <p className="mt-1 text-sm text-red-500">{lastNameError}</p>
+                )}
               </div>
             </div>
 

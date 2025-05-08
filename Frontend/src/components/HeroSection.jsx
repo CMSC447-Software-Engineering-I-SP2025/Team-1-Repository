@@ -16,10 +16,7 @@ const HeroSection = ({
 
   useEffect(() => {
     // Select up to 15 random climbs once when the component mounts
-    const selectedClimbs = allClimbs
-      .sort(() => 0.5 - Math.random())
-      .slice(0, 15);
-    setFilteredClimbs(selectedClimbs);
+    setFilteredClimbs(allClimbs);
   }, [allClimbs]);
 
   const handleClimbClick = (climb) => {
@@ -42,7 +39,7 @@ const HeroSection = ({
         }))
       );
       console.log("All climbs with area info:", allClimbsFromAreas);
-      setFilteredClimbs(allClimbsFromAreas.slice(0, 15));
+      setFilteredClimbs(allClimbsFromAreas);
     } catch (error) {
       console.error("Error fetching search results:", error);
     }
@@ -199,7 +196,7 @@ const HeroSection = ({
 
   return (
     <section className="h-screen px-4 py-20 pb-10 text-gray-900 bg-gradient-to-r from-blue-100 to-blue-200">
-      <div className="container mx-auto text-center">
+      <div className="container h-full mx-auto text-center">
         <h1 className="mb-6 text-6xl font-extrabold">
           Welcome to Boulder Buddy
         </h1>
@@ -230,20 +227,22 @@ const HeroSection = ({
         />
         <div className="mt-6">
           <h2 className="mb-4 text-2xl font-bold">Current Climbs</h2>
-          <ul className="grid grid-cols-1 gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
-            {filteredClimbs.map((climb) => (
-              <li
-                key={climb.id}
-                className="px-4 py-2 text-black bg-white rounded-lg cursor-pointer hover:bg-gray-200"
-                onClick={() => handleClimbClick(climb)}
-              >
-                <div className="font-bold truncate">{climb.name}</div>
-                <div className="text-sm text-gray-600 truncate">
-                  {climb.area.areaName || "Unknown Area"}
-                </div>
-              </li>
-            ))}
-          </ul>
+          <div className="overflow-y-auto border border-gray-300 rounded-lg max-h-80">
+            <ul className="grid max-h-screen grid-cols-1 gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3">
+              {filteredClimbs.map((climb) => (
+                <li
+                  key={climb.id}
+                  className="px-4 py-2 text-black bg-white rounded-lg cursor-pointer hover:bg-gray-200"
+                  onClick={() => handleClimbClick(climb)}
+                >
+                  <div className="font-bold truncate">{climb.name}</div>
+                  <div className="text-sm text-gray-600 truncate">
+                    {climb.area.areaName || "Unknown Area"}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </div>
     </section>

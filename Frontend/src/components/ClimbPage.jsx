@@ -18,6 +18,7 @@ const ClimbPage = ({ selectedClimb, isLoggedIn, currentUser }) => {
   const [newRating, setNewRating] = useState(0);
   const [rating, setRating] = useState(""); // Rating will be a string to match your model
   const [description, setDescription] = useState("");
+  const [hasUserReviewed, setHasUserReviewed] = useState(false);
 
   useEffect(() => {
     const fetchAvg = async () => {
@@ -94,6 +95,21 @@ const ClimbPage = ({ selectedClimb, isLoggedIn, currentUser }) => {
       setPopupImage(null);
     }
   }, [showGallery]);
+
+  useEffect(() => {
+    const checkUserReview = () => {
+      if (
+        currentUser &&
+        reviews.some((review) => review.UserId === currentUser.UserId)
+      ) {
+        setHasUserReviewed(true);
+      } else {
+        setHasUserReviewed(false);
+      }
+    };
+
+    checkUserReview();
+  }, [reviews, currentUser]);
 
   const handleClosePopup = () => {
     setPopupImage(null);
@@ -304,7 +320,7 @@ const ClimbPage = ({ selectedClimb, isLoggedIn, currentUser }) => {
         {/* Reviews Section */}
         <div className="mt-12">
           {/* Leave a Review Box */}
-          {isLoggedIn && (
+          {isLoggedIn && !hasUserReviewed && (
             <div className="p-6 mb-8 bg-gray-100 rounded-lg shadow-md">
               <h3 className="mb-4 text-xl font-semibold text-gray-800">
                 Leave a Review

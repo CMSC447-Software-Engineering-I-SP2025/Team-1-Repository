@@ -219,7 +219,10 @@ const App = () => {
               }
             />
             <Route path="/forgot-password" element={<ForgotPassword />} />
-            <Route path="/create-account" element={<CreateAccountPage />} />
+            <Route
+              path="/create-account"
+              element={<CreateAccountPage setCurrentPage={setCurrentPage} />}
+            />
             <Route
               path="/view-reviews"
               element={<ViewReviewsPage selectedClimb={selectedClimb} />}
@@ -287,9 +290,11 @@ const App = () => {
                 } else if (currentPage === "settings") {
                   return <SettingsPage />;
                 } else if (currentPage === "login") {
-                  return <LoginPage OnLoginClick={setCurrentPage} />;
+                  return <LoginPage setCurrentPage={setCurrentPage} />;
                 } else if (currentPage === "signup") {
-                  return <CreateAccountPage />;
+                  return <CreateAccountPage setCurrentPage={setCurrentPage} />;
+                } else if (currentPage === "forgot-password") {
+                  return <ForgotPassword />;
                 } else {
                   return null;
                 }

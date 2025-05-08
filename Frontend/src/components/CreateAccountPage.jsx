@@ -1,17 +1,18 @@
 import React, { useState } from "react";
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabaseClient";
-import "./css/CreateAccountPage.css";
+import axios from "axios";
 
-const CreateAccountPage = () => {
+const CreateAccountPage = ({ setCurrentPage }) => {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [accountType, setAccountType] = useState(""); // Default empty string
-  const [passwordTouched, setPasswordTouched] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [firstName, setFirstName] = useState(""); // Added state for first name
+  const [lastName, setLastName] = useState(""); // Added state for last name
   const [showPassword, setShowPassword] = useState(false);
-  const [session, setSession] = useState(null);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showPasswordCriteria, setShowPasswordCriteria] = useState(false);
 
   const checkPasswordRules = (password) => {
     const rules = {
@@ -21,13 +22,6 @@ const CreateAccountPage = () => {
       number: /[0-9]/.test(password),
       specialChar: /[!@#$%^&*]/.test(password),
     };
-
-    const metCriteria = [
-      rules.lowercase,
-      rules.uppercase,
-      rules.number,
-      rules.specialChar,
-    ].filter(Boolean).length;
 
     return {
       ...rules,
@@ -45,12 +39,16 @@ const CreateAccountPage = () => {
   const handleCreateAccount = async (e) => {
     e.preventDefault();
 
-    if (!passwordRules.valid) {
-      alert("Password does not meet the required criteria.");
+    if (password !== confirmPassword) {
+      alert("Passwords do not match.");
       return;
     }
 
-    // Check if user already exists
+    if (!passwordRules.valid) {
+      setShowPasswordCriteria(true);
+      return;
+    }
+
     const { data: existingUser, error: fetchError } = await supabase
       .from("users")
       .select("*")
@@ -80,141 +78,198 @@ const CreateAccountPage = () => {
     const user = data.user;
 
     if (user) {
-      console.log("Account created for user:", user);
-      // Insert user data into the "users" table
-      const { error: insertError } = await supabase.from("users").insert({
-        user_id: user.id, // Ensure this matches auth.uid()
-        name: user.user_metadata.full_name || username, // Fallback to username if full_name is not available
-        email: user.email,
-        account_type: accountType || "private", // Default to "standard" if accountType is empty
-      });
+      const userData = {
+        UserId: user.id,
+        UserName: username,
+        ProfileImage: "",
+        FirstName: firstName,
+        LastName: lastName,
+        Email: email,
+        PhoneNumber: phoneNumber,
+        BoulderGradeLowerLimit: "",
+        BoulderGradeUpperLimit: "",
+        RopeClimberLowerLimit: "",
+        RopeClimberUpperLimit: "",
+        Bio: "",
+      };
 
-      if (insertError) {
-        alert(`Error inserting user data: ${insertError.message}`);
-        return;
+      try {
+        await axios.post("https://localhost:7195/api/Database/user", userData);
+        setCurrentPage("profile");
+      } catch (error) {
+        console.error("Error adding user to Database:", error);
+        const { error: deleteError } = await supabase.auth.admin.deleteUser(
+          user.id
+        );
       }
-    }
-
-    // MAKE SURE THIS MATCHES THE SCHEMA IN THE DATABASE
-    const accountData = {
-      UserId: user.id,
-      UserName: username,
-      FirstName: "",
-      LastName: "",
-      Email: email,
-      PhoneNumber: "",
-      Bio: "",
-      ProfileImage: "",
-      BoulderGradeLowerLimit: "",
-      BoulderGradeUpperLimit: "",
-      RopeClimberLowerLimit: "",
-      RopeClimberUpperLimit: "",
-    };
-    console.log("Account Data:", accountData);
-
-    try {
-      const response = await fetch("http://localhost:5091/api/Database/user", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(accountData),
-      });
-
-      if (!response.ok) {
-        const errorInfo = await response.json();
-        console.error("Error creating account:", errorInfo);
-        alert("Error creating account");
-        return;
-      }
-
-      const responseData = await response.json();
-      alert(`Account created for ${username}`);
-      console.log("Response Data:", responseData);
-    } catch (error) {
-      console.error("Network error while creating account:", error);
-      alert("Network error while creating account");
     }
   };
 
   return (
-    <div className="signup-container">
-      <div className={`signup-card ${passwordTouched ? "expanded" : ""}`}>
-        <div className="website-title">Boulder Buddy</div>
-        <h2>New User</h2>
-        <p>Sign up to continue</p>
-        <form onSubmit={handleCreateAccount}>
-          <div className="form-group">
+    <div className="flex items-center justify-center h-screen bg-gradient-to-br from-blue-100 to-blue-200">
+      <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-lg">
+        <h2 className="mb-4 text-2xl font-bold text-center text-blue-600">
+          Create Your Account
+        </h2>
+        <p className="mb-6 text-sm text-center text-gray-600">
+          Join us and start your climbing journey!
+        </p>
+        <form onSubmit={handleCreateAccount} autoComplete="off">
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700">
+              Email
+            </label>
             <input
               type="email"
               placeholder="Email address"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              autoComplete="off"
               required
             />
           </div>
-          <div className="form-group">
-            <input
-              type="text"
-              placeholder="Username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
-            />
-          </div>
-          <div className="form-group password-group">
-            <div className="password-input-wrapper">
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700">
+              Password
+            </label>
+            <div className="relative">
               <input
                 type={showPassword ? "text" : "password"}
                 placeholder="Password"
                 value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  setPasswordTouched(e.target.value.length > 0); // Show criteria when user starts typing
-                }}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                autoComplete="new-password"
                 required
               />
               <span
-                className="toggle-password"
+                className="absolute right-3 top-2.5 cursor-pointer text-gray-500"
                 onClick={() => setShowPassword(!showPassword)}
               >
                 {showPassword ? "🙈" : "👁️"}
               </span>
             </div>
-            {passwordTouched && (
-              <div className="password-requirements">
-                <p>Your password must contain:</p>
-                <ul>
-                  <li className={passwordRules.length ? "valid" : ""}>
-                    At least 10 characters
-                  </li>
-                  <li className={passwordRules.valid ? "valid" : ""}>
-                    At least 1 of the following:
-                  </li>
-                  <li className={passwordRules.lowercase ? "valid" : ""}>
-                    {" "}
-                    - Lower case letters (a-z)
-                  </li>
-                  <li className={passwordRules.uppercase ? "valid" : ""}>
-                    {" "}
-                    - Upper case letters (A-Z)
-                  </li>
-                  <li className={passwordRules.number ? "valid" : ""}>
-                    {" "}
-                    - Numbers (0-9)
-                  </li>
-                  <li className={passwordRules.specialChar ? "valid" : ""}>
-                    {" "}
-                    - Special characters (e.g. !@#$%^&*)
-                  </li>
-                </ul>
-              </div>
-            )}
           </div>
-          <button type="submit">Continue</button>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700">
+              Confirm Password
+            </label>
+            <div className="relative">
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                placeholder="Confirm Password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                autoComplete="new-password"
+                required
+              />
+              <span
+                className="absolute right-3 top-2.5 cursor-pointer text-gray-500"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              >
+                {showConfirmPassword ? "🙈" : "👁️"}
+              </span>
+            </div>
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700">
+              Username
+            </label>
+            <input
+              type="text"
+              placeholder="Username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              autoComplete="off"
+              required
+            />
+          </div>
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                First Name
+              </label>
+              <input
+                type="text"
+                placeholder="First Name"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                autoComplete="off"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700">
+                Last Name
+              </label>
+              <input
+                type="text"
+                placeholder="Last Name"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                autoComplete="off"
+                required
+              />
+            </div>
+          </div>
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-gray-700">
+              Phone Number
+            </label>
+            <input
+              type="tel"
+              placeholder="Phone Number"
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
+              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              autoComplete="off"
+              required
+            />
+          </div>
+          {showPasswordCriteria && (
+            <div className="mb-4 text-sm text-gray-600">
+              <p>Your password must contain:</p>
+              <ul className="list-disc list-inside">
+                <li className={passwordRules.length ? "text-blue-500" : ""}>
+                  At least 10 characters
+                </li>
+                <li className={passwordRules.lowercase ? "text-blue-500" : ""}>
+                  Lowercase letters (a-z)
+                </li>
+                <li className={passwordRules.uppercase ? "text-blue-500" : ""}>
+                  Uppercase letters (A-Z)
+                </li>
+                <li className={passwordRules.number ? "text-blue-500" : ""}>
+                  Numbers (0-9)
+                </li>
+                <li
+                  className={passwordRules.specialChar ? "text-blue-500" : ""}
+                >
+                  Special characters (e.g. !@#$%^&*)
+                </li>
+              </ul>
+            </div>
+          )}
+          <button
+            type="submit"
+            className="w-full py-2 text-white transition bg-blue-500 rounded-lg hover:bg-blue-600"
+          >
+            Sign Up
+          </button>
         </form>
-        <p className="login-text">
-          Already have an account? <a href="/login">Log in</a>
+        <p className="mt-4 text-sm text-center text-gray-600">
+          Already have an account?{" "}
+          <a
+            onClick={() => setCurrentPage("login")}
+            className="text-blue-500 cursor-pointer hover:underline"
+          >
+            Log in
+          </a>
         </p>
       </div>
     </div>
