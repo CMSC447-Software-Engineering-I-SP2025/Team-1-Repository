@@ -10,8 +10,9 @@ const Header = ({
   setUser,
   setIsLoggedIn,
   setCurrentPage, // Receive setCurrentPage as a prop
+  setCurrentUser,
 }) => {
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false); // Dropdown is closed by default
   const timeoutRef = useRef(null);
 
   const handleMouseEnter = () => {
@@ -29,6 +30,7 @@ const Header = ({
     try {
       await supabase.auth.signOut(); // Log out the user
       setUser(null); // Reset user state
+      setCurrentUser(null); // Reset current user state
       setIsLoggedIn(false); // Update login state
       console.log("You have successfully logged out.");
       setCurrentPage("login"); // Update current page to "login"

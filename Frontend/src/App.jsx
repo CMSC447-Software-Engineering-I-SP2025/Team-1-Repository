@@ -118,9 +118,29 @@ const App = () => {
 
   useEffect(() => {
     if (currentUser) {
-      console.log("Current user:", currentUser.Email);
+      console.log("Current user:", currentUser.UserName);
     }
   }, [currentUser]);
+
+  useEffect(() => {
+    try {
+      const fetchUser = async () => {
+        if (!user) {
+          console.log("User is null, exiting fetchUser.");
+
+          return;
+        }
+        const response = await axios.get(
+          `https://localhost:7195/api/Database/user/${user.id}`
+        );
+        setCurrentUser(response.data);
+      };
+
+      fetchUser();
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
+  }, [user]);
 
   useEffect(() => {
     const { data: subscription } = supabase.auth.onAuthStateChange(
@@ -202,6 +222,7 @@ const App = () => {
             setUser={setUser}
             setIsLoggedIn={setIsLoggedIn}
             setCurrentPage={setCurrentPage}
+            setCurrentUser={setCurrentUser}
           />
           <Routes>
             <Route path="/signup" element={<CreateAccountPage />} />
@@ -283,7 +304,9 @@ const App = () => {
                 } else if (currentPage === "profile") {
                   return (
                     <MyProfilePage
+                      setCurrentUser={setCurrentUser}
                       currentUser={currentUser}
+                      supabaseUser={user}
                       onSave={handleSaveUser}
                     />
                   );

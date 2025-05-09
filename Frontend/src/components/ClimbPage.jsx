@@ -18,7 +18,61 @@ const ClimbPage = ({ selectedClimb, isLoggedIn, currentUser }) => {
   const [newRating, setNewRating] = useState(0);
   const [rating, setRating] = useState(""); // Rating will be a string to match your model
   const [description, setDescription] = useState("");
-  const [hasUserReviewed, setHasUserReviewed] = useState(false);
+  const [hasReviewed, setHasReviewed] = useState(false);
+
+  const renderStars = (rating) => {
+    const fullStars = Math.floor(rating);
+    const halfStar = rating % 1 >= 0.5;
+    const emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
+
+    return (
+      <>
+        {[...Array(fullStars)].map((_, i) => (
+          <svg
+            key={`full-${i}`}
+            xmlns="http://www.w3.org/2000/svg"
+            fill="gold"
+            viewBox="0 0 24 24"
+            width="24"
+            height="24"
+          >
+            <path d="M12 .587l3.668 7.568L24 9.423l-6 5.847 1.417 8.23L12 18.897l-7.417 4.603L6 15.27 0 9.423l8.332-1.268z" />
+          </svg>
+        ))}
+        {halfStar && (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            width="24"
+            height="24"
+          >
+            <defs>
+              <linearGradient id="half-star">
+                <stop offset="50%" stopColor="gold" />
+                <stop offset="50%" stopColor="gray" />
+              </linearGradient>
+            </defs>
+            <path
+              fill="url(#half-star)"
+              d="M12 .587l3.668 7.568L24 9.423l-6 5.847 1.417 8.23L12 18.897l-7.417 4.603L6 15.27 0 9.423l8.332-1.268z"
+            />
+          </svg>
+        )}
+        {[...Array(emptyStars)].map((_, i) => (
+          <svg
+            key={`empty-${i}`}
+            xmlns="http://www.w3.org/2000/svg"
+            fill="gray"
+            viewBox="0 0 24 24"
+            width="24"
+            height="24"
+          >
+            <path d="M12 .587l3.668 7.568L24 9.423l-6 5.847 1.417 8.23L12 18.897l-7.417 4.603L6 15.27 0 9.423l8.332-1.268z" />
+          </svg>
+        ))}
+      </>
+    );
+  };
 
   useEffect(() => {
     const fetchAvg = async () => {
@@ -97,19 +151,18 @@ const ClimbPage = ({ selectedClimb, isLoggedIn, currentUser }) => {
   }, [showGallery]);
 
   useEffect(() => {
-    const checkUserReview = () => {
-      if (
-        currentUser &&
-        reviews.some((review) => review.UserId === currentUser.UserId)
-      ) {
-        setHasUserReviewed(true);
+    const checkIfReviewed = () => {
+      if (reviews.some((review) => review.UserId === currentUser?.UserId)) {
+        setHasReviewed(true);
       } else {
-        setHasUserReviewed(false);
+        setHasReviewed(false);
       }
     };
 
-    checkUserReview();
-  }, [reviews, currentUser]);
+    if (isLoggedIn && currentUser) {
+      checkIfReviewed();
+    }
+  }, [reviews, currentUser, isLoggedIn]);
 
   const handleClosePopup = () => {
     setPopupImage(null);
@@ -290,6 +343,7 @@ const ClimbPage = ({ selectedClimb, isLoggedIn, currentUser }) => {
             <h1 className="mb-4 text-4xl font-bold text-center text-gray-900">
               {selectedClimb.name}
             </h1>
+            <div className="flex justify-center mb-4">{renderStars(score)}</div>
             <p className="mb-2 text-lg text-center text-gray-700">
               <strong>Area:</strong> {selectedClimb.area.areaName}
             </p>
@@ -320,7 +374,7 @@ const ClimbPage = ({ selectedClimb, isLoggedIn, currentUser }) => {
         {/* Reviews Section */}
         <div className="mt-12">
           {/* Leave a Review Box */}
-          {isLoggedIn && !hasUserReviewed && (
+          {isLoggedIn && !hasReviewed && (
             <div className="p-6 mb-8 bg-gray-100 rounded-lg shadow-md">
               <h3 className="mb-4 text-xl font-semibold text-gray-800">
                 Leave a Review

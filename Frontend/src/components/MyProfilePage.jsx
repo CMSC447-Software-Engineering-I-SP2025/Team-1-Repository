@@ -5,7 +5,12 @@ import defaultProfilePic from "../../assets/default-profile.jpg";
 import { Link } from "react-router-dom";
 import axios from "axios";
 
-const MyProfilePage = ({ onSave, currentUser }) => {
+const MyProfilePage = ({
+  onSave,
+  currentUser,
+  setCurrentUser,
+  supabaseUser,
+}) => {
   const [activeTab, setActiveTab] = useState("editProfile"); // State for active tab
   const [emailError, setEmailError] = useState(""); // State for email error
   const [phoneError, setPhoneError] = useState(""); // State for phone error
