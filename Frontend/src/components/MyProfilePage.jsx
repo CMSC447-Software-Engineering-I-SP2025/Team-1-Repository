@@ -33,7 +33,7 @@ const MyProfilePage = ({
         try {
           console.log("Fetching reviews for user ID:", currentUser.UserId);
           const response = await axios.get(
-            `/api/Database/reviewsByUser/${currentUser.UserId}`
+            `https://localhost:7195/api/Database/reviewsByUser/${currentUser.UserId}`
           );
           setReviews(response.data); // Update reviews state with fetched data
           setReviewsError(""); // Clear any previous errors

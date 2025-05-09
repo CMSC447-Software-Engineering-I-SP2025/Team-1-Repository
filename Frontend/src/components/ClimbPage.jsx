@@ -217,6 +217,7 @@ const ClimbPage = ({ selectedClimb, isLoggedIn, currentUser }) => {
       setNewReview("");
       setNewRating(0);
       setReviewError("");
+
       const updatedReviews = await axios.get(
         "https://localhost:7195/api/Database/ReviewsByClimbID",
         {
@@ -224,6 +225,15 @@ const ClimbPage = ({ selectedClimb, isLoggedIn, currentUser }) => {
         }
       );
       setReviews(updatedReviews.data);
+
+      // Fetch updated average rating
+      const avgResponse = await axios.get(
+        "https://localhost:7195/api/Database/ClimbAvgRating",
+        {
+          params: { id: selectedClimb.id },
+        }
+      );
+      setScore(avgResponse.data / 2); // Update average score
     } catch (err) {
       console.error("Could not submit review:", err);
       console.error("Server response:", err.response?.data); // Log server response for debugging
@@ -428,11 +438,12 @@ const ClimbPage = ({ selectedClimb, isLoggedIn, currentUser }) => {
                     key={index}
                     className="p-4 text-gray-800 bg-white rounded-lg shadow-md"
                   >
-                    <strong>User:</strong> {review.UserName || "Anonymous"}
-                    <br />
-                    <strong>Rating:</strong> {review.Rating / 2} / 5
-                    <br />
-                    <strong>Review:</strong> {review.Text}
+                    <div className="flex">
+                      <strong>{review.UserName || "Anonymous"} </strong> <br />
+                      {renderStars(review.Rating / 2)}{" "}
+                      {/* Display rating as stars */}
+                    </div>
+                    {review.Text}
                   </li>
                 ))}
               </ul>
