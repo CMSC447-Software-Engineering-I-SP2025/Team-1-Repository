@@ -100,7 +100,7 @@ namespace BoulderBuddyAPI.Tests.Controllers
             //all areas should have climbs (if we filter out all an area's climbs, it should be removed)
             Assert.DoesNotContain(resultEnumerable, a => a.climbs.Count == 0);
 
-            //all climbs should have null/empty font or be base of 5
+            //all climbs should have null/empty french or be base of 5
             foreach (var area in resultEnumerable)
             {
                 foreach (var climb in area.climbs)
@@ -130,7 +130,7 @@ namespace BoulderBuddyAPI.Tests.Controllers
             //all areas should have climbs (if we filter out all an area's climbs, it should be removed)
             Assert.DoesNotContain(resultEnumerable, a => a.climbs.Count == 0);
 
-            //all climbs should have null/empty font or be base of 5
+            //all climbs should have null/empty vscale or be v2-v4
             foreach (var area in resultEnumerable)
             {
                 foreach (var climb in area.climbs)
@@ -160,7 +160,7 @@ namespace BoulderBuddyAPI.Tests.Controllers
             //all areas should have climbs (if we filter out all an area's climbs, it should be removed)
             Assert.DoesNotContain(resultEnumerable, a => a.climbs.Count == 0);
 
-            //all climbs should have null/empty font or be base of 5
+            //all climbs should have null/empty yds or be base of 5
             foreach (var area in resultEnumerable)
             {
                 foreach (var climb in area.climbs)
