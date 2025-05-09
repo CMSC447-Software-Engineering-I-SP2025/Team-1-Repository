@@ -214,7 +214,7 @@ namespace BoulderBuddyAPI.Services
             ExecuteSelectCommand<Review>(@"
                 SELECT 
                     Review.ReviewId, Review.UserId, Review.RouteId, Review.Rating, Review.Text,
-                    User.FirstName || ' ' || User.LastName AS UserName
+                    User.UserName AS UserName
                 FROM Review
                 JOIN User ON Review.UserId = User.UserId;", new object());
 
@@ -227,7 +227,7 @@ namespace BoulderBuddyAPI.Services
                     Review.RouteId, 
                     Review.Rating, 
                     Review.Text,
-                    User.FirstName || ' ' || User.LastName AS UserName
+                    User.UserName AS UserName
                 FROM Review
                 JOIN User ON Review.UserId = User.UserId
                 WHERE Review.RouteId = @RouteID
