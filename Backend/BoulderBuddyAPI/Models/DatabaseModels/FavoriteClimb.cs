@@ -4,5 +4,6 @@
     {
         public required string UserId { get; set; }
         public required string ClimbId { get; set; }
+        public required string ParentAreaId { get; set; }
     }
 }

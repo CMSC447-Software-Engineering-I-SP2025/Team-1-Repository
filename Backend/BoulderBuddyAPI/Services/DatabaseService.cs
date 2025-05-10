@@ -106,8 +106,8 @@ namespace BoulderBuddyAPI.Services
                 VALUES (@UserId, @BadgeId);", parameters);
         public Task InsertIntoFavoriteClimbTable(object parameters) =>
             ExecuteInsertCommand(@"
-                INSERT INTO FavoriteClimb (UserId, ClimbId)
-                VALUES (@UserId, @ClimbId)", parameters);
+                INSERT INTO FavoriteClimb (UserId, ClimbId, ParentAreaId)
+                VALUES (@UserId, @ClimbId, @ParentAreaId)", parameters);
 
 
         //execute select command

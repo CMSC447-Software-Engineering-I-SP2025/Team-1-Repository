@@ -54,6 +54,7 @@ namespace BoulderBuddyAPI.Services
                     CREATE TABLE IF NOT EXISTS FavoriteClimb (
                         UserId TEXT NOT NULL,
                         ClimbId TEXT NOT NULL,
+                        ParentAreaID TEXT NOT NULL,
                         PRIMARY KEY (UserId, ClimbId),
                         FOREIGN KEY (UserId) REFERENCES User(UserId)
                     );
