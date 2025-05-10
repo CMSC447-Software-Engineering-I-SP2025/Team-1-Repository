@@ -60,6 +60,30 @@ namespace BoulderBuddyAPI.Controllers
             }
         }
 
+        [HttpPost("UpdateUserSettings")]
+        public async Task<IActionResult> PostUserSettings(UserSettingsUpdate newSettings)
+        {
+            //validate expected values
+            if (newSettings.AccountType is not null)
+            {
+                if (newSettings.AccountType != "public" && newSettings.AccountType != "private")
+                    return BadRequest("Invalid AccountType");
+            }
+            if (newSettings.EnableGroupInviteNotifications is not null)
+            {
+                if (newSettings.EnableGroupInviteNotifications != "enable" && newSettings.EnableGroupInviteNotifications != "disable")
+                    return BadRequest("Invalid EnableGroupInviteNotifications");
+            }
+            if (newSettings.EnableReviewCommentNotifications is not null)
+            {
+                if (newSettings.EnableReviewCommentNotifications != "enable" && newSettings.EnableReviewCommentNotifications != "disable")
+                    return BadRequest("Invalid EnableReviewCommentNotifications");
+            }
+
+            await _databaseService.UpdateUserSettings(newSettings);
+            return Ok();
+        }
+
         [HttpPost("route")]
         public async Task<IActionResult> PostRoute([FromBody] Route route)
         {
@@ -212,6 +236,20 @@ namespace BoulderBuddyAPI.Controllers
         }
 
         // GET methods for getting data from the database
+
+        [HttpPost("FavoriteClimb")]
+        public async Task<IActionResult> PostFavoriteClimb(FavoriteClimb favorite)
+        {
+            try
+            {
+                await _databaseService.InsertIntoFavoriteClimbTable(favorite);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
 
         [HttpGet("user")]
         public async Task<IActionResult> GetUsers()
@@ -375,6 +413,21 @@ namespace BoulderBuddyAPI.Controllers
             {
                 var badgeRelations = await _databaseService.GetBadgeRelations();
                 return Ok(badgeRelations);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        [HttpGet("FavoriteClimb")]
+        public async Task<IActionResult> GetFavoriteClimbs(string userID)
+        {
+            try
+            {
+                var favorites = await _databaseService.GetFavoriteClimbs(userID);
+                var climbIDs = favorites.Select(f => f.ClimbId).ToList(); //we already know userID, we only need to return climbID
+                return Ok(climbIDs);
             }
             catch (Exception ex)
             {
@@ -650,6 +703,20 @@ namespace BoulderBuddyAPI.Controllers
         }
 
 
+
+        [HttpDelete("FavoriteClimb")]
+        public async Task<IActionResult> DeleteFavoriteClimb(FavoriteClimb favorite)
+        {
+            try
+            {
+                await _databaseService.DeleteFromFavoriteClimbTable(favorite);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
     }
 }
 
@@ -694,6 +761,7 @@ namespace BoulderBuddyAPI.Services
 
 
         //methods for getting data from the database
+        Task InsertIntoFavoriteClimbTable(object parameters);
         Task<List<User>> GetUsers();
         Task<List<Route>> GetRoutes();
         Task<List<Review>> GetReviews();
@@ -706,7 +774,8 @@ namespace BoulderBuddyAPI.Services
         Task<List<ClimbGroupEvent>> GetClimbGroupEvents();
         Task<List<Badge>> GetBadges();
         Task<List<BadgeRelation>> GetBadgeRelations();
-        
-
+        Task<List<FavoriteClimb>> GetFavoriteClimbs(string UserID);
+        Task UpdateUserSettings(object parameters);
+        Task DeleteFromFavoriteClimbTable(FavoriteClimb favorite);
     }
 }

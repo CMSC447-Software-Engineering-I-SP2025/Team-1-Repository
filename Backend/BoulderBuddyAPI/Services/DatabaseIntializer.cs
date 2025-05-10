@@ -26,7 +26,11 @@ namespace BoulderBuddyAPI.Services
                         Email TEXT,
                         Password TEXT NOT NULL,
                         AccountType TEXT NOT NULL,
-                        CHECK (AccountType IN (""public"", ""private""))
+                        EnableReviewCommentNotifications TEXT NOT NULL DEFAULT ""enable"",
+                        EnableGroupInviteNotifications TEXT NOT NULL DEFAULT ""enable"",
+                        CHECK (AccountType IN (""public"", ""private"")),
+                        CHECK (EnableReviewCommentNotifications IN (""enable"", ""disable"")),
+                        CHECK (EnableGroupInviteNotifications IN (""enable"", ""disable""))
                     );
                     CREATE TABLE IF NOT EXISTS Review (
                         ReviewId INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -46,6 +50,12 @@ namespace BoulderBuddyAPI.Services
                         FOREIGN KEY (User1Id) REFERENCES User(UserId),
                         FOREIGN KEY (User2Id) REFERENCES User(UserId),
                         CHECK (RelationType IN (""friends"", ""user1_blocked"", ""user2_blocked"", ""both_blocked"", ""pending_user1"", ""pending_user2""))
+                    );
+                    CREATE TABLE IF NOT EXISTS FavoriteClimb (
+                        UserId TEXT NOT NULL,
+                        ClimbId TEXT NOT NULL,
+                        PRIMARY KEY (UserId, ClimbId),
+                        FOREIGN KEY (UserId) REFERENCES User(UserId)
                     );
                     CREATE TABLE IF NOT EXISTS ClimbGroup (
                         GroupId INTEGER PRIMARY KEY AUTOINCREMENT,

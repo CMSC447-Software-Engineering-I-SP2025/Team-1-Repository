@@ -22,6 +22,31 @@ namespace BoulderBuddyAPI.Tests.Services
         }
 
         [Fact]
+        public async Task QuerySubAreasInArea_ReadsFromCache()
+        {
+            var service = ArrangeTestableObject("TestResources/DelawareResponse.json");
+
+            //start this test with an OpenBeta query, not a cache hit
+            var expectedDirPath = $"cached_responses_test\\{DateTime.Now.ToString("yyyyMMdd")}";
+            if (Directory.Exists(expectedDirPath))
+                Directory.Delete(expectedDirPath, true);
+
+            //act (1)
+            var subareas1 = await service.QuerySubAreasInArea("Delaware"); //expecting OpenBeta query
+
+            //caching requires the creation of file and directory (since directory was previously deleted)
+            Assert.True(Directory.Exists(expectedDirPath));
+            Assert.True(Path.Exists($"{expectedDirPath}\\Delaware.json"));
+
+            //act (2)
+            var subareas2 = await service.QuerySubAreasInArea("Delaware"); //expecting cache hit
+
+            //the response from the first search should be read by the second
+            Assert.Equal(subareas1.Count, subareas2.Count);
+            Assert.Equivalent(subareas1, subareas2);
+        }
+
+        [Fact]
         public async Task QuerySubAreasInArea_GivenInvalidRootArea_ThrowsArgumentException()
         {
             var service = ArrangeTestableObject("TestResources/DelawareResponse.json"); //arrange
@@ -45,7 +70,8 @@ namespace BoulderBuddyAPI.Tests.Services
             var config = new OpenBetaConfig()
             {
                 OpenBetaEndpoint = "UNUSED",
-                SupportedRootAreas = ["Delaware", "Maryland"]
+                SupportedRootAreas = ["Delaware", "Maryland"],
+                CacheDirectory = "cached_responses_test"
             };
 
             //mock away the OpenBeta API call; testing it is outside the scope of this test

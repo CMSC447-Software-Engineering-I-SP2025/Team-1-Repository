@@ -104,8 +104,12 @@ namespace BoulderBuddyAPI.Services
             ExecuteInsertCommand(@"
                 INSERT INTO BadgeRelation (UserId, BadgeId) 
                 VALUES (@UserId, @BadgeId);", parameters);
+        public Task InsertIntoFavoriteClimbTable(object parameters) =>
+            ExecuteInsertCommand(@"
+                INSERT INTO FavoriteClimb (UserId, ClimbId)
+                VALUES (@UserId, @ClimbId)", parameters);
 
-        
+
         //execute select command
         public async Task<List<T>> ExecuteSelectCommand<T>(string commandText, object parameters)
         {
@@ -216,6 +220,9 @@ namespace BoulderBuddyAPI.Services
         public Task<List<BadgeRelation>> GetBadgeRelations() =>
             ExecuteSelectCommand<BadgeRelation>("SELECT * FROM BadgeRelation", null);
 
+        public Task<List<FavoriteClimb>> GetFavoriteClimbs(string UserID) =>
+            ExecuteSelectCommand<FavoriteClimb>($"SELECT * FROM FavoriteClimb WHERE userId = '{UserID}';", new object());
+
         //excute update command
         public async Task ExecuteUpdateCommand(string commandText, object parameters)
         {
@@ -246,9 +253,17 @@ namespace BoulderBuddyAPI.Services
         public Task UpdateUser(string userId, object parameters) =>
             ExecuteUpdateCommand(@"
                 UPDATE User 
-                SET Name = @Name, Email = @Email, Password = @Password, AccountType = @AccountType 
-                WHERE UserId = @UserId;", 
-                new { UserId = userId, parameters });
+                SET name = @Name, email = @Email, password = @Password, accountType = @AccountType 
+                WHERE id = @UserId;", parameters);
+
+        //update user settings in user table
+        public Task UpdateUserSettings(object parameters) =>
+            ExecuteUpdateCommand("UPDATE User " + //note: COALESCE(param, ColumnName) means update value only if param is not null
+                "SET " +
+                "AccountType = COALESCE(@AccountType, AccountType), " +
+                "EnableReviewCommentNotifications = COALESCE(@EnableReviewCommentNotifications, EnableReviewCommentNotifications), " +
+                "EnableGroupInviteNotifications = COALESCE(@EnableGroupInviteNotifications, EnableGroupInviteNotifications) " +
+                "WHERE UserId = @UserID", parameters);
 
         //update route table
         public Task UpdateRoute(object parameters) =>
@@ -395,6 +410,9 @@ namespace BoulderBuddyAPI.Services
         //delete from badge relation table
         public Task DeleteFromBadgeRelationTable(string badgeRelationId) =>
              ExecuteDeleteCommand("DELETE FROM BadgeRelation WHERE BadgeRelationId = @BadgeRelationId;", new { BadgeRelationId = badgeRelationId });
+
+        public Task DeleteFromFavoriteClimbTable(FavoriteClimb parameters) =>
+            ExecuteDeleteCommand(@"DELETE FROM FavoriteClimb WHERE userId = @UserId AND climbId = @ClimbId;", parameters);
 
         //for testing purposes only
         public async Task<T> ExecuteQueryCommand<T>(string query, object parameters)
