@@ -91,7 +91,7 @@ namespace BoulderBuddyAPI.Services
             var fullDirectory = $"{_cacheDirectory}\\{formattedDate}";
             var cacheFilePath = $"{fullDirectory}\\{rootAreaID}.json";
 
-            List<Area> subareas;
+            Area area;
 
             //read from today's cached file
             if (File.Exists(cacheFilePath))
@@ -99,7 +99,7 @@ namespace BoulderBuddyAPI.Services
                 _logger.LogInformation($"Cache hit for \"{rootAreaID}\" search");
 
                 var jsonContent = File.ReadAllText(cacheFilePath);
-                subareas = JsonSerializer.Deserialize<List<Area>>(jsonContent);
+                area = JsonSerializer.Deserialize<Area>(jsonContent);
             }
 
             //rootArea hasn't been cached today; query OpenBeta
@@ -114,18 +114,21 @@ namespace BoulderBuddyAPI.Services
 
                 //gives { data: {...} } (SearchByLocationRootObj)
                 var responseString = await response.Content.ReadAsStringAsync();
-                var decodedQueryResponse = JsonSerializer.Deserialize<SearchByLocationRootObj>(responseString);
+                var decodedQueryResponse = JsonSerializer.Deserialize<SearchByAreaRootObj>(responseString);
 
                 //get first-level subareas under rootArea
-                subareas = decodedQueryResponse.data.areas[0].children;
+                area = decodedQueryResponse.data.area;
+
+                if (area is null)
+                    throw new ArgumentException("given area does not exist");
 
                 //cache this response
                 Directory.CreateDirectory(fullDirectory);
-                File.WriteAllText(cacheFilePath, JsonSerializer.Serialize(subareas));
+                File.WriteAllText(cacheFilePath, JsonSerializer.Serialize(area));
             }
 
-            _logger.LogInformation($"Successfully ran ClimbsInAreaID query for \"{rootAreaID}\". Found {subareas.Count} subareas.");
-            return subareas.First();
+            _logger.LogInformation($"Successfully ran ClimbsInAreaID query for \"{rootAreaID}\". Found area.");
+            return area;
         }
 
 
