@@ -82,6 +82,28 @@ public class SearchController : ControllerBase
         }
     }
 
+    [HttpPost("ClimbWithParentArea")]
+    public async Task<IActionResult> SearchByAreaAndClimbID(ClimbAndParentAreaIDs ids)
+    {
+        if (ids is null || ids.ClimbId is null || ids.ParentAreaId is null)
+            return BadRequest("Null ID.");
+
+        try
+        {
+            var area = await _openBetaQuerySvc.QueryAreaByAreaID(ids.ParentAreaId);
+            area.climbs = area.climbs.Where(c => c.id == ids.ClimbId).ToList();
+
+            if (area.climbs.Count != 1)
+                return BadRequest("Climb not found in area.");
+
+            return Ok(area); //HTTP 200 (Ok) response with content
+        }
+        catch (ArgumentException)
+        {
+            return BadRequest("Invalid root area ID (does not exist in OpenBeta)."); //HTTP 400 (BadRequest) response with error msg
+        }
+    }
+
     //finds all areas within list of trees (areas) that have no subareas but do have climbs associated with them. DFS
     private List<Area> GetLeafAreasWithClimbs(IEnumerable<Area> areas)
     {
