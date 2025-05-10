@@ -65,6 +65,23 @@ public class SearchController : ControllerBase
         return Ok(areas.ToList()); //HTTP 200 (Ok) response with content
     }
 
+    //POST /Search/AreaID/{areaID} - performs OpenBeta API query to find area and its climbs/metadata by area ID
+    [HttpPost("AreaID/{areaID}")]
+    public async Task<IActionResult> SearchByAreaID(string areaID)
+    {
+        if (areaID is null)
+            return BadRequest("Null root area ID.");
+
+        try
+        {
+            var area = await _openBetaQuerySvc.QueryAreaByAreaID(areaID);
+            return Ok(area); //HTTP 200 (Ok) response with content
+        } catch(ArgumentException)
+        {
+            return BadRequest("Invalid root area ID (does not exist in OpenBeta)."); //HTTP 400 (BadRequest) response with error msg
+        }
+    }
+
     //finds all areas within list of trees (areas) that have no subareas but do have climbs associated with them. DFS
     private List<Area> GetLeafAreasWithClimbs(IEnumerable<Area> areas)
     {
