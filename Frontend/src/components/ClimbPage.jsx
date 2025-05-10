@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useState } from "react";
 import axios from "axios";
 
-const ClimbPage = ({ selectedClimb }) => {
+const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
   if (!selectedClimb) {
     return <div className="text-center text-gray-500">No climb selected</div>;
   }
@@ -60,13 +60,17 @@ const ClimbPage = ({ selectedClimb }) => {
               ? selectedClimb.grades.french
               : selectedClimb.grades.font}
           </span>
-        </div>
-        <Link to="/create-review" className="px-3">
-          Click me to create a review for this climb!
-        </Link>
-        <Link to="/view-reviews" className="px-3">
-          Click me to view reviews for this climb!
-        </Link>
+              </div>
+              {isLoggedIn ? (
+                  <Link to="/create-review" className="px-3">
+                          <div>Click me to create a review for this climb!</div>
+                      </Link>
+              ) : (<p></p>)}
+              {isLoggedIn ? (
+                  <Link to="/view-reviews" className="px-3">
+                          <div>Click me to view reviews for this climb!</div>
+                      </Link>
+              ) : (<p></p>)}
       </div>
     </div>
   );

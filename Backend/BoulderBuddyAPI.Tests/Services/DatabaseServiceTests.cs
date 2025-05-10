@@ -1,219 +1,305 @@
 using Xunit;
 using BoulderBuddyAPI.Services;
 using Microsoft.Data.Sqlite;
+using Microsoft.Extensions.Configuration;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace BoulderBuddyAPI.Tests.Services
 {
-    public class DatabaseServiceTestsTest : IDisposable
+    public class DatabaseServiceTests : IDisposable
     {
         private readonly SqliteConnection _sqliteConnection;
-        private readonly DatabaseService _service;
+        private readonly DatabaseService _databaseService;
 
-        public DatabaseServiceTestsTest()
+        public DatabaseServiceTests()
         {
-            // Setup an in-memory SQLite database connection
-            _sqliteConnection = new SqliteConnection("Data Source=boulderbuddy.db");
+            var inMemorySettings = new Dictionary<string, string>
+            {
+                { "ConnectionStrings:DefaultConnection", "DataSource=:memory:;Mode=Memory;Cache=Shared" }
+            };
+
+            var configuration = new ConfigurationBuilder()
+                .AddInMemoryCollection(inMemorySettings)
+                .Build();
+
+            _sqliteConnection = new SqliteConnection(configuration.GetConnectionString("DefaultConnection"));
             _sqliteConnection.Open();
 
-            // Initialize the DatabaseService with the same SQLite connection
-            _service = new DatabaseService(_sqliteConnection);
+            _databaseService = new DatabaseService(configuration);
 
-            // Create necessary tables for testing
-            InitializeDatabase();
+            InitializeDatabaseSchema();
         }
 
-        private void InitializeDatabase()
+        private void InitializeDatabaseSchema()
         {
             using (var command = _sqliteConnection.CreateCommand())
             {
-                // Create the UserTest table
                 command.CommandText = @"
-                    CREATE TABLE IF NOT EXISTS UserTest (
+                    CREATE TABLE User (
                         UserId TEXT PRIMARY KEY,
-                        Name TEXT,
+                        UserName TEXT NOT NULL,
+                        ProfileImage BLOB,
+                        FirstName TEXT,
+                        LastName TEXT,
                         Email TEXT,
-                        Password TEXT,
-                        AccountType TEXT
-                    );";
+                        PhoneNumber TEXT,
+                        BoulderGradeLowerLimit TEXT,
+                        BoulderGradeUpperLimit TEXT,
+                        RopeClimberLowerLimit TEXT,
+                        RopeClimberUpperLimit TEXT,
+                        Bio TEXT
+                    );
+
+                    CREATE TABLE Review (
+                        ReviewId INTEGER PRIMARY KEY AUTOINCREMENT,
+                        UserId TEXT NOT NULL,
+                        RouteId TEXT NOT NULL,
+                        Rating INTEGER NOT NULL,
+                        Text TEXT,
+                        FOREIGN KEY (UserId) REFERENCES User(UserId)
+                    );
+
+                    CREATE TABLE ClimbGroup (
+                        GroupId TEXT PRIMARY KEY,
+                        GroupName TEXT NOT NULL,
+                        GroupDescription TEXT,
+                        JoinRequirements TEXT,
+                        Price REAL,
+                        GroupType TEXT,
+                        GroupOwner TEXT,
+                        GroupImage BLOB
+                    );
+                ";
                 command.ExecuteNonQuery();
             }
         }
 
-        private void ClearUserTestTable()
+        private void ClearTable(string tableName)
         {
             using (var command = _sqliteConnection.CreateCommand())
             {
-                command.CommandText = "DELETE FROM UserTest;";
+                command.CommandText = $"DELETE FROM {tableName};";
                 command.ExecuteNonQuery();
             }
         }
 
         [Fact]
-        public async Task ExecuteInsertCommand_ValidCommand_InsertsRecordSuccessfully()
+        public async Task InsertIntoUserTable_InsertsSuccessfully()
         {
-            // Clear the table before running the test
-            ClearUserTestTable();
+            ClearTable("User");
 
-            // Arrange
-            var insertCommand = "INSERT INTO UserTest (UserId, Name) VALUES (@UserId, @Name);";
-            var parameters = new { UserId = "1", Name = "Test User" };
-
-            // Act
-            await _service.ExecuteInsertCommand(insertCommand, parameters);
-
-            // Assert
-            if (_sqliteConnection.State != System.Data.ConnectionState.Open)
+            var parameters = new
             {
-                _sqliteConnection.Open(); // Ensure the connection is open
-            }
+                UserId = "testuser1",
+                UserName = "testusername",
+                ProfileImage = (byte[])null,
+                FirstName = "Test",
+                LastName = "User",
+                Email = "testuser@example.com",
+                PhoneNumber = "1234567890",
+                BoulderGradeLowerLimit = "V0",
+                BoulderGradeUpperLimit = "V5",
+                RopeClimberLowerLimit = "5.8",
+                RopeClimberUpperLimit = "5.12",
+                Bio = "Climbing enthusiast"
+            };
 
-            using (var command = _sqliteConnection.CreateCommand())
+            await _databaseService.InsertIntoUserTable(parameters);
+
+            var query = "SELECT COUNT(*) FROM User WHERE UserId = @UserId";
+            var count = await _databaseService.ExecuteQueryCommand<long>(query, new { UserId = "testuser1" });
+            Assert.Equal(1, Convert.ToInt32(count));
+        }
+
+        [Fact]
+        public async Task InsertIntoReviewTable_InsertsSuccessfully()
+        {
+            ClearTable("Review");
+            ClearTable("User");
+
+            var user = new
             {
-                command.CommandText = "SELECT COUNT(*) FROM UserTest WHERE UserId = @UserId AND Name = @Name;";
-                command.Parameters.AddWithValue("@UserId", "1");
-                command.Parameters.AddWithValue("@Name", "Test User");
+                UserId = "testuser1",
+                UserName = "testusername",
+                ProfileImage = (byte[])null,
+                FirstName = "Test",
+                LastName = "User",
+                Email = "testuser@example.com",
+                PhoneNumber = "1234567890",
+                BoulderGradeLowerLimit = "V0",
+                BoulderGradeUpperLimit = "V5",
+                RopeClimberLowerLimit = "5.8",
+                RopeClimberUpperLimit = "5.12",
+                Bio = "Climbing enthusiast"
+            };
+            await _databaseService.InsertIntoUserTable(user);
 
-                var result = (long)(await command.ExecuteScalarAsync() ?? 0);
-                Assert.Equal(1, result); // Verify that the record was inserted
-            }
+            var review = new
+            {
+                UserId = "testuser1",
+                RouteId = "route1",
+                Rating = 5,
+                Text = "Great route!"
+            };
+            await _databaseService.InsertIntoReviewTable(review);
+
+            var query = "SELECT COUNT(*) FROM Review WHERE UserId = @UserId AND RouteId = @RouteId";
+            var count = await _databaseService.ExecuteQueryCommand<long>(query, new { UserId = "testuser1", RouteId = "route1" });
+            Assert.Equal(1, Convert.ToInt32(count));
         }
 
         [Fact]
-        public async Task ExecuteInsertCommand_InvalidCommand_ThrowsException()
+        public async Task GetUsers_ReturnsCorrectData()
         {
-            // Arrange
-            var invalidCommand = "INSERT INTO NonExistentTable (Column) VALUES (@Value);";
-            var parameters = new { Value = "Test" };
+            ClearTable("User");
 
-            // Act & Assert
-            await Assert.ThrowsAsync<SqliteException>(() => _service.ExecuteInsertCommand(invalidCommand, parameters));
+            var parameters = new
+            {
+                UserId = "1",
+                UserName = "TestUser",
+                ProfileImage = "image.png",
+                FirstName = "Test",
+                LastName = "User",
+                Email = "test@example.com",
+                PhoneNumber = "1234567890",
+                BoulderGradeLowerLimit = "V0",
+                BoulderGradeUpperLimit = "V5",
+                RopeClimberLowerLimit = "5.10",
+                RopeClimberUpperLimit = "5.12",
+                Bio = "Test bio"
+            };
+            await _databaseService.InsertIntoUserTable(parameters);
+
+            var users = await _databaseService.GetUsers();
+
+            Assert.Single(users);
+            Assert.Equal("TestUser", users[0].UserName);
         }
 
         [Fact]
-        public async Task ExecuteQueryCommand_ValidQuery_ReturnsExpectedResult()
+        public async Task InsertIntoClimbGroupTable_InsertsSuccessfully()
         {
-            // Clear the table before running the test
-            ClearUserTestTable();
+            ClearTable("ClimbGroup");
 
-            // Arrange
-            var insertCommand = "INSERT INTO UserTest (UserId, Name) VALUES (@UserId, @Name);";
-            var parameters = new { UserId = "12", Name = "Test User 12" };
-            await _service.ExecuteInsertCommand(insertCommand, parameters);
+            var parameters = new
+            {
+                GroupId = "group1",
+                GroupName = "Test Group",
+                GroupDescription = "A group for testing",
+                JoinRequirements = "None",
+                Price = 0.0,
+                GroupType = "Public",
+                GroupOwner = "testuser1",
+                GroupImage = (byte[])null
+            };
 
-            var queryCommand = "SELECT Name FROM UserTest WHERE UserId = @UserId;";
-            var queryParameters = new { UserId = "12" };
+            await _databaseService.InsertIntoClimbGroupTable(parameters);
 
-            // Act
-            var result = await _service.ExecuteQueryCommand<string>(queryCommand, queryParameters);
-
-            // Assert
-            Assert.Equal("Test User 12", result);
+            var query = "SELECT COUNT(*) FROM ClimbGroup WHERE GroupId = @GroupId";
+            var count = await _databaseService.ExecuteQueryCommand<long>(query, new { GroupId = "group1" });
+            Assert.Equal(1, Convert.ToInt32(count));
         }
 
         [Fact]
-        public async Task ExecuteQueryCommand_NoResults_ReturnsDefault()
+        public async Task GetUsers_ReturnsEmptyList_WhenNoUsersExist()
         {
-            // Clear the table before running the test
-            ClearUserTestTable();
+            ClearTable("User");
 
-            // Arrange
-            var queryCommand = "SELECT Name FROM UserTest WHERE UserId = @UserId;";
-            var queryParameters = new { UserId = "NonExistentId" };
+            var users = await _databaseService.GetUsers();
 
-            // Act
-            var result = await _service.ExecuteQueryCommand<string>(queryCommand, queryParameters);
-
-            // Assert
-            Assert.Null(result); // No results should return null
+            Assert.Empty(users);
         }
 
         [Fact]
-        public async Task UserTestTable_CreateRecord_InsertsSuccessfully()
+        public async Task InsertIntoUserTable_HandlesMissingOptionalFields()
         {
-            // Clear the table before running the test
-            ClearUserTestTable();
+            ClearTable("User");
 
-            // CREATE: Insert a record
-            var insertCommand = "INSERT INTO UserTest (UserId, Name, Email, Password, AccountType) VALUES (@UserId, @Name, @Email, @Password, @AccountType);";
-            var insertParameters = new { UserId = "1", Name = "Test User", Email = "test@example.com", Password = "password123", AccountType = "Standard" };
-            await _service.ExecuteInsertCommand(insertCommand, insertParameters);
+            var parameters = new
+            {
+                UserId = "testuser2",
+                UserName = "testusername2",
+                ProfileImage = (byte[])null,
+                FirstName = (string)null,
+                LastName = (string)null,
+                Email = "testuser2@example.com",
+                PhoneNumber = "9876543210",
+                BoulderGradeLowerLimit = "V1",
+                BoulderGradeUpperLimit = "V6",
+                RopeClimberLowerLimit = "5.9",
+                RopeClimberUpperLimit = "5.13",
+                Bio = (string)null
+            };
 
-            // READ: Verify the record was inserted
-            var selectCommand = "SELECT Name FROM UserTest WHERE UserId = @UserId;";
-            var selectParameters = new { UserId = "1" };
-            var insertedName = await _service.ExecuteQueryCommand<string>(selectCommand, selectParameters);
-            Assert.Equal("Test User", insertedName);
+            await _databaseService.InsertIntoUserTable(parameters);
+
+            var query = "SELECT COUNT(*) FROM User WHERE UserId = @UserId";
+            var count = await _databaseService.ExecuteQueryCommand<long>(query, new { UserId = "testuser2" });
+            Assert.Equal(1, Convert.ToInt32(count));
         }
 
         [Fact]
-        public async Task UserTestTable_ReadRecord_ReturnsCorrectData()
+        public async Task InsertDuplicatePrimaryKey_ThrowsException()
         {
-            // Clear the table before running the test
-            ClearUserTestTable();
+            ClearTable("User");
 
-            // Arrange: Insert a record
-            var insertCommand = "INSERT INTO UserTest (UserId, Name, Email, Password, AccountType) VALUES (@UserId, @Name, @Email, @Password, @AccountType);";
-            var insertParameters = new { UserId = "1", Name = "Test User", Email = "test@example.com", Password = "password123", AccountType = "Standard" };
-            await _service.ExecuteInsertCommand(insertCommand, insertParameters);
+            var parameters = new
+            {
+                UserId = "duplicateuser",
+                UserName = "testusername",
+                ProfileImage = (byte[])null,
+                FirstName = "Test",
+                LastName = "User",
+                Email = "testuser@example.com",
+                PhoneNumber = "1234567890",
+                BoulderGradeLowerLimit = "V0",
+                BoulderGradeUpperLimit = "V5",
+                RopeClimberLowerLimit = "5.8",
+                RopeClimberUpperLimit = "5.12",
+                Bio = "Climbing enthusiast"
+            };
 
-            // READ: Verify the record was inserted
-            var selectCommand = "SELECT Name FROM UserTest WHERE UserId = @UserId;";
-            var selectParameters = new { UserId = "1" };
-            var result = await _service.ExecuteQueryCommand<string>(selectCommand, selectParameters);
-            Assert.Equal("Test User", result);
+            await _databaseService.InsertIntoUserTable(parameters);
+
+            await Assert.ThrowsAsync<SqliteException>(async () =>
+            {
+                await _databaseService.InsertIntoUserTable(parameters);
+            });
         }
 
         [Fact]
-        public async Task UserTestTable_UpdateRecord_UpdatesSuccessfully()
+        public async Task ExecuteSelectCommand_ReturnsCorrectData()
         {
-            // Clear the table before running the test
-            ClearUserTestTable();
+            ClearTable("User");
 
-            // Arrange: Insert a record
-            var insertCommand = "INSERT INTO UserTest (UserId, Name, Email, Password, AccountType) VALUES (@UserId, @Name, @Email, @Password, @AccountType);";
-            var insertParameters = new { UserId = "1", Name = "Test User", Email = "test@example.com", Password = "password123", AccountType = "Standard" };
-            await _service.ExecuteInsertCommand(insertCommand, insertParameters);
+            var parameters = new
+            {
+                UserId = "selectuser",
+                UserName = "SelectTestUser",
+                ProfileImage = (byte[])null,
+                FirstName = "Select",
+                LastName = "User",
+                Email = "selectuser@example.com",
+                PhoneNumber = "1234567890",
+                BoulderGradeLowerLimit = "V0",
+                BoulderGradeUpperLimit = "V5",
+                RopeClimberLowerLimit = "5.10",
+                RopeClimberUpperLimit = "5.12",
+                Bio = "Test bio"
+            };
 
-            // UPDATE: Update the record
-            var updateCommand = "UPDATE UserTest SET Name = @NewName WHERE UserId = @UserId;";
-            var updateParameters = new { UserId = "1", NewName = "Updated User" };
-            await _service.ExecuteInsertCommand(updateCommand, updateParameters);
+            await _databaseService.InsertIntoUserTable(parameters);
 
-            // READ: Verify the record was updated
-            var selectCommand = "SELECT Name FROM UserTest WHERE UserId = @UserId;";
-            var selectParameters = new { UserId = "1" };
-            var updatedName = await _service.ExecuteQueryCommand<string>(selectCommand, selectParameters);
-            Assert.Equal("Updated User", updatedName);
-        }
+            var users = await _databaseService.ExecuteSelectCommand<User>("SELECT * FROM User WHERE UserId = @UserId", new { UserId = "selectuser" });
 
-        [Fact]
-        public async Task UserTestTable_DeleteRecord_DeletesSuccessfully()
-        {
-            // Clear the table before running the test
-            ClearUserTestTable();
-
-            // Arrange: Insert a record
-            var insertCommand = "INSERT INTO UserTest (UserId, Name, Email, Password, AccountType) VALUES (@UserId, @Name, @Email, @Password, @AccountType);";
-            var insertParameters = new { UserId = "1", Name = "Test User", Email = "test@example.com", Password = "password123", AccountType = "Standard" };
-            await _service.ExecuteInsertCommand(insertCommand, insertParameters);
-
-            // DELETE: Delete the record
-            var deleteCommand = "DELETE FROM UserTest WHERE UserId = @UserId;";
-            var deleteParameters = new { UserId = "1" };
-            await _service.ExecuteInsertCommand(deleteCommand, deleteParameters);
-
-            // READ: Verify the record was deleted
-            var selectCommand = "SELECT Name FROM UserTest WHERE UserId = @UserId;";
-            var selectParameters = new { UserId = "1" };
-            var deletedName = await _service.ExecuteQueryCommand<string>(selectCommand, selectParameters);
-            Assert.Null(deletedName);
+            Assert.Single(users);
+            Assert.Equal("SelectTestUser", users[0].UserName);
         }
 
         public void Dispose()
         {
-            // Dispose of the SQLite connection after each test
             _sqliteConnection?.Dispose();
         }
     }

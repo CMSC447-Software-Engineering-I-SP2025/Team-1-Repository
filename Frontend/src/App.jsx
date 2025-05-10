@@ -4,16 +4,20 @@ import { supabase } from "./lib/supabaseClient";
 import { UserProvider } from "./components/UserProvider";
 import LoginPage from "./components/LoginPage";
 import CreateReview from "./components/CreateReview";
+import AddFriendPage from "./components/AddFriendPage";
+import AddGroupPage from "./components/AddGroupPage";
 import CreateAccountPage from "./components/CreateAccountPage";
 import Header from "./components/Header";
 import HeroSection from "./components/HeroSection";
 import WorldMap from "./components/WorldMap";
 import ClimbPage from "./components/ClimbPage";
 import AreaPage from "./components/AreaPage";
+import GroupPage from "./components/GroupPage";
 import MyProfilePage from "./components/MyProfilePage";
 import SettingsPage from "./components/SettingsPage";
 import ForgotPassword from "./components/ForgotPassword";
 import ViewReviewsPage from "./components/ViewReviewsPage";
+import CreateEventPage from "./components/CreateEventPage";
 
 const App = () => {
   const [user, setUser] = useState(null);
@@ -160,14 +164,12 @@ const App = () => {
             <Route path="/profile" element={<MyProfilePage />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/create-account" element={<CreateAccountPage />} />
-            <Route
-              path="/view-reviews"
-              element={<ViewReviewsPage selectedClimb={selectedClimb} />}
-            />
-            <Route
-              path="/create-review"
-              element={<CreateReview selectedClimb={selectedClimb} />}
-            />
+            <Route path="/view-reviews" element={<ViewReviewsPage selectedClimb={selectedClimb} />} />
+            <Route path="/create-review" element={<CreateReview selectedClimb={selectedClimb} />} /> 
+            <Route path="/add-friend" element={<AddFriendPage />} /> 
+                      <Route path="/add-group" element={<AddGroupPage />} />
+                      <Route path="/group" element={<GroupPage />} />
+                      <Route path="/create-event" element={<CreateEventPage />} /> 
 
             <Route
               path="/"
@@ -197,7 +199,7 @@ const App = () => {
                     </div>
                   );
                 } else if (currentPage === "climb") {
-                  return <ClimbPage selectedClimb={selectedClimb} />;
+                    return <ClimbPage selectedClimb={selectedClimb} isLoggedIn = {isLoggedIn} />;
                 } else if (currentPage === "area") {
                   return (
                     <AreaPage
