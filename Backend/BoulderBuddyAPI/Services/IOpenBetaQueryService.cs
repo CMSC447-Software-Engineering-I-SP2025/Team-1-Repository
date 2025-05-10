@@ -5,5 +5,6 @@ namespace BoulderBuddyAPI.Services
     public interface IOpenBetaQueryService
     {
         public Task<List<Area>> QuerySubAreasInArea(string rootArea);
+        public Task<Area> QueryAreaByAreaID(string rootAreaID);
     }
 }
