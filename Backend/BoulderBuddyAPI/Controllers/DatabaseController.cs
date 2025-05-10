@@ -97,25 +97,6 @@ namespace BoulderBuddyAPI.Controllers
             return Ok();
         }
 
-        [HttpPost("route")]
-        public async Task<IActionResult> PostRoute([FromBody] Route route)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
-            try
-            {
-                await _databaseService.InsertIntoRouteTable(route);
-                return Ok(new { message = "Route created successfully" });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
-        }
-
         [HttpPost("review")]
         public async Task<IActionResult> PostReview([FromBody] Review review)
         {
@@ -437,21 +418,6 @@ namespace BoulderBuddyAPI.Controllers
             {
                 var badgeRelations = await _databaseService.GetBadgeRelations();
                 return Ok(badgeRelations);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = ex.Message });
-            }
-        }
-
-        [HttpGet("FavoriteClimb")]
-        public async Task<IActionResult> GetFavoriteClimbs(string userID)
-        {
-            try
-            {
-                var favorites = await _databaseService.GetFavoriteClimbs(userID);
-                var climbIDs = favorites.Select(f => f.ClimbId).ToList(); //we already know userID, we only need to return climbID
-                return Ok(climbIDs);
             }
             catch (Exception ex)
             {
@@ -814,7 +780,7 @@ namespace BoulderBuddyAPI.Controllers
 
         //group functions
         
-    }
+    
 
 
         [HttpDelete("FavoriteClimb")]

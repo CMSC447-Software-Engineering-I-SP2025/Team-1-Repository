@@ -60,12 +60,12 @@ namespace BoulderBuddyAPI.Services
                 INSERT INTO User (
                     UserId, UserName, ProfileImage, FirstName, LastName, Email, PhoneNumber, 
                     BoulderGradeLowerLimit, BoulderGradeUpperLimit, 
-                    RopeClimberLowerLimit, RopeClimberUpperLimit, Bio
+                    RopeClimberLowerLimit, RopeClimberUpperLimit, Bio, AccountType
                 ) 
                 VALUES (
                     @UserId, @UserName, @ProfileImage, @FirstName, @LastName, @Email, @PhoneNumber, 
                     @BoulderGradeLowerLimit, @BoulderGradeUpperLimit, 
-                    @RopeClimberLowerLimit, @RopeClimberUpperLimit, @Bio
+                    @RopeClimberLowerLimit, @RopeClimberUpperLimit, @Bio, @AccountType
                 );", parameters);
 
         public Task InsertIntoReviewTable(object parameters) =>
@@ -210,7 +210,7 @@ namespace BoulderBuddyAPI.Services
                 SELECT 
                     UserId, UserName, ProfileImage, FirstName, LastName, Email, PhoneNumber, 
                     BoulderGradeLowerLimit, BoulderGradeUpperLimit, 
-                    RopeClimberLowerLimit, RopeClimberUpperLimit, Bio 
+                    RopeClimberLowerLimit, RopeClimberUpperLimit, Bio, AccountType
                 FROM User;", new object());
 
         //select from review table
@@ -368,6 +368,15 @@ namespace BoulderBuddyAPI.Services
                 WHERE UserId = @UserId;",
                 flattenedParameters);
         }
+
+        //update user settings in user table
+        public Task UpdateUserSettings(object parameters) =>
+            ExecuteUpdateCommand("UPDATE User " + //note: COALESCE(param, ColumnName) means update value only if param is not null
+                "SET " +
+                "AccountType = COALESCE(@AccountType, AccountType), " +
+                "EnableReviewCommentNotifications = COALESCE(@EnableReviewCommentNotifications, EnableReviewCommentNotifications), " +
+                "EnableGroupInviteNotifications = COALESCE(@EnableGroupInviteNotifications, EnableGroupInviteNotifications) " +
+                "WHERE UserId = @UserID", parameters);
 
         //update review table
         public Task UpdateReview(string reviewId, object parameters)

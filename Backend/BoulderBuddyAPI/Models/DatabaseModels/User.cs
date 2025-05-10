@@ -10,7 +10,7 @@ public class User
     public string UserName { get; set; }
     
     [JsonPropertyName("ProfileImage")]
-    public byte[] ProfileImage { get; set; } 
+    public byte[]? ProfileImage { get; set; } 
 
     [JsonPropertyName("FirstName")]
     public string FirstName { get; set; }
@@ -38,6 +38,9 @@ public class User
 
     [JsonPropertyName("Bio")]
     public string Bio { get; set; }
+
+    [JsonPropertyName("AccountType")]
+    public string AccountType { get; set; }
 
     //parameterless constructor
     public User() { }

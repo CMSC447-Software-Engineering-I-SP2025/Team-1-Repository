@@ -32,7 +32,7 @@ namespace BoulderBuddyAPI.Services
                         BoulderGradeUpperLimit TEXT,
                         RopeClimberLowerLimit TEXT,
                         RopeClimberUpperLimit TEXT,
-                        Bio TEXT
+                        Bio TEXT,
                         AccountType TEXT NOT NULL,
                         EnableReviewCommentNotifications TEXT NOT NULL DEFAULT ""enable"",
                         EnableGroupInviteNotifications TEXT NOT NULL DEFAULT ""enable"",
