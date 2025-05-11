@@ -248,6 +248,63 @@ namespace BoulderBuddyAPI.Tests.Controllers
             }
         }
 
+        [Fact]
+        public async Task SearchByAreaID_GivenValidArea_Returns200OkWithArea()
+        {
+            //read expected OpenBeta result from file
+            var jsonString = File.ReadAllText("TestResources/Area_ccee8a41-32ec-5a26-96f6-f8c2743423e3.json");
+            var expectedReturn = JsonSerializer.Deserialize<Area>(jsonString);
+
+            //setup mock SearchController
+            var mockLogger = new Mock<ILogger<SearchController>>();
+            var mockOBSQ = new Mock<IOpenBetaQueryService>();
+            mockOBSQ.Setup(m => m.QueryAreaByAreaID(It.IsAny<string>()))
+                .ReturnsAsync(expectedReturn);
+
+            var controller = new SearchController(mockLogger.Object, mockOBSQ.Object, null);
+
+            //act
+            var result = await controller.SearchByAreaID("ccee8a41-32ec-5a26-96f6-f8c2743423e3");
+
+            //verify HTTP status code 200 (response created via Ok() method)
+            Assert.IsType<OkObjectResult>(result);
+            var resultAsObjectResult = (OkObjectResult)result;
+            var resultArea = resultAsObjectResult.Value;
+
+            //deep equality by objects' public properties
+            Assert.Equivalent(expectedReturn, resultArea);
+        }
+
+
+        [Fact]
+        public async Task SearchByAreaID_GivenInvalidArea_Returns400BadRequestWithErrorMsg()
+        {
+            //read expected OpenBeta result from file
+            var jsonString = File.ReadAllText("TestResources/Area_ccee8a41-32ec-5a26-96f6-f8c2743423e3.json");
+            var expectedReturn = JsonSerializer.Deserialize<Area>(jsonString);
+
+            //setup mock SearchController
+            var mockLogger = new Mock<ILogger<SearchController>>();
+            var mockOBSQ = new Mock<IOpenBetaQueryService>();
+            mockOBSQ.Setup(m => m.QueryAreaByAreaID(It.IsAny<string>()))
+                .ThrowsAsync(new ArgumentException("msg"));
+
+            var controller = new SearchController(mockLogger.Object, mockOBSQ.Object, null);
+
+            //acts and asserts
+            string[] invalidAreaIDsToTry = ["string", "", null];
+            foreach (var invalid in invalidAreaIDsToTry)
+            {
+                var result = await controller.SearchByAreaID(invalid);
+
+                Assert.IsType<BadRequestObjectResult>(result);
+                var resultAsObjectResult = (BadRequestObjectResult)result;
+
+                var errMsg = resultAsObjectResult.Value;
+                Assert.IsType<string>(errMsg);
+            }
+        }
+
         //create a SearchController for unit testing valid states
         private SearchController SetupSearchControllerForValidStateTests(string testFilePath)
         {
