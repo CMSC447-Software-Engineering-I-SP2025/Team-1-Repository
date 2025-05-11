@@ -144,7 +144,6 @@ const MyProfilePage = ({ onSave }) => {
     onSave(updatedUser); // Call the onSave callback with updated user data
   };
 
-<<<<<<< HEAD
   return (
     authenticatedUser && (
       <div className={`min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-white ${fontSize}`}>
@@ -172,36 +171,6 @@ const MyProfilePage = ({ onSave }) => {
               </div>
             ))}
           </div>
-=======
-    return (authenticatedUser && (
-    authenticatedUser &&<div className="min-h-screen bg-gray-100">
-      <div className="max-w-4xl p-6 mx-auto mt-10 bg-white rounded-lg">
-        {/* Tabs */}
-        <div className="flex justify-between px-4 mb-6 border-b border-gray-300">
-          {["editProfile", "myClimbs", "reviews", "photos", "community"].map((tab) => (
-            <div
-              key={tab}
-              className={`relative pb-3 text-base font-medium transition-all duration-300 cursor-pointer ${
-                activeTab === tab
-                  ? "text-blue-600 border-b-4 border-blue-600"
-                  : "text-gray-500 hover:text-blue-600 hover:border-b-4 hover:border-blue-300"
-              }`}
-              onClick={() => setActiveTab(tab)}
-              style={{ flex: 1, textAlign: "center" }} // Ensure even spacing and alignment
-            >
-              {tab === "editProfile"
-                ? "Edit Profile"
-                : tab === "myClimbs"
-                ? "My Climbs"
-                : tab === "reviews"
-                ? "Reviews"
-                : tab === "photos"
-                ? "Photos"
-                : "Community"}
-            </div>
-          ))}
-        </div>
->>>>>>> 106f1ddba3a5f71167419478fcdfbd07d315bcbc
 
           {/* Tab Content */}
           {activeTab === "editProfile" && (
