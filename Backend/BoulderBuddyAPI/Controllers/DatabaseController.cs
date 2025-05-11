@@ -44,7 +44,8 @@ namespace BoulderBuddyAPI.Controllers
                     user.BoulderGradeUpperLimit,
                     user.RopeClimberLowerLimit,
                     user.RopeClimberUpperLimit,
-                    user.Bio
+                    user.Bio,
+                    user.AccountType
                 });
                 return Ok(new { message = "User created successfully" });
             }

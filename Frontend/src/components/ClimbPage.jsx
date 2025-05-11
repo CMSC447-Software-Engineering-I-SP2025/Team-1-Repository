@@ -3,13 +3,24 @@ import { Link } from "react-router-dom";
 import { useEffect } from "react";
 import { useState } from "react";
 import axios from "axios";
+import { FaHeart } from "react-icons/fa"; // Import heart icon from react-icons
+import useFavoriteClimbs from "./FavoriteClimbs"; // Use default import
 
-const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
+const ClimbPage = ({ selectedClimb, isLoggedIn, userId }) => {
   if (!selectedClimb) {
     return <div className="text-center text-gray-500">No climb selected</div>;
   }
 
   const [score, setScore] = useState("");
+  const [isFavorited, setIsFavorited] = useState(false); // State for toggling the heart icon
+  const { favoriteClimbs, toggleFavoriteClimb } = useFavoriteClimbs(); // Use the hook
+
+  const handleFavoriteToggle = async () => {
+    if (isLoggedIn) {
+      await toggleFavoriteClimb(selectedClimb, userId); // Toggle the favorite climb
+      setIsFavorited(!isFavorited); // Update the local state
+    }
+  };
 
   useEffect(() => {
     const fetchAvg = async () => {
@@ -35,6 +46,14 @@ const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
     <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-gradient-to-r from-blue-100 to-blue-200">
       <h1 className="text-5xl font-extrabold text-center text-gray-900">
         {selectedClimb.name}
+        {isLoggedIn && (
+          <FaHeart
+            className={`inline-block ml-4 cursor-pointer ${
+              isFavorited ? "text-red-500" : "text-gray-400"
+            }`}
+            onClick={handleFavoriteToggle} // Handle click event
+          />
+        )}
       </h1>
       <p className="mt-2 text-lg text-center text-gray-700">
         Area: {selectedClimb.area.areaName}

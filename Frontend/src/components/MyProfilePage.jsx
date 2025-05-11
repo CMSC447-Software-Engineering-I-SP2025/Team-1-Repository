@@ -28,11 +28,8 @@ const MyProfilePage = ({ onSave }) => {
   const [activeTab, setActiveTab] = useState("editProfile"); // State for active tab
   const [emailError, setEmailError] = useState(""); // State for email error
   const [phoneError, setPhoneError] = useState(""); // State for phone error
-<<<<<<< HEAD
   const [fontSize, setFontSize] = useState(() => localStorage.getItem("fontSize") || "text-base"); // State for font size
   const maxBioLength = 200; // Maximum character limit for bio
-=======
-    const maxBioLength = 200; // Maximum character limit for bio
 
     const [userRelation1] = useState({
         user1ID: "12345",
@@ -57,7 +54,6 @@ const MyProfilePage = ({ onSave }) => {
     });
 
     const [groupRelations, setGroupRelations] = useState([groupRelation1, groupRelation2]);
->>>>>>> 106f1ddba3a5f71167419478fcdfbd07d315bcbc
 
   useEffect(() => {
     if (!loading && authenticatedUser === null) {

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import { supabase } from "./lib/supabaseClient";
 import { UserProvider } from "./components/UserProvider";
 import LoginPage from "./components/LoginPage";
 import CreateReview from "./components/CreateReview";
@@ -21,7 +20,6 @@ import CreateEventPage from "./components/CreateEventPage";
 
 const App = () => {
   const [user, setUser] = useState(null);
-
   const [selectedClimb, setSelectedClimb] = useState(null);
   const [currentPage, setCurrentPage] = useState("home");
   const [selectedArea, setSelectedArea] = useState(null);
@@ -30,16 +28,7 @@ const App = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [recommendedClimbs, setRecommendedClimbs] = useState([]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [currentUser, setCurrentUser] = useState({
-    id: "12345",
-    firstName: "John",
-    lastName: "Doe",
-    email: "johndoe@example.com",
-    phone: "1234567890",
-    phoneCountry: "+1",
-    boulderGradeRange: { min: "V0", max: "V5" },
-    ropeGradeRange: { min: "5.8", max: "5.12" },
-  });
+  const [currentUser, setCurrentUser] = useState();
   const [stateName, setStateName] = useState("Maryland");
 
   const handleSaveUser = (updatedUser) => {
@@ -79,29 +68,6 @@ const App = () => {
       setRecommendedClimbs(selectedClimbs);
     }
   }, [areas]);
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      setUser(session?.user || null);
-      setIsLoggedIn(!!session?.user);
-    };
-
-    fetchUser();
-
-    const { data: subscription } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setUser(session?.user || null);
-        setIsLoggedIn(!!session?.user);
-      }
-    );
-
-    return () => {
-      subscription.unsubscribe(); // Correctly call unsubscribe
-    };
-  }, []);
 
   const handleHomeClick = () => {
     setCurrentPage("home");
