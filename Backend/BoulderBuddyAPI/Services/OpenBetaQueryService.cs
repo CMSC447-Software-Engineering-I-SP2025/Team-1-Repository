@@ -78,6 +78,8 @@ namespace BoulderBuddyAPI.Services
         //query OpenBeta API for a specific area by area ID
         public async Task<Area> QueryAreaByAreaID(string rootAreaID)
         {
+            if (rootAreaID is null)
+                throw new ArgumentException("Null root area.");
 
             //build HTTP data section for OpenBeta POST request
             QueryHTTPDataSection data = new QueryHTTPDataSection
@@ -120,7 +122,7 @@ namespace BoulderBuddyAPI.Services
                 area = decodedQueryResponse.data.area;
 
                 if (area is null)
-                    throw new ArgumentException("given area does not exist");
+                    throw new ArgumentException("Given area does not exist");
 
                 //cache this response
                 Directory.CreateDirectory(fullDirectory);
