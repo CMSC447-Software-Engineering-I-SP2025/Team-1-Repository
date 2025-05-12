@@ -14,22 +14,12 @@ const useFavoriteClimbs = (updateUserFavorites = () => {}) => {
       }
 
       try {
-        // Fetch favorite climb IDs
         const response = await axios.get("https://localhost:7195/api/Database/FavoriteClimb", {
           params: { userId: currentUser.id },
         });
-        const climbIds = response.data;
 
-        // Fetch climb details using the IDs
-        const climbDetailsPromises = climbIds.map((id) =>
-          axios.get(`https://localhost:7195/api/Database/ClimbDetails/${id}`)
-        );
-        const climbDetailsResponses = await Promise.all(climbDetailsPromises);
-
-        // Extract climb details
-        const climbs = climbDetailsResponses.map((res) => res.data);
-        setFavoriteClimbs(climbs);
-        updateUserFavorites(climbs); // Update parent state
+        setFavoriteClimbs(response.data);
+        updateUserFavorites(response.data); // Update parent state
       } catch (error) {
         console.error("Error fetching favorite climbs:", error);
       }
@@ -49,6 +39,7 @@ const useFavoriteClimbs = (updateUserFavorites = () => {}) => {
       await axios.post("https://localhost:7195/api/Database/FavoriteClimb", {
         userId: currentUser.id,
         climbId: climb.id,
+        parentAreaId: climb.parentAreaId,
       });
       const updatedFavorites = [...favoriteClimbs, climb];
       setFavoriteClimbs(updatedFavorites);

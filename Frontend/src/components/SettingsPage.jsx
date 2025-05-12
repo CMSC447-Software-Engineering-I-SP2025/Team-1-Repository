@@ -30,15 +30,6 @@ const SettingsPage = () => {
   const [groupInvites, setGroupInvites] = React.useState("enabled"); // Initialize groupInvites state
 
   useEffect(() => {
-    localStorage.setItem("theme", theme);
-    if (theme === "dark") {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, [theme]);
-
-  useEffect(() => {
     localStorage.setItem("fontSize", fontSize);
   }, [fontSize]);
 
@@ -104,9 +95,11 @@ const SettingsPage = () => {
     const settings = {
       userID: user.id,
       accountType: accountType,
-      enableReviewCommentNotifications: reviewComments,
-      enableGroupInviteNotifications: groupInvites,
+      enableReviewCommentNotifications: reviewComments === "enabled" ? "enable" : "disable",
+      enableGroupInviteNotifications: groupInvites === "enabled" ? "enable" : "disable",
     };
+
+    console.log("Settings payload:", settings); // Log the payload being sent
 
     try {
       const response = await axios.post("https://localhost:7195/api/Database/UpdateUserSettings", settings);
@@ -360,13 +353,7 @@ const SettingsPage = () => {
       case "notifications":
         return (
           <>
-            <div className="mb-6">
-              <label className="block mb-2 text-sm font-medium text-gray-700">Email Notifications</label>
-              <select className="w-full px-4 py-2 border border-gray-300 rounded">
-                <option value="enabled">Enabled</option>
-                <option value="disabled">Disabled</option>
-              </select>
-            </div>
+            {/* Group Invite Notifications */}
             <div className="mb-6">
               <label className="block mb-2 text-sm font-medium text-gray-700">Group Invite Notifications</label>
               <select
@@ -378,6 +365,7 @@ const SettingsPage = () => {
                 <option value="disabled">Disabled</option>
               </select>
             </div>
+            {/* Review Comments Notifications */}
             <div className="mb-6">
               <label className="block mb-2 text-sm font-medium text-gray-700">Receive Review Comments Notifications</label>
               <select

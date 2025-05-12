@@ -300,9 +300,21 @@ const MyProfilePage = ({
             ) : (
               <ul className="space-y-4">
                 {favoriteClimbs.map((climb) => (
-                  <li key={climb.id} className="p-4 bg-gray-100 rounded shadow">
-                    <h3 className="text-lg font-semibold">{climb.name}</h3>
-                    <p className="text-gray-700">{climb.area?.areaName || "Unknown Area"}</p>
+                  <li
+                    key={climb.id}
+                    className="p-4 bg-gray-100 rounded shadow flex justify-between items-center"
+                  >
+                    <div>
+                      <h3 className="text-lg font-semibold">{climb.name}</h3>
+                      <p className="text-gray-700 text-sm">Area ID: {climb.parentAreaId}</p>
+                    </div>
+                    <button
+                      onClick={() => toggleFavoriteClimb(climb)}
+                      className="text-red-500 text-2xl focus:outline-none"
+                      title="Toggle Favorite"
+                    >
+                      {favoriteClimbs.some((fav) => fav.id === climb.id) ? "♥" : "♡"}
+                    </button>
                   </li>
                 ))}
               </ul>
