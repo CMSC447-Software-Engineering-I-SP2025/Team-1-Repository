@@ -3,7 +3,7 @@ import { supabase } from "../lib/supabaseClient";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "./UserProvider";
 
-const LoginPage = ({ OnLoginClick, setCurrentPage }) => {
+const LoginPage = ({ OnLoginClick, setCurrentPage, setCurrentUser = () => {} }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -34,7 +34,8 @@ const LoginPage = ({ OnLoginClick, setCurrentPage }) => {
       if (profileError) {
         console.error("Error fetching profile:", profileError.message);
       } else {
-        OnLoginClick("profile"); // Navigate to the profile page
+        setCurrentUser(profileData); // Update currentUser state
+        setCurrentPage("profile"); // Navigate to the profile page
       }
     }
   };

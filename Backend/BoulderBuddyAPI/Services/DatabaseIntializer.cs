@@ -65,7 +65,8 @@ namespace BoulderBuddyAPI.Services
                         UserId TEXT NOT NULL,
                         ClimbId TEXT NOT NULL,
                         PRIMARY KEY (UserId, ClimbId),
-                        FOREIGN KEY (UserId) REFERENCES User(UserId)
+                        FOREIGN KEY (UserId) REFERENCES User(UserId),
+                        FOREIGN KEY (ClimbId) REFERENCES Climb(id)
                     );
 
                     CREATE TABLE IF NOT EXISTS ClimbGroup (
