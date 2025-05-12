@@ -432,6 +432,20 @@ namespace BoulderBuddyAPI.Controllers
             }
         }
 
+        [HttpGet("group/{groupId}/events")]
+        public async Task<IActionResult> GetEventsByGroupId(string groupId)
+        {
+            try
+            {
+                var events = await _databaseService.GetEventsByGroupId(groupId);
+                return Ok(events);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
         // DELETE methods for deleting data from the database
 
         [HttpDelete("users/{userId}")]
@@ -727,8 +741,7 @@ namespace BoulderBuddyAPI.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
-
-        //group functions
+        
         
     }
 }
@@ -802,5 +815,8 @@ namespace BoulderBuddyAPI.Services
 
         //method for getting user by ID
         Task<User> GetUserById(string userId);
+
+        //method for getting events by group ID
+        Task<List<ClimbGroupEvent>> GetEventsByGroupId(string groupId);
     }
 }

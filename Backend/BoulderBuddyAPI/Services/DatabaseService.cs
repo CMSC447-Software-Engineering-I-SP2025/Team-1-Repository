@@ -829,5 +829,24 @@ namespace BoulderBuddyAPI.Services
         
             return result.FirstOrDefault() ?? throw new Exception($"User with ID {userId} not found.");
         }
+
+        //get event by group id
+        public Task<List<ClimbGroupEvent>> GetEventsByGroupId(string groupId)
+        {
+            return ExecuteSelectCommand<ClimbGroupEvent>(@"
+                SELECT 
+                    EventId, 
+                    GroupId, 
+                    EventName, 
+                    EventDescription, 
+                    EventDate, 
+                    EventTime, 
+                    EventLocation, 
+                    EventImage
+                FROM ClimbGroupEvent
+                WHERE GroupId = @GroupId;",
+                new { GroupId = groupId });
+        }
+        
     }
 }
