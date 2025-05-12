@@ -42,6 +42,12 @@ public class User
     [JsonPropertyName("AccountType")]
     public string AccountType { get; set; }
 
+    [JsonPropertyName("EnableReviewCommentNotifications")]
+    public string EnableReviewCommentNotifications { get; set; }
+
+    [JsonPropertyName("EnableGroupInviteNotifications")]
+    public string EnableGroupInviteNotifications { get; set; }
+
     //parameterless constructor
     public User() { }
 }

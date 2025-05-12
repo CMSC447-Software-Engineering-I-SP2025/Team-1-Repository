@@ -800,7 +800,8 @@ namespace BoulderBuddyAPI.Services
                 SELECT 
                     UserId, UserName, ProfileImage, FirstName, LastName, Email, PhoneNumber, 
                     BoulderGradeLowerLimit, BoulderGradeUpperLimit, 
-                    RopeClimberLowerLimit, RopeClimberUpperLimit, Bio
+                    RopeClimberLowerLimit, RopeClimberUpperLimit, Bio, AccountType,
+                    EnableReviewCommentNotifications, EnableGroupInviteNotifications
                 FROM User
                 WHERE UserId = @UserId;",
                 new { UserId = userId }).ContinueWith(task => task.Result.FirstOrDefault());
