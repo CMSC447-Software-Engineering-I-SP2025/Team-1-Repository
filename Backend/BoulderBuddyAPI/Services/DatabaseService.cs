@@ -1,3 +1,4 @@
+using BoulderBuddyAPI.Models;
 using BoulderBuddyAPI.Models.DatabaseModels;
 using Microsoft.Data.Sqlite;
 
@@ -104,8 +105,8 @@ namespace BoulderBuddyAPI.Services
                 VALUES (@UserId, @BadgeId);", parameters);
         public Task InsertIntoFavoriteClimbTable(object parameters) =>
             ExecuteInsertCommand(@"
-                INSERT INTO FavoriteClimb (UserId, ClimbId)
-                VALUES (@UserId, @ClimbId)", parameters);
+                INSERT INTO FavoriteClimb (UserId, ClimbId, ParentAreaId)
+                VALUES (@UserId, @ClimbId, @ParentAreaId)", parameters);
 
         //******Handle images and blobs******//
 
@@ -290,8 +291,8 @@ namespace BoulderBuddyAPI.Services
                     BadgeRelationId, UserId, BadgeId 
                 FROM BadgeRelation;", new object());
 
-        public Task<List<FavoriteClimb>> GetFavoriteClimbs(string UserID) =>
-            ExecuteSelectCommand<FavoriteClimb>($"SELECT * FROM FavoriteClimb WHERE userId = '{UserID}';", new object());
+        public Task<List<ClimbAndParentAreaIDs>> GetFavoriteClimbs(string UserID) =>
+            ExecuteSelectCommand<ClimbAndParentAreaIDs>($"SELECT * FROM FavoriteClimb WHERE userId = '{UserID}';", new object());
 
         //excute update command
         public async Task ExecuteUpdateCommand(string commandText, object parameters)
@@ -591,7 +592,7 @@ namespace BoulderBuddyAPI.Services
         public Task DeleteFromBadgeRelationTable(string userId, string badgeId) =>
             ExecuteDeleteCommand("DELETE FROM BadgeRelation WHERE UserId = @UserId AND BadgeId = @BadgeId;", new { UserId = userId, BadgeId = badgeId });
 
-        public Task DeleteFromFavoriteClimbTable(FavoriteClimb parameters) =>
+        public Task DeleteFromFavoriteClimbTable(ClimbAndUserIDs parameters) =>
             ExecuteDeleteCommand(@"DELETE FROM FavoriteClimb WHERE userId = @UserId AND climbId = @ClimbId;", parameters);
 
         //for testing purposes only

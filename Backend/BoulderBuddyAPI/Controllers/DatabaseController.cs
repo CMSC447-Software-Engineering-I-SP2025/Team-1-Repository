@@ -3,6 +3,8 @@ using BoulderBuddyAPI.Services;
 using Microsoft.Extensions.Configuration;
 using System;
 using BoulderBuddyAPI.Models.DatabaseModels;
+using BoulderBuddyAPI.Models;
+
 
 namespace BoulderBuddyAPI.Controllers
 {
@@ -432,8 +434,7 @@ namespace BoulderBuddyAPI.Controllers
             try
             {
                 var favorites = await _databaseService.GetFavoriteClimbs(userID);
-                var climbIDs = favorites.Select(f => f.ClimbId).ToList(); //we already know userID, we only need to return climbID
-                return Ok(climbIDs);
+                return Ok(favorites);
             }
             catch (Exception ex)
             {
@@ -785,7 +786,7 @@ namespace BoulderBuddyAPI.Controllers
 
 
         [HttpDelete("FavoriteClimb")]
-        public async Task<IActionResult> DeleteFavoriteClimb(FavoriteClimb favorite)
+        public async Task<IActionResult> DeleteFavoriteClimb(ClimbAndUserIDs favorite)
         {
             try
             {
@@ -873,8 +874,8 @@ namespace BoulderBuddyAPI.Services
         //method for getting user by ID
         Task<User> GetUserById(string userId);
         
-        Task<List<FavoriteClimb>> GetFavoriteClimbs(string UserID);
+        Task<List<ClimbAndParentAreaIDs>> GetFavoriteClimbs(string UserID);
         Task UpdateUserSettings(object parameters);
-        Task DeleteFromFavoriteClimbTable(FavoriteClimb favorite);
+        Task DeleteFromFavoriteClimbTable(ClimbAndUserIDs favorite);
     }
 }

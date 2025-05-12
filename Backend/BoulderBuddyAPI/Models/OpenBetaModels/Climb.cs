@@ -7,5 +7,6 @@
         public ClimbMetadata metadata { get; set; }
         public string name { get; set; }
         public string safety { get; set; }
+        public ClimbTypes type { get; set; }
     }
 }

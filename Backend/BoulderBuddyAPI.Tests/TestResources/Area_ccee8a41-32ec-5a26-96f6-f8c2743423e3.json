@@ -1,0 +1,27 @@
+{
+    "areaName": "Rockwood Park / Greenway Trail",
+    "children": [],
+    "climbs": [
+        {
+            "grades": {
+                "font": "4+",
+                "french": null,
+                "vscale": "V0-1",
+                "yds": "V0-1"
+            },
+            "id": "eb4181d2-58d8-5306-a1ac-7785f4651858",
+            "metadata": {
+                "lat": 39.77404,
+                "lng": -75.51579
+            },
+            "name": "Rib Cage",
+            "safety": "UNSPECIFIED"
+        }
+    ],
+    "id": "6467a654e622317bdb33da17",
+    "metadata": {
+        "lat": 39.77404,
+        "lng": -75.51579,
+        "areaId": "ccee8a41-32ec-5a26-96f6-f8c2743423e3"
+    }
+}
