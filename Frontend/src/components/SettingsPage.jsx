@@ -26,8 +26,8 @@ const SettingsPage = () => {
   const [showDeletePassword, setShowDeletePassword] = React.useState(false);
   const [isDeleteConfirmed, setIsDeleteConfirmed] = React.useState(false); // Track secondary confirmation
   const [accountType, setAccountType] = React.useState("public"); // Track account type
-  const [reviewComments, setReviewComments] = React.useState("enabled"); // Track review comments setting
-  const [groupInvites, setGroupInvites] = React.useState("enabled"); // Initialize groupInvites state
+  const [reviewComments, setReviewComments] = React.useState("enable"); // Track review comments setting
+  const [groupInvites, setGroupInvites] = React.useState("enable"); // Initialize groupInvites state
 
   useEffect(() => {
     localStorage.setItem("fontSize", fontSize);
@@ -95,8 +95,8 @@ const SettingsPage = () => {
     const settings = {
       userID: user.id,
       accountType: accountType,
-      enableReviewCommentNotifications: reviewComments === "enabled" ? "enable" : "disable",
-      enableGroupInviteNotifications: groupInvites === "enabled" ? "enable" : "disable",
+      enableReviewCommentNotifications: reviewComments,
+      enableGroupInviteNotifications: groupInvites 
     };
 
     console.log("Settings payload:", settings); // Log the payload being sent
@@ -115,7 +115,6 @@ const SettingsPage = () => {
     { key: "account", label: "Account & Security" },
     { key: "appearance", label: "Appearance" },
     { key: "notifications", label: "Notifications" },
-    //{ key: "support", label: "Feedback & Support" },
   ];
 
   const checkPasswordRules = (password) => {
@@ -361,8 +360,8 @@ const SettingsPage = () => {
                 value={groupInvites}
                 onChange={(e) => setGroupInvites(e.target.value)}
               >
-                <option value="enabled">Enabled</option>
-                <option value="disabled">Disabled</option>
+                <option value="enable">Enabled</option>
+                <option value="disable">Disabled</option>
               </select>
             </div>
             {/* Review Comments Notifications */}
@@ -373,8 +372,8 @@ const SettingsPage = () => {
                 value={reviewComments}
                 onChange={(e) => setReviewComments(e.target.value)}
               >
-                <option value="enabled">Enabled</option>
-                <option value="disabled">Disabled</option>
+                <option value="enable">Enabled</option>
+                <option value="disable">Disabled</option>
               </select>
             </div>
           </>
