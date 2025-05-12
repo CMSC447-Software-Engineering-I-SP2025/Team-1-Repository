@@ -308,11 +308,14 @@ namespace BoulderBuddyAPI.Controllers
         {
             try
             {
+                Console.WriteLine($"Fetching user relations for userId: {userId}");
                 var userRelations = await _databaseService.GetUserRelationsForUser(userId);
+                Console.WriteLine($"Fetched {userRelations.Count} user relations.");
                 return Ok(userRelations);
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"Error fetching user relations: {ex.Message}");
                 return StatusCode(500, new { message = ex.Message });
             }
         }
