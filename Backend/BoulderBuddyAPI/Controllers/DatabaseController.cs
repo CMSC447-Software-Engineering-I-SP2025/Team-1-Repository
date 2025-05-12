@@ -446,6 +446,20 @@ namespace BoulderBuddyAPI.Controllers
             }
         }
 
+        [HttpGet("route/{routeId}/pictures")]
+        public async Task<IActionResult> GetPicturesByRouteId(string routeId)
+        {
+            try
+            {
+                var pictures = await _databaseService.GetPicturesByRouteId(routeId);
+                return Ok(pictures);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
         // DELETE methods for deleting data from the database
 
         [HttpDelete("users/{userId}")]
@@ -818,5 +832,8 @@ namespace BoulderBuddyAPI.Services
 
         //method for getting events by group ID
         Task<List<ClimbGroupEvent>> GetEventsByGroupId(string groupId);
+
+        //method for getting pictures by route ID
+        Task<List<Picture>> GetPicturesByRouteId(string routeId);
     }
 }
