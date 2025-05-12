@@ -30,6 +30,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="TestResources\Climb_882ce4a9-0acf-5fbf-b7db-99448873c568.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="TestResources\ColoradoResponse.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

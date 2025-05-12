@@ -248,6 +248,62 @@ namespace BoulderBuddyAPI.Tests.Controllers
             }
         }
 
+        [Fact]
+        public async Task SearchByClimbID_GivenValidClimb_Returns200OkWithClimb()
+        {
+            //read expected OpenBeta result from file
+            var jsonString = File.ReadAllText("TestResources/Climb_882ce4a9-0acf-5fbf-b7db-99448873c568.json");
+            var expectedReturn = JsonSerializer.Deserialize<Climb>(jsonString);
+
+            //setup mock SearchController
+            var mockLogger = new Mock<ILogger<SearchController>>();
+            var mockOBSQ = new Mock<IOpenBetaQueryService>();
+            mockOBSQ.Setup(m => m.QueryClimbByClimbID(It.IsAny<string>()))
+                .ReturnsAsync(expectedReturn);
+
+            var controller = new SearchController(mockLogger.Object, mockOBSQ.Object, null);
+
+            //act
+            var result = await controller.SearchByClimbID("882ce4a9-0acf-5fbf-b7db-99448873c568");
+
+            //verify HTTP status code 200 (response created via Ok() method)
+            Assert.IsType<OkObjectResult>(result);
+            var resultAsObjectResult = (OkObjectResult)result;
+            var resultClimb = resultAsObjectResult.Value;
+
+            //deep equality by objects' public properties
+            Assert.Equivalent(expectedReturn, resultClimb);
+        }
+
+        [Fact]
+        public async Task SearchByClimbID_GivenInvalidArea_Returns400BadRequestWithErrorMsg()
+        {
+            //read expected OpenBeta result from file
+            var jsonString = File.ReadAllText("TestResources/Climb_882ce4a9-0acf-5fbf-b7db-99448873c568.json");
+            var expectedReturn = JsonSerializer.Deserialize<Area>(jsonString);
+
+            //setup mock SearchController
+            var mockLogger = new Mock<ILogger<SearchController>>();
+            var mockOBSQ = new Mock<IOpenBetaQueryService>();
+            mockOBSQ.Setup(m => m.QueryClimbByClimbID(It.IsAny<string>()))
+                .ThrowsAsync(new ArgumentException("msg"));
+
+            var controller = new SearchController(mockLogger.Object, mockOBSQ.Object, null);
+
+            //acts and asserts
+            string[] invalidClimbIDsToTry = ["string", "", null];
+            foreach (var invalid in invalidClimbIDsToTry)
+            {
+                var result = await controller.SearchByClimbID("882ce4a9-0acf-5fbf-b7db-99448873c568");
+
+                Assert.IsType<BadRequestObjectResult>(result);
+                var resultAsObjectResult = (BadRequestObjectResult)result;
+
+                var errMsg = resultAsObjectResult.Value;
+                Assert.IsType<string>(errMsg);
+            }
+        }
+
         //create a SearchController for unit testing valid states
         private SearchController SetupSearchControllerForValidStateTests(string testFilePath)
         {
