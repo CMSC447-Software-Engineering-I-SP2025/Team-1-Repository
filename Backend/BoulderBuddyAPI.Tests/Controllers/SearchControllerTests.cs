@@ -289,6 +289,43 @@ namespace BoulderBuddyAPI.Tests.Controllers
             }
         }
 
+        [Fact]
+        public async Task SearchByAreaAndClimbID_GivenValidParams_Returns200OkWithOneClimb()
+        {
+            //read expected OpenBeta result from file
+            var jsonString = File.ReadAllText("TestResources/Area_ccee8a41-32ec-5a26-96f6-f8c2743423e3.json");
+            var expectedReturn = JsonSerializer.Deserialize<Area>(jsonString);
+
+            //setup mock SearchController
+            var mockLogger = new Mock<ILogger<SearchController>>();
+            var mockOBSQ = new Mock<IOpenBetaQueryService>();
+            mockOBSQ.Setup(m => m.QueryAreaByAreaID(It.IsAny<string>()))
+                .ReturnsAsync(expectedReturn);
+
+            var controller = new SearchController(mockLogger.Object, mockOBSQ.Object, null);
+            var arg = new ClimbAndParentAreaIDs()
+            {
+                ClimbId = "eb4181d2-58d8-5306-a1ac-7785f4651858",
+                ParentAreaId = "ccee8a41-32ec-5a26-96f6-f8c2743423e3"
+            };
+
+            //act
+            var result = await controller.SearchByAreaAndClimbID(arg);
+
+            //verify HTTP status code 200 (response created via Ok() method)
+            Assert.IsType<OkObjectResult>(result);
+            var resultAsObjectResult = (OkObjectResult)result;
+
+            //verify Area and its climbs list exist
+            var resultArea = (Area?) (resultAsObjectResult.Value);
+            Assert.NotNull(resultArea);
+            Assert.NotNull(resultArea.climbs);
+
+            //verify Area and Climb IDs are correct
+            Assert.Equal("ccee8a41-32ec-5a26-96f6-f8c2743423e3", resultArea.metadata.areaId);
+            Assert.Single(resultArea.climbs);
+            Assert.Equal("eb4181d2-58d8-5306-a1ac-7785f4651858", resultArea.climbs.First().id);
+        }
 
         [Fact]
         public async Task SearchByAreaAndClimbID_GivenInvalidParams_Returns400BadRequestWithErrorMsg()
