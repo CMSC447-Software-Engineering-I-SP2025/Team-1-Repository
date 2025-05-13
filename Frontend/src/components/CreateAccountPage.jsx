@@ -104,7 +104,9 @@ const CreateAccountPage = ({ setCurrentPage }) => {
         RopeClimberLowerLimit: "",
         RopeClimberUpperLimit: "",
         Bio: "",
-        AccountType: "public"
+        AccountType: "public",
+        EnableReviewCommentNotifications: "enable",
+        EnableGroupInviteNotifications: "enable"
       };
 
       try {

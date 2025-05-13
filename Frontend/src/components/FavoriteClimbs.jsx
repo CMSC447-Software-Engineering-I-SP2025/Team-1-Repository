@@ -1,14 +1,14 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { useUser } from "./UserProvider"; // Use the custom hook from UserProvider
+import { useUser } from "./UserProvider";
 
 const useFavoriteClimbs = (updateUserFavorites = () => {}) => {
-  const { user: currentUser } = useUser(); // Access currentUser using useUser hook
+  const { user: currentUser } = useUser();
   const [favoriteClimbs, setFavoriteClimbs] = useState([]);
 
   useEffect(() => {
     const fetchFavoriteClimbs = async () => {
-      if (!currentUser || !currentUser.id) {
+      if (!currentUser?.id) {
         console.error("User is not logged in. Cannot fetch favorite climbs.");
         return;
       }
@@ -18,87 +18,71 @@ const useFavoriteClimbs = (updateUserFavorites = () => {}) => {
           params: { userId: currentUser.id },
         });
 
-        setFavoriteClimbs(response.data);
-        updateUserFavorites(response.data); // Update parent state
+        setFavoriteClimbs(simplifiedFavorites);
+        updateUserFavorites(simplifiedFavorites);
       } catch (error) {
         console.error("Error fetching favorite climbs:", error);
       }
     };
 
     fetchFavoriteClimbs();
-  }, [updateUserFavorites, currentUser]); // Ensure it runs when updateUserFavorites or currentUser changes
+  }, [updateUserFavorites, currentUser]);
 
   const addFavoriteClimb = async (climb) => {
-    if (!currentUser || !currentUser.id) {
-      console.error("User is not logged in. Cannot add favorite climb.");
-      return;
-    }
+    if (!currentUser?.id) return;
 
     try {
-      console.log("Adding favorite climb with userId:", currentUser.id, "and climbId:", climb.id);
       await axios.post("https://localhost:7195/api/Database/FavoriteClimb", {
         userId: currentUser.id,
         climbId: climb.id,
         parentAreaId: climb.parentAreaId,
       });
-      const updatedFavorites = [...favoriteClimbs, climb];
-      setFavoriteClimbs(updatedFavorites);
-      updateUserFavorites(updatedFavorites); // Update parent state
+
+      const updated = [...favoriteClimbs, climb];
+      setFavoriteClimbs(updated);
+      updateUserFavorites(updated);
     } catch (error) {
       console.error("Error adding favorite climb:", error);
     }
   };
 
   const removeFavoriteClimb = async (climbId) => {
-    if (!currentUser || !currentUser.id) return;
+    if (!currentUser?.id) return;
 
     try {
-      console.log("Removing favorite climb with userId:", currentUser.id, "and climbId:", climbId);
       await axios.delete("https://localhost:7195/api/Database/FavoriteClimb", {
         data: {
           userId: currentUser.id,
-          climbId: climbId,
+          climbId,
         },
       });
 
-      setFavoriteClimbs((prev) =>
-        prev.filter((fav) => fav.id !== climbId)
-      );
-      updateUserFavorites(
-        favoriteClimbs.filter((fav) => fav.id !== climbId)
-      );
+      const updated = favoriteClimbs.filter((fav) => fav.id !== climbId);
+      setFavoriteClimbs(updated);
+      updateUserFavorites(updated);
     } catch (error) {
       console.error("Error removing favorite climb:", error);
     }
   };
 
   const toggleFavoriteClimb = async (climb) => {
-    if (!currentUser || !currentUser.id) {
-      console.error("User is not logged in. Cannot toggle favorite climb.");
-      return;
-    }
+    if (!currentUser?.id) return;
 
-    const isAlreadyFavorite = favoriteClimbs.some((fav) => fav.id === climb.id);
+    const isFavorite = favoriteClimbs.some((fav) => fav.id === climb.id);
 
-    try {
-      if (isAlreadyFavorite) {
-        // Update state first to ensure UI reflects changes immediately
-        setFavoriteClimbs((prev) => prev.filter((fav) => fav.id !== climb.id));
-        updateUserFavorites(
-          favoriteClimbs.filter((fav) => fav.id !== climb.id)
-        );
-        await removeFavoriteClimb(climb.id);
-      } else {
-        // Update state first to ensure UI reflects changes immediately
-        setFavoriteClimbs((prev) => [...prev, climb]);
-        updateUserFavorites([...favoriteClimbs, climb]);
-        await addFavoriteClimb(climb);
-      }
-
-      // Debugging log to verify state update
-      console.log("Updated favoriteClimbs state:", favoriteClimbs);
-    } catch (error) {
-      console.error("Error toggling favorite climb:", error);
+    if (isFavorite) {
+      setFavoriteClimbs((prev) => prev.filter((fav) => fav.id !== climb.id));
+      updateUserFavorites(favoriteClimbs.filter((fav) => fav.id !== climb.id));
+      await removeFavoriteClimb(climb.id);
+    } else {
+      const newClimb = {
+        id: climb.id,
+        parentAreaId: climb.parentAreaId,
+        name: climb.name,
+      };
+      setFavoriteClimbs((prev) => [...prev, newClimb]);
+      updateUserFavorites([...favoriteClimbs, newClimb]);
+      await addFavoriteClimb(newClimb);
     }
   };
 
