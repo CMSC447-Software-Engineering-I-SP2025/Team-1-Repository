@@ -863,6 +863,21 @@ namespace BoulderBuddyAPI.Services
                 WHERE RouteId = @RouteId;",
                 new { RouteId = routeId });
         }
+
+        //get picture by user id
+        public Task<List<Picture>> GetPicturesByUserId(string userId)
+        {
+            return ExecuteSelectCommand<Picture>(@"
+                SELECT 
+                    PictureId, 
+                    UserId, 
+                    RouteId, 
+                    Image, 
+                    UploadDate
+                FROM Picture
+                WHERE UserId = @UserId;",
+                new { UserId = userId });
+        }
         
     }
 }
