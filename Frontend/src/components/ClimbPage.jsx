@@ -2,10 +2,127 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import { useUser } from "./UserProvider";
-import useFavoriteClimbs from "./FavoriteClimbs"; // Import the hook
 
 const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
   const { user: currentUser } = useUser(); // Access currentUser using useUser hook
+  const [favoriteClimbs, setFavoriteClimbs] = useState([]);
+
+  useEffect(() => {
+    const fetchFavoriteClimbs = async () => {
+      if (!currentUser?.id) {
+        console.error("User is not logged in. Cannot fetch favorite climbs.");
+        return;
+      }
+
+      try {
+        const response = await axios.get(
+          "https://localhost:7195/api/Database/FavoriteClimb",
+          {
+            params: { userId: currentUser.id },
+          }
+        );
+
+        const simplifiedFavorites = response.data.map((climb) => ({
+          id: climb.id,
+          parentAreaId: climb.parentAreaId,
+          name: climb.name,
+        }));
+
+        console.log("Fetched favorite climbs:", simplifiedFavorites);
+        setFavoriteClimbs(simplifiedFavorites);
+      } catch (error) {
+        console.error("Error fetching favorite climbs:", error);
+      }
+    };
+
+    fetchFavoriteClimbs();
+  }, [currentUser]);
+
+  const addFavoriteClimb = async (climb) => {
+    if (!currentUser?.id) {
+      console.error("User is not logged in. Cannot add favorite climb.");
+      return;
+    }
+
+    // Fetch parentAreaId if undefined
+    if (!climb?.parentAreaId) {
+      try {
+        console.log("Fetching parentAreaId for climb ID:", climb.id);
+        const response = await axios.get(
+          `https://localhost:7195/api/Database/GetParentAreaIdByClimbId`,
+          { params: { climbId: climb.id } }
+        );
+        climb.parentAreaId = response.data.parentAreaId;
+        console.log("Fetched parentAreaId:", climb.parentAreaId);
+      } catch (error) {
+        console.error("Error fetching parentAreaId:", error);
+        return;
+      }
+    }
+
+    // Validate climb object
+    if (!climb?.id || !climb?.parentAreaId || !climb?.name) {
+      console.error("Invalid climb object:", climb);
+      return;
+    }
+
+    try {
+      console.log("Adding favorite climb with payload:", {
+        userId: currentUser.id,
+        climbId: climb.id,
+        parentAreaId: climb.parentAreaId,
+      });
+
+      await axios.post("https://localhost:7195/api/Database/FavoriteClimb", {
+        userId: currentUser.id,
+        climbId: climb.id,
+        parentAreaId: climb.parentAreaId,
+      });
+
+      setFavoriteClimbs((prev) => [...prev, climb]);
+      console.log("Successfully added favorite climb:", climb);
+    } catch (error) {
+      console.error("Error adding favorite climb:", error);
+    }
+  };
+
+  const removeFavoriteClimb = async (climbId) => {
+    if (!currentUser?.id) return;
+
+    try {
+      await axios.delete("https://localhost:7195/api/Database/FavoriteClimb", {
+        data: {
+          userId: currentUser.id,
+          climbId,
+        },
+      });
+
+      setFavoriteClimbs((prev) => prev.filter((fav) => fav.id !== climbId));
+    } catch (error) {
+      console.error("Error removing favorite climb:", error);
+    }
+  };
+
+  const toggleFavoriteClimb = async (climb) => {
+    if (!currentUser?.id) return;
+
+    const isFavorite = favoriteClimbs.some((fav) => fav.id === climb.id);
+
+    if (isFavorite) {
+      setFavoriteClimbs((prev) => prev.filter((fav) => fav.id !== climb.id));
+      await removeFavoriteClimb(climb.id);
+    } else {
+      const newClimb = {
+        id: climb.id,
+        parentAreaId: climb.parentAreaId,
+        name: climb.name,
+      };
+      setFavoriteClimbs((prev) => [...prev, newClimb]);
+      await addFavoriteClimb(newClimb);
+    }
+  };
+
+  const isFavorite = favoriteClimbs.some((fav) => fav.id === selectedClimb?.id);
   if (!selectedClimb) {
     return <div className="text-center text-gray-500">No climb selected</div>;
   }
@@ -22,8 +139,6 @@ const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
   const [description, setDescription] = useState("");
   const [hasReviewed, setHasReviewed] = useState(false);
 
-  const { favoriteClimbs, toggleFavoriteClimb } = useFavoriteClimbs();
-  const isFavorite = favoriteClimbs.some((fav) => fav.id === selectedClimb.id);
 
   const renderStars = (rating) => {
     const fullStars = Math.floor(rating);

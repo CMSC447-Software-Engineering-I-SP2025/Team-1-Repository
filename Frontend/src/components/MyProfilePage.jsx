@@ -5,7 +5,6 @@ import defaultProfilePic from "../../assets/default-profile.jpg";
 import { Link } from "react-router-dom";
 import { useUser } from "./UserProvider";
 import axios from "axios";
-import useFavoriteClimbs from "./FavoriteClimbs"; // Import the hook
 
 const MyProfilePage = ({
   onSave,
