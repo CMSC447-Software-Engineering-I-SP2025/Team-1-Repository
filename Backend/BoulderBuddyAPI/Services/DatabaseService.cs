@@ -844,8 +844,7 @@ namespace BoulderBuddyAPI.Services
                     EventLocation, 
                     EventImage
                 FROM ClimbGroupEvent
-                WHERE GroupId = @GroupId
-                ORDER BY EventDate ASC;",
+                WHERE GroupId = @GroupId;",
                 new { GroupId = groupId });
         }
 
