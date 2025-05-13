@@ -30,7 +30,7 @@ const MyProfilePage = ({ onSave }) => {
   const [phoneError, setPhoneError] = useState(""); // State for phone error
     const maxBioLength = 200; // Maximum character limit for bio
 
-    const [userRelation1] = useState({
+    /*const [userRelation1] = useState({
         user1ID: "12345",
         user2ID: "2",
         relationType: "pending_user1"
@@ -39,9 +39,9 @@ const MyProfilePage = ({ onSave }) => {
         user1ID: "12345",
         user2ID: "1",
         relationType: "friends"
-    });
+    });*/
 
-    const [userRelations, setUserRelations] = useState([userRelation1, userRelation2]);
+    const [userRelations, setUserRelations] = useState();//useState([userRelation1, userRelation2]);
 
     const [groupRelation1] = useState({
         groupID: "1",
@@ -63,6 +63,78 @@ const MyProfilePage = ({ onSave }) => {
   useEffect(() => {
     window.scrollTo(0, 0); // Scroll to the top of the page
   }, []);
+
+  useEffect(() => {
+
+        const fetchFriends = async (userID) => {
+            try {
+                console.log("User ID Friends are being gotten for:", userID);
+                
+                const url = `https://localhost:7195/api/Database/userRelations/${encodeURIComponent(userID)}`
+                const response = await axios.get(
+                    url
+                );
+                console.log("API Response:", response.data);
+                setUserRelations(response.data);
+            } catch (err) {
+                console.error("Failed to fetch friends:", err);
+                //setError("Could not load friends.");
+            }
+        };
+
+        fetchFriends(user.id);
+  }, [user.id]);
+
+    useEffect(() => {
+
+        const fetchGroups = async (userID) => {
+            try {
+                console.log("User ID groups are being fetched for:", userID);
+
+                const url = `https://localhost:7195/api/Database/groupsByUser/${encodeURIComponent(userID)}`
+                const response = await axios.get(
+                    url
+                );
+                console.log("API Response:", response.data);
+                setGroupRelations(response.data);
+            } catch (err) {
+                console.error("Failed to fetch groups:", err);
+                //setError("Could not load groups.");
+            }
+        };
+
+        //fetchGroups(user.id);
+    }, [user.id]);
+
+    const acceptFriendRequest = async (senderID, receiverID) => {
+        try {
+            console.log("Accepting friend request from: ", senderID, " to: ", receiverID);
+
+            const url = `https://localhost:7195/api/Database/acceptFriendRequest?senderUserId=${encodeURIComponent(senderID)}&receiverUserId=${encodeURIComponent(receiverID)}`
+            const response = await axios.post(
+                url
+            );
+            console.log("API Response:", response.data);
+            setGroupRelations(response.data);
+        } catch (err) {
+            console.error("Failed accept friend request:", err);
+        }
+    };
+
+    const rejectFriendRequest = async (senderID, receiverID) => {
+        try {
+            console.log("rejecting friend request from: ", senderID, " to: ", receiverID);
+
+            const url = `https://localhost:7195/api/Database/rejectFriendRequest?senderUserId=${encodeURIComponent(senderID)}&receiverUserId=${encodeURIComponent(receiverID)}`
+            const response = await axios.delete(
+                url
+            );
+            console.log("API Response:", response.data);
+            setGroupRelations(response.data);
+        } catch (err) {
+            console.error("Failed reject friend request:", err);
+        }
+    };
 
   const validateEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -439,7 +511,7 @@ const MyProfilePage = ({ onSave }) => {
               {activeTab === "community" && (
                   <div>
                       <h2 className="text-xl font-bold text-gray-800">Friends</h2>
-                      <Link to="/add-friend" className="px-3">
+                        <Link to="/add-friend" state={{userID: user.id}} className="px-3">
                           +
                       </Link>
                       {userRelations.length === 0 ? (
@@ -448,9 +520,18 @@ const MyProfilePage = ({ onSave }) => {
                           <ul>
                               {userRelations.map((userRelation, index) => (
                                   <li key={index} style={{ marginBottom: "1rem" }}>
-                                      <strong>User1ID:</strong> {userRelation.user1ID} <br />
-                                      <strong>User2ID:</strong> {userRelation.user2ID}<br />
-                                      <strong>RelationType:</strong> {userRelation.relationType}
+                                      <strong>User1:</strong> {userRelation.User1Name} <br />
+                                      <strong>User2:</strong> {userRelation.User2Name}<br />
+                                      <strong>RelationType:</strong> {userRelation.RelationType}
+                                      {(userRelation.UserRelationType == "pending_user1" && userRelation.User1Id == user.id) ||
+                                          (userRelation.UserRelationType == "pending_user2" && userRelation.User2Id == user.id) ? (
+                                              <p></p>
+                                      ): (
+                                              <div><button onClick={() => acceptFriendRequest(userRelation.User1Id, userRelation.User2Id)}>Accept</button>
+                                                  <p> or </p>
+                                                  <button onClick={() => rejectFriendRequest(userRelation.User1Id, userRelation.User2Id)}>reject</button></div>
+                                      )
+                                  }
                                   </li>
                               ))}
                           </ul>

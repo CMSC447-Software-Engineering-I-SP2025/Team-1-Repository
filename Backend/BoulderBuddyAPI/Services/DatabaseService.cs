@@ -794,7 +794,7 @@ namespace BoulderBuddyAPI.Services
                     ClimbGroup.GroupType, 
                     ClimbGroup.Price, 
                     ClimbGroup.GroupOwner,
-                    ClimbGroup.RelationType
+                    ClimbGroupRelation.RelationType
                 FROM ClimbGroupRelation
                 JOIN ClimbGroup ON ClimbGroupRelation.GroupId = ClimbGroup.GroupId
                 WHERE ClimbGroupRelation.UserId = @UserId;",
