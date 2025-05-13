@@ -18,6 +18,7 @@ const MyProfilePage = ({
   const [lastNameError, setLastNameError] = useState(""); // State for last name error
   const [reviews, setReviews] = useState([]); // Ensure reviews is initialized as an array
   const [reviewsError, setReviewsError] = useState(""); // State for error handling
+  const [climbNames, setClimbNames] = useState({}); // State to store climb names
   const maxBioLength = 200; // Maximum character limit for bio
 
   const [firstName, setFirstName] = useState("");
@@ -26,6 +27,9 @@ const MyProfilePage = ({
   const [phone, setPhone] = useState("");
   const [bio, setBio] = useState("");
   const [username, setUsername] = useState("");
+  const [profilePic, setProfilePic] = useState("");
+
+  const climbCache = {};
 
   useEffect(() => {
     if (activeTab === "reviews" && currentUser) {
@@ -35,8 +39,8 @@ const MyProfilePage = ({
           const response = await axios.get(
             `https://localhost:7195/api/Database/reviewsByUser/${currentUser.UserId}`
           );
-          setReviews(response.data); // Update reviews state with fetched data
-          setReviewsError(""); // Clear any previous errors
+          setReviews(response.data);
+          setReviewsError("");
           console.log("Fetched reviews:", response.data);
         } catch (error) {
           console.error("Error fetching reviews:", error);
@@ -48,6 +52,27 @@ const MyProfilePage = ({
     }
   }, [activeTab, currentUser]);
 
+  const GetClimb = async (climbId) => {
+    if (climbCache[climbId]) {
+      return climbCache[climbId]; // Return cached climb name if available
+    }
+    try {
+      console.log("Fetching climb with ID:", climbId);
+      const response = await axios.post(
+        `https://localhost:7195/Search/ClimbID/${climbId}`,
+        {
+          method: "POST",
+        }
+      );
+      console.log("Fetched climb data:", response.data);
+      climbCache[climbId] = response.data.name || "Unknown Climb"; // Cache the climb name
+      return climbCache[climbId];
+    } catch (error) {
+      console.error("Error fetching climb:", error);
+      return "Unknown Climb";
+    }
+  };
+
   useEffect(() => {
     if (currentUser) {
       setFirstName(currentUser.FirstName || "");
@@ -56,8 +81,25 @@ const MyProfilePage = ({
       setPhone(currentUser.PhoneNumber || "");
       setBio(currentUser.Bio || "");
       setUsername(currentUser.UserName || "");
+      setProfilePic(currentUser.ProfileImage || defaultProfilePic); // Initialize profile picture
     }
   }, [currentUser]);
+
+  useEffect(() => {
+    const fetchClimbNames = async () => {
+      const names = {};
+      for (const review of reviews) {
+        if (!climbNames[review.RouteId]) {
+          names[review.RouteId] = await GetClimb(review.RouteId);
+        }
+      }
+      setClimbNames((prev) => ({ ...prev, ...names }));
+    };
+
+    if (activeTab === "reviews" && reviews.length > 0) {
+      fetchClimbNames();
+    }
+  }, [activeTab, reviews]);
 
   const validateEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -67,6 +109,17 @@ const MyProfilePage = ({
   const validatePhone = (phone) => {
     const phoneRegex = /^[0-9]{10,15}$/; // Allow 10 to 15 digits
     return phoneRegex.test(phone);
+  };
+
+  const handleProfilePicChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setProfilePic(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleSaveChanges = async (event) => {
@@ -108,8 +161,8 @@ const MyProfilePage = ({
 
     if (hasError) return;
 
-    // Call the onSave callback with all updated fields
-    onSave({
+    // Prepare updated user data
+    const updatedUser = {
       ...currentUser,
       FirstName: firstName,
       LastName: lastName,
@@ -117,7 +170,34 @@ const MyProfilePage = ({
       PhoneNumber: phone,
       Bio: bio,
       UserName: username,
-    });
+    };
+
+    // Add ProfileImage only if it's valid
+    if (profilePic && profilePic !== defaultProfilePic) {
+      updatedUser.ProfileImage = profilePic;
+    }
+
+    console.log("Payload being sent to the server:", updatedUser); // Log payload for debugging
+
+    try {
+      // Update user in the database
+      const response = await axios.put(
+        `https://localhost:7195/api/Database/user/${currentUser.UserId}`,
+        updatedUser,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      console.log("User updated successfully:", response.data);
+      setCurrentUser(updatedUser); // Update local state
+    } catch (error) {
+      console.error("Error updating user data:", error);
+      if (error.response) {
+        console.error("Server response:", error.response.data); // Log server error details
+      }
+    }
   };
 
   if (!currentUser) {
@@ -164,13 +244,25 @@ const MyProfilePage = ({
           <form onSubmit={handleSaveChanges}>
             {/* Profile Picture and Username */}
             <div className="flex items-center mb-6 space-x-4">
-              <div className="relative w-24 h-24 overflow-hidden rounded-full">
+              <div
+                className="relative w-24 h-24 overflow-hidden border border-gray-300 rounded-full cursor-pointer"
+                onClick={() =>
+                  document.getElementById("profilePicInput").click()
+                } // Trigger file input click
+              >
                 <img
-                  src={currentUser.profilePic || defaultProfilePic}
+                  src={profilePic || defaultProfilePic} // Use profilePic or defaultProfilePic
                   alt="Profile"
                   className="object-cover w-full h-full"
                 />
               </div>
+              <input
+                id="profilePicInput"
+                type="file"
+                accept="image/*"
+                onChange={handleProfilePicChange}
+                className="hidden" // Hide the file input
+              />
               <div>
                 <h2 className="text-xl font-bold text-gray-800">{username}</h2>
               </div>
@@ -304,11 +396,34 @@ const MyProfilePage = ({
               <ul className="space-y-4">
                 {reviews.map((review, index) => (
                   <li key={index} className="p-4 bg-gray-100 rounded shadow">
-                    <h3 className="text-lg font-semibold">{review.title}</h3>
-                    <p className="text-gray-700">{review.content}</p>
-                    <p className="text-sm text-gray-500">
-                      Posted on: {new Date(review.date).toLocaleDateString()}
-                    </p>
+                    <h3 className="text-lg font-semibold">
+                      {climbNames[review.RouteId] || "Loading..."}
+                    </h3>
+                    <p className="text-gray-700">{review.Text}</p>
+                    <div className="flex items-center space-x-1">
+                      {[...Array(5)].map((_, i) => {
+                        const starValue = i + 1;
+                        if (review.Rating >= starValue * 2) {
+                          return (
+                            <span key={i} className="text-yellow-500">
+                              ★
+                            </span>
+                          );
+                        } else if (review.Rating >= starValue * 2 - 1) {
+                          return (
+                            <span key={i} className="text-yellow-500">
+                              ☆
+                            </span>
+                          );
+                        } else {
+                          return (
+                            <span key={i} className="text-gray-300">
+                              ★
+                            </span>
+                          );
+                        }
+                      })}
+                    </div>
                   </li>
                 ))}
               </ul>

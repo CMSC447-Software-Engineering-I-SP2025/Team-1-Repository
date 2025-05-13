@@ -49,7 +49,7 @@ const App = () => {
         }
       );
       console.log("User updated successfully:", response.data);
-      setCurrentUser(updatedUser);
+      setCurrentUser(updatedUser); // Update local state
     } catch (error) {
       console.error("Error updating user data:", error);
     }
