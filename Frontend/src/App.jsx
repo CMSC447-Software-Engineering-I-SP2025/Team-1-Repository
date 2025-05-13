@@ -35,8 +35,11 @@ const App = () => {
 
   const handleSaveUser = async (updatedUser) => {
     try {
-      if (!user?.id) {
+      if (!updatedUser.UserId) {
         throw new Error("User ID is required to update the user.");
+      }
+      if (!updatedUser.UserName || !updatedUser.Email) {
+        throw new Error("UserName and Email are required fields.");
       }
       console.log("Updating user:", updatedUser);
       const response = await axios.put(
@@ -49,9 +52,12 @@ const App = () => {
         }
       );
       console.log("User updated successfully:", response.data);
-      setCurrentUser(updatedUser); // Update local state
+      setCurrentUser(updatedUser);
     } catch (error) {
-      console.error("Error updating user data:", error);
+      console.error(
+        "Error updating user data:",
+        error.response?.data || error.message
+      );
     }
   };
 
@@ -223,6 +229,7 @@ const App = () => {
             setIsLoggedIn={setIsLoggedIn}
             setCurrentPage={setCurrentPage}
             setCurrentUser={setCurrentUser}
+            currentUser={currentUser}
           />
           <Routes>
             <Route path="/signup" element={<CreateAccountPage />} />

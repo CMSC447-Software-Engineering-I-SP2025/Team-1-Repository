@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import { useUser } from "./UserProvider";
+import defaultProfilePic from "../../assets/default-profile.jpg";
 
 const ClimbPage = ({ selectedClimb, isLoggedIn, currentUser }) => {
   if (!selectedClimb) {
@@ -74,6 +75,51 @@ const ClimbPage = ({ selectedClimb, isLoggedIn, currentUser }) => {
     );
   };
 
+  const fetchReviews = async () => {
+    try {
+      const reviewResponse = await axios.get(
+        "https://localhost:7195/api/Database/ReviewsByClimbID",
+        {
+          params: { id: selectedClimb.id },
+        }
+      );
+
+      console.log("Fetched reviews:", reviewResponse.data); // Log the fetched reviews
+
+      const reviewsWithProfilePictures = await Promise.all(
+        reviewResponse.data.map(async (review) => {
+          try {
+            const userResponse = await axios.get(
+              `https://localhost:7195/api/Database/user/${review.UserId}`
+            );
+            return {
+              ...review,
+              ProfilePicture:
+                userResponse.data.ProfileImage || defaultProfilePic, // Fallback to placeholder if not provided
+            };
+          } catch (err) {
+            console.error(
+              `Failed to fetch user data for UserId: ${review.UserId}`,
+              err
+            );
+            return {
+              ...review,
+              ProfilePicture: "https://via.placeholder.com/40", // Fallback to placeholder
+            };
+          }
+        })
+      );
+
+      setReviews(reviewsWithProfilePictures);
+      console.log(
+        "Fetched reviews with profile pictures:",
+        reviewsWithProfilePictures
+      );
+    } catch (err) {
+      console.error("Failed to fetch reviews:", err);
+    }
+  };
+
   useEffect(() => {
     const fetchAvg = async () => {
       try {
@@ -120,20 +166,6 @@ const ClimbPage = ({ selectedClimb, isLoggedIn, currentUser }) => {
         setPhotos(photoUrls);
       } catch (err) {
         console.error("Could not fetch climb photo:", err);
-      }
-    };
-
-    const fetchReviews = async () => {
-      try {
-        const response = await axios.get(
-          "https://localhost:7195/api/Database/ReviewsByClimbID",
-          {
-            params: { id: selectedClimb.id },
-          }
-        );
-        setReviews(response.data);
-      } catch (err) {
-        console.error("Failed to fetch reviews:", err);
       }
     };
 
@@ -224,7 +256,7 @@ const ClimbPage = ({ selectedClimb, isLoggedIn, currentUser }) => {
           params: { id: selectedClimb.id },
         }
       );
-      setReviews(updatedReviews.data);
+      fetchReviews();
 
       // Fetch updated average rating
       const avgResponse = await axios.get(
@@ -438,12 +470,21 @@ const ClimbPage = ({ selectedClimb, isLoggedIn, currentUser }) => {
                     key={index}
                     className="p-4 text-gray-800 bg-white rounded-lg shadow-md"
                   >
-                    <div className="flex">
-                      <strong>{review.UserName || "Anonymous"} </strong> <br />
-                      {renderStars(review.Rating / 2)}{" "}
-                      {/* Display rating as stars */}
+                    <div className="flex items-center">
+                      {/* Profile Picture */}
+                      <img
+                        src={review.ProfilePicture}
+                        alt={`${review.UserName || "Anonymous"}'s profile`}
+                        className="w-10 h-10 rounded-full"
+                      />
+                      <div className="ml-4">
+                        <strong>{review.UserName || "Anonymous"}</strong>
+                        <div className="flex mt-1">
+                          {renderStars(review.Rating / 2)}
+                        </div>
+                      </div>
                     </div>
-                    {review.Text}
+                    <p className="mt-2">{review.Text}</p>
                   </li>
                 ))}
               </ul>

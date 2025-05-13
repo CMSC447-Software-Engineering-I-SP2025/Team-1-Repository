@@ -4,6 +4,12 @@ import { useLocation } from "react-router-dom";
 import defaultProfilePic from "../../assets/default-profile.jpg";
 import { Link } from "react-router-dom";
 import axios from "axios";
+import { createClient } from "@supabase/supabase-js";
+// Initialize Supabase client
+const supabaseUrl = "https://ibxxlcyqbpfmzohqrtma.supabase.co"; // Replace with your Supabase URL
+const supabaseKey =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlieHhsY3lxYnBmbXpvaHFydG1hIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0MzQwOTgzNCwiZXhwIjoyMDU4OTg1ODM0fQ.F0iyO-IUVv1aYNUymhQroI2EliHggHHoxUqY_1EnHQQ"; // Replace with your Supabase anon key
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 const MyProfilePage = ({
   onSave,
@@ -19,6 +25,7 @@ const MyProfilePage = ({
   const [reviews, setReviews] = useState([]); // Ensure reviews is initialized as an array
   const [reviewsError, setReviewsError] = useState(""); // State for error handling
   const [climbNames, setClimbNames] = useState({}); // State to store climb names
+  const [editingReviewId, setEditingReviewId] = useState(null); // State for editing review
   const maxBioLength = 200; // Maximum character limit for bio
 
   const [firstName, setFirstName] = useState("");
@@ -31,23 +38,23 @@ const MyProfilePage = ({
 
   const climbCache = {};
 
+  const fetchReviews = async () => {
+    try {
+      console.log("Fetching reviews for user ID:", currentUser.UserId);
+      const response = await axios.get(
+        `https://localhost:7195/api/Database/reviewsByUser/${currentUser.UserId}`
+      );
+      setReviews(response.data);
+      setReviewsError("");
+      console.log("Fetched reviews:", response.data);
+    } catch (error) {
+      console.error("Error fetching reviews:", error);
+      setReviewsError("Failed to load reviews. Please try again later.");
+    }
+  };
+
   useEffect(() => {
     if (activeTab === "reviews" && currentUser) {
-      const fetchReviews = async () => {
-        try {
-          console.log("Fetching reviews for user ID:", currentUser.UserId);
-          const response = await axios.get(
-            `https://localhost:7195/api/Database/reviewsByUser/${currentUser.UserId}`
-          );
-          setReviews(response.data);
-          setReviewsError("");
-          console.log("Fetched reviews:", response.data);
-        } catch (error) {
-          console.error("Error fetching reviews:", error);
-          setReviewsError("Failed to load reviews. Please try again later.");
-        }
-      };
-
       fetchReviews();
     }
   }, [activeTab, currentUser]);
@@ -111,22 +118,31 @@ const MyProfilePage = ({
     return phoneRegex.test(phone);
   };
 
-  const handleProfilePicChange = (event) => {
+  const handleProfilePicChange = async (event) => {
     const file = event.target.files[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = () => {
-        setProfilePic(reader.result);
+      reader.onloadend = () => {
+        setProfilePic(reader.result); // Set Base64 string in profilePic state
       };
-      reader.readAsDataURL(file);
+      reader.readAsDataURL(file); // Convert file to Base64
     }
+  };
+
+  const base64ToBlob = (base64, mimeType) => {
+    const base64Data = base64.split(",")[1]; // Extract Base64 data after the comma
+    const byteCharacters = atob(base64Data);
+    const byteNumbers = new Array(byteCharacters.length)
+      .fill()
+      .map((_, i) => byteCharacters.charCodeAt(i));
+    const byteArray = new Uint8Array(byteNumbers);
+    return new Blob([byteArray], { type: mimeType });
   };
 
   const handleSaveChanges = async (event) => {
     event.preventDefault();
 
     let hasError = false;
-
     // Validate first name
     if (!firstName.trim()) {
       setFirstNameError("First name cannot be empty.");
@@ -172,31 +188,65 @@ const MyProfilePage = ({
       UserName: username,
     };
 
-    // Add ProfileImage only if it's valid
-    if (profilePic && profilePic !== defaultProfilePic) {
-      updatedUser.ProfileImage = profilePic;
+    if (profilePic && profilePic.startsWith("data:image")) {
+      console.log("Uploading profile picture to Supabase...");
+      try {
+        const fileBlob = base64ToBlob(profilePic, "image/jpeg");
+        const fileName = `${supabaseUser.id}-${Date.now()}.jpg`; // Generate a unique file name
+
+        const { data, error } = await supabase.storage
+          .from("profile-pictures") // Replace with your bucket name
+          .upload(`images/${fileName}`, fileBlob, {
+            cacheControl: "3600",
+            upsert: true,
+          });
+
+        if (error) {
+          console.error("Error uploading profile picture:", error);
+        } else {
+          console.log("Profile picture uploaded successfully:", data);
+          updatedUser.ProfileImage = `https://ibxxlcyqbpfmzohqrtma.supabase.co/storage/v1/object/public/profile-pictures/images/${fileName}`;
+        }
+      } catch (error) {
+        console.error("Error during file upload:", error);
+      }
     }
 
     console.log("Payload being sent to the server:", updatedUser); // Log payload for debugging
 
+    onSave(updatedUser);
+  };
+
+  const handleDeleteReview = async (reviewId) => {
     try {
-      // Update user in the database
-      const response = await axios.put(
-        `https://localhost:7195/api/Database/user/${currentUser.UserId}`,
-        updatedUser,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
+      await axios.delete(
+        `https://localhost:7195/api/Database/review/${reviewId}`
       );
-      console.log("User updated successfully:", response.data);
-      setCurrentUser(updatedUser); // Update local state
+      fetchReviews();
+      console.log(`Review with ID ${reviewId} deleted successfully.`);
     } catch (error) {
-      console.error("Error updating user data:", error);
-      if (error.response) {
-        console.error("Server response:", error.response.data); // Log server error details
-      }
+      console.error(`Failed to delete review with ID ${reviewId}:`, error);
+    }
+  };
+
+  const handleUpdateReview = async (review) => {
+    try {
+      const updatedReview = {
+        ...review,
+        Rating: review.Rating,
+        Text: review.Text,
+      };
+      await axios.put(
+        `https://localhost:7195/api/Database/review/${review.ReviewId}`,
+        updatedReview
+      );
+      fetchReviews();
+      console.log(`Review with ID ${review.ReviewId} updated successfully.`);
+    } catch (error) {
+      console.error(
+        `Failed to update review with ID ${review.ReviewId}:`,
+        error
+      );
     }
   };
 
@@ -318,16 +368,9 @@ const MyProfilePage = ({
               <input
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className={`w-full px-4 py-2 border ${
-                  emailError ? "border-red-500" : "border-gray-300"
-                } rounded focus:outline-none focus:ring-2 ${
-                  emailError ? "focus:ring-red-500" : "focus:ring-blue-500"
-                }`}
+                disabled
+                className="w-full px-4 py-2 text-gray-500 bg-gray-100 border border-gray-300 rounded cursor-not-allowed"
               />
-              {emailError && (
-                <p className="mt-1 text-sm text-red-500">{emailError}</p>
-              )}
             </div>
 
             {/* Phone Number */}
@@ -338,16 +381,9 @@ const MyProfilePage = ({
               <input
                 type="tel"
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                className={`w-full px-4 py-2 border ${
-                  phoneError ? "border-red-500" : "border-gray-300"
-                } rounded focus:outline-none focus:ring-2 ${
-                  phoneError ? "focus:ring-red-500" : "focus:ring-blue-500"
-                }`}
+                disabled
+                className="w-full px-4 py-2 text-gray-500 bg-gray-100 border border-gray-300 rounded cursor-not-allowed"
               />
-              {phoneError && (
-                <p className="mt-1 text-sm text-red-500">{phoneError}</p>
-              )}
             </div>
 
             {/* Bio */}
@@ -395,34 +431,90 @@ const MyProfilePage = ({
             ) : (
               <ul className="space-y-4">
                 {reviews.map((review, index) => (
-                  <li key={index} className="p-4 bg-gray-100 rounded shadow">
-                    <h3 className="text-lg font-semibold">
-                      {climbNames[review.RouteId] || "Loading..."}
-                    </h3>
-                    <p className="text-gray-700">{review.Text}</p>
-                    <div className="flex items-center space-x-1">
-                      {[...Array(5)].map((_, i) => {
-                        const starValue = i + 1;
-                        if (review.Rating >= starValue * 2) {
-                          return (
-                            <span key={i} className="text-yellow-500">
-                              ★
-                            </span>
-                          );
-                        } else if (review.Rating >= starValue * 2 - 1) {
-                          return (
-                            <span key={i} className="text-yellow-500">
-                              ☆
-                            </span>
-                          );
-                        } else {
-                          return (
-                            <span key={i} className="text-gray-300">
-                              ★
-                            </span>
-                          );
-                        }
-                      })}
+                  <li
+                    key={index}
+                    className="relative flex items-center p-4 bg-gray-100 rounded shadow"
+                  >
+                    <div className="flex-1 pr-24">
+                      {" "}
+                      {/* Add padding to the right */}
+                      <div className="flex items-center">
+                        <h3 className="mr-2 text-lg font-semibold">
+                          {climbNames[review.RouteId] || "Loading..."}
+                        </h3>
+                        <div className="flex items-center space-x-1">
+                          {[...Array(5)].map((_, i) => {
+                            const starValue = i + 1;
+                            return (
+                              <span
+                                key={i}
+                                className={`text-2xl ${
+                                  review.Rating >= starValue * 2
+                                    ? "text-yellow-500"
+                                    : "text-gray-300"
+                                }`}
+                              >
+                                ★
+                              </span>
+                            );
+                          })}
+                        </div>
+                      </div>
+                      {editingReviewId === review.ReviewId ? (
+                        <>
+                          <textarea
+                            defaultValue={review.Text}
+                            onChange={(e) =>
+                              setReviews((prev) =>
+                                prev.map((r) =>
+                                  r.ReviewId === review.ReviewId
+                                    ? { ...r, Text: e.target.value }
+                                    : r
+                                )
+                              )
+                            }
+                            className="w-full p-2 mt-2 border rounded"
+                          ></textarea>
+                        </>
+                      ) : (
+                        <p className="mt-2 text-gray-700">{review.Text}</p>
+                      )}
+                    </div>
+                    <div className="absolute flex flex-col space-y-2 top-4 right-4">
+                      {editingReviewId === review.ReviewId ? (
+                        <>
+                          <button
+                            onClick={() => {
+                              handleUpdateReview(review);
+                              setEditingReviewId(null);
+                            }}
+                            className="w-20 px-4 py-2 text-sm text-white bg-green-500 rounded hover:bg-green-600"
+                          >
+                            Submit
+                          </button>
+                          <button
+                            onClick={() => setEditingReviewId(null)}
+                            className="w-20 px-4 py-2 text-sm text-white bg-gray-500 rounded hover:bg-gray-600"
+                          >
+                            Cancel
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => setEditingReviewId(review.ReviewId)}
+                            className="w-20 px-4 py-2 text-sm text-white bg-blue-500 rounded hover:bg-blue-600"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDeleteReview(review.ReviewId)}
+                            className="w-20 px-4 py-2 text-sm text-white bg-red-500 rounded hover:bg-red-600"
+                          >
+                            Delete
+                          </button>
+                        </>
+                      )}
                     </div>
                   </li>
                 ))}

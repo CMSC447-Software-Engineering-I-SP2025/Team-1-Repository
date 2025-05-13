@@ -8,9 +8,9 @@ public class User
 
     [JsonPropertyName("UserName")]
     public string UserName { get; set; }
-    
+
     [JsonPropertyName("ProfileImage")]
-    public byte[] ProfileImage { get; set; } 
+    public string ProfileImage { get; set; }
 
     [JsonPropertyName("FirstName")]
     public string FirstName { get; set; }
