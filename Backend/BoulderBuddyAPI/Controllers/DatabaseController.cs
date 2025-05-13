@@ -308,11 +308,14 @@ namespace BoulderBuddyAPI.Controllers
         {
             try
             {
+                Console.WriteLine($"Fetching user relations for userId: {userId}");
                 var userRelations = await _databaseService.GetUserRelationsForUser(userId);
+                Console.WriteLine($"Fetched {userRelations.Count} user relations.");
                 return Ok(userRelations);
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"Error fetching user relations: {ex.Message}");
                 return StatusCode(500, new { message = ex.Message });
             }
         }
@@ -422,6 +425,34 @@ namespace BoulderBuddyAPI.Controllers
             {
                 var reviews = await _databaseService.GetReviewsByUserId(userId);
                 return Ok(reviews);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        [HttpGet("group/{groupId}/events")]
+        public async Task<IActionResult> GetEventsByGroupId(string groupId)
+        {
+            try
+            {
+                var events = await _databaseService.GetEventsByGroupId(groupId);
+                return Ok(events);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        [HttpGet("route/{routeId}/pictures")]
+        public async Task<IActionResult> GetPicturesByRouteId(string routeId)
+        {
+            try
+            {
+                var pictures = await _databaseService.GetPicturesByRouteId(routeId);
+                return Ok(pictures);
             }
             catch (Exception ex)
             {
@@ -724,8 +755,7 @@ namespace BoulderBuddyAPI.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
-
-        //group functions
+        
         
     }
 }
@@ -799,5 +829,11 @@ namespace BoulderBuddyAPI.Services
 
         //method for getting user by ID
         Task<User> GetUserById(string userId);
+
+        //method for getting events by group ID
+        Task<List<ClimbGroupEvent>> GetEventsByGroupId(string groupId);
+
+        //method for getting pictures by route ID
+        Task<List<Picture>> GetPicturesByRouteId(string routeId);
     }
 }
