@@ -5,7 +5,7 @@ import { useLocation } from "react-router-dom";
 import defaultProfilePic from "../../assets/default-profile.jpg";
 import { Link } from "react-router-dom";
 import axios from "axios";
-
+//god is dead
 const MyProfilePage = ({ onSave }) => {
   const location = useLocation(); // Get the location object from React Router
   const { user: authenticatedUser, loading } = useUser();
