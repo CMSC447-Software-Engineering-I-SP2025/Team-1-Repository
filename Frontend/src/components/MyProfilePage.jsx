@@ -43,16 +43,16 @@ const MyProfilePage = ({ onSave }) => {
 
     const [userRelations, setUserRelations] = useState();//useState([userRelation1, userRelation2]);
 
-    const [groupRelation1] = useState({
+    /*const [groupRelation1] = useState({
         groupID: "1",
         relationType: "invited"
     });
     const [groupRelation2] = useState({
         groupID: "2",
         relationType: "member"
-    });
+    });*/
 
-    const [groupRelations, setGroupRelations] = useState([groupRelation1, groupRelation2]);
+    const [groupRelations, setGroupRelations] = useState();//useState([groupRelation1, groupRelation2]);
 
   useEffect(() => {
     if (!loading && authenticatedUser === null) {
@@ -91,12 +91,17 @@ const MyProfilePage = ({ onSave }) => {
             try {
                 console.log("User ID groups are being fetched for:", userID);
 
-                const url = `https://localhost:7195/api/Database/groupsByUser/${encodeURIComponent(userID)}`
-                const response = await axios.get(
-                    url
+                const url1 = `https://localhost:7195/api/Database/groupsOwnedByUser/${encodeURIComponent(userID)}`
+                const response1 = await axios.get(
+                    url1
                 );
-                console.log("API Response:", response.data);
-                setGroupRelations(response.data);
+                const url2 = `https://localhost:7195/api/Database/groupsByUser/${encodeURIComponent(userID)}`
+                const response2 = await axios.get(
+                    url2
+                );
+                const response = response1.data.concat(response2.data);
+                console.log("API Response for groups:", response);
+                setGroupRelations(response);
             } catch (err) {
                 console.error("Failed to fetch groups:", err);
                 //setError("Could not load groups.");
@@ -114,7 +119,7 @@ const MyProfilePage = ({ onSave }) => {
             const response = await axios.post(
                 url
             );
-            console.log("API Response:", response.data);
+            console.log("API Response for friends:", response.data);
             setGroupRelations(response.data);
         } catch (err) {
             console.error("Failed accept friend request:", err);
