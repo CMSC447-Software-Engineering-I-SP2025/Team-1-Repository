@@ -9,7 +9,6 @@ const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
   const [favoriteClimbs, setFavoriteClimbs] = useState([]);
   const [isFavorite, setIsFavorite] = useState(false); // State for heart icon
   const [favButtonText, setFavButtonText] = useState("♡");
-  const location = useLocation();
 
   useEffect(() => {
     if (isFavorite) {
