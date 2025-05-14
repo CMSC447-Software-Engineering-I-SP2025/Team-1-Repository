@@ -950,9 +950,5 @@ namespace BoulderBuddyAPI.Services
 
         //method for getting groups owned by user ID
         Task<List<ClimbGroup>> GetGroupsOwnedByUser(string userId);
-        
-        Task<List<ClimbAndParentAreaIDs>> GetFavoriteClimbs(string UserID);
-        Task UpdateUserSettings(object parameters);
-        Task DeleteFromFavoriteClimbTable(ClimbAndUserIDs favorite);
     }
 }
