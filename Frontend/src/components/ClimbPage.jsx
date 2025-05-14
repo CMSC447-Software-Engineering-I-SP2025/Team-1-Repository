@@ -7,6 +7,7 @@ const ClimbPage = ({ selectedClimb, isLoggedIn, currentUser }) => {
   const [favoriteClimbs, setFavoriteClimbs] = useState([]);
   const [isFavorite, setIsFavorite] = useState(false); // State for heart icon
   const [favButtonText, setFavButtonText] = useState("♡");
+  const [climbTypes, setClimbTypes] = useState({});
 
   useEffect(() => {
     if (isFavorite) {
@@ -19,12 +20,13 @@ const ClimbPage = ({ selectedClimb, isLoggedIn, currentUser }) => {
 
   useEffect(() => {
     console.log("Current user:", currentUser);
+    if (!currentUser) return;
     const fetchFavoriteClimbs = async () => {
       try {
         const response = await axios.get(
           "https://localhost:7195/api/Database/FavoriteClimb",
           {
-            params: { userId: currentUser.UserId },
+            params: { userId: currentUser?.UserId },
           }
         );
 
@@ -282,6 +284,18 @@ const ClimbPage = ({ selectedClimb, isLoggedIn, currentUser }) => {
     fetchAvg();
     if (selectedClimb) {
       fetchReviews();
+      setClimbTypes({
+        isAidType: selectedClimb.type.aid,
+        isAlpineType: selectedClimb.type.alpine,
+        isBoulderingType: selectedClimb.type.bouldering,
+        isIceType: selectedClimb.type.ice,
+        isMixedType: selectedClimb.type.mixed,
+        isSnowType: selectedClimb.type.snow,
+        isSportType: selectedClimb.type.sport,
+        isTrType: selectedClimb.type.tr,
+        isTradType: selectedClimb.type.trad,
+      });
+      console.log("Climb types:", climbTypes);
     }
   }, [selectedClimb]);
 
@@ -512,6 +526,17 @@ const ClimbPage = ({ selectedClimb, isLoggedIn, currentUser }) => {
             <p className="mb-2 text-lg text-center text-gray-700">
               <strong>Location:</strong> {selectedClimb.metadata.lat},{" "}
               {selectedClimb.metadata.lng}
+            </p>
+            <p className="mb-2 text-lg text-center text-gray-700">
+              <strong>Climb Type:</strong>{" "}
+              {Object.entries(climbTypes)
+                .filter(([key, value]) => value)
+                .map(([key]) =>
+                  key.replace("is", "").replace("Type", "") === "Tr"
+                    ? "Top Rope"
+                    : key.replace("is", "").replace("Type", "")
+                )
+                .join(", ")}
             </p>
             <div className="mt-6 text-center">
               <h2 className="mb-2 text-2xl font-semibold text-gray-800">
