@@ -70,12 +70,13 @@ namespace BoulderBuddyAPI.Tests.Controllers
                 BoulderGradeUpperLimit = "V5",
                 RopeClimberLowerLimit = "5.8",
                 RopeClimberUpperLimit = "5.12",
-                Bio = "Climbing enthusiast"
+                Bio = "Climbing enthusiast",
+                AccountType = "public"
             };
 
             var commandText = @"
-                INSERT INTO User (UserId, UserName, FirstName, LastName, Email, PhoneNumber, BoulderGradeLowerLimit, BoulderGradeUpperLimit, RopeClimberLowerLimit, RopeClimberUpperLimit, Bio) 
-                VALUES (@UserId, @UserName, @FirstName, @LastName, @Email, @PhoneNumber, @BoulderGradeLowerLimit, @BoulderGradeUpperLimit, @RopeClimberLowerLimit, @RopeClimberUpperLimit, @Bio);";
+                INSERT INTO User (UserId, UserName, FirstName, LastName, Email, PhoneNumber, BoulderGradeLowerLimit, BoulderGradeUpperLimit, RopeClimberLowerLimit, RopeClimberUpperLimit, Bio, AccountType) 
+                VALUES (@UserId, @UserName, @FirstName, @LastName, @Email, @PhoneNumber, @BoulderGradeLowerLimit, @BoulderGradeUpperLimit, @RopeClimberLowerLimit, @RopeClimberUpperLimit, @Bio, @AccountType);";
 
             // Act
             await _databaseService.ExecuteInsertCommand(_sqliteConnection, commandText, user);
@@ -107,12 +108,13 @@ namespace BoulderBuddyAPI.Tests.Controllers
                 BoulderGradeUpperLimit = "V5",
                 RopeClimberLowerLimit = "5.8",
                 RopeClimberUpperLimit = "5.12",
-                Bio = "Climbing enthusiast"
+                Bio = "Climbing enthusiast",
+                AccountType = "public"
             };
 
             var insertCommandText = @"
-                INSERT INTO User (UserId, UserName, FirstName, LastName, Email, PhoneNumber, BoulderGradeLowerLimit, BoulderGradeUpperLimit, RopeClimberLowerLimit, RopeClimberUpperLimit, Bio) 
-                VALUES (@UserId, @UserName, @FirstName, @LastName, @Email, @PhoneNumber, @BoulderGradeLowerLimit, @BoulderGradeUpperLimit, @RopeClimberLowerLimit, @RopeClimberUpperLimit, @Bio);";
+                INSERT INTO User (UserId, UserName, FirstName, LastName, Email, PhoneNumber, BoulderGradeLowerLimit, BoulderGradeUpperLimit, RopeClimberLowerLimit, RopeClimberUpperLimit, Bio, AccountType) 
+                VALUES (@UserId, @UserName, @FirstName, @LastName, @Email, @PhoneNumber, @BoulderGradeLowerLimit, @BoulderGradeUpperLimit, @RopeClimberLowerLimit, @RopeClimberUpperLimit, @Bio, @AccountType);";
             await _databaseService.ExecuteInsertCommand(_sqliteConnection, insertCommandText, user);
 
             var updateCommandText = @"
@@ -156,12 +158,13 @@ namespace BoulderBuddyAPI.Tests.Controllers
                 BoulderGradeUpperLimit = "V5",
                 RopeClimberLowerLimit = "5.8",
                 RopeClimberUpperLimit = "5.12",
-                Bio = "Climbing enthusiast"
+                Bio = "Climbing enthusiast",
+                AccountType = "public"
             };
 
             var insertCommandText = @"
-                INSERT INTO User (UserId, UserName, FirstName, LastName, Email, PhoneNumber, BoulderGradeLowerLimit, BoulderGradeUpperLimit, RopeClimberLowerLimit, RopeClimberUpperLimit, Bio) 
-                VALUES (@UserId, @UserName, @FirstName, @LastName, @Email, @PhoneNumber, @BoulderGradeLowerLimit, @BoulderGradeUpperLimit, @RopeClimberLowerLimit, @RopeClimberUpperLimit, @Bio);";
+                INSERT INTO User (UserId, UserName, FirstName, LastName, Email, PhoneNumber, BoulderGradeLowerLimit, BoulderGradeUpperLimit, RopeClimberLowerLimit, RopeClimberUpperLimit, Bio, AccountType) 
+                VALUES (@UserId, @UserName, @FirstName, @LastName, @Email, @PhoneNumber, @BoulderGradeLowerLimit, @BoulderGradeUpperLimit, @RopeClimberLowerLimit, @RopeClimberUpperLimit, @Bio, @AccountType);";
             await _databaseService.ExecuteInsertCommand(_sqliteConnection, insertCommandText, user);
 
             var selectCommandText = "SELECT * FROM User WHERE UserId = @UserId;";
@@ -463,11 +466,12 @@ namespace BoulderBuddyAPI.Tests.Controllers
 
             var user = new 
             { 
-                UserId = "user1", 
+                UserId = "user1",
                 UserName = "CascadeUser",
-                FirstName = "Test", 
-                LastName = "User", 
-                Email = "test@example.com" 
+                FirstName = "Test",
+                LastName = "User",
+                Email = "test@example.com",
+                AccountType = "public"
             };
             var review = new 
             { 
@@ -478,7 +482,7 @@ namespace BoulderBuddyAPI.Tests.Controllers
                 Text = "Great route!" 
             };
 
-            await _databaseService.ExecuteInsertCommand(_sqliteConnection, "INSERT INTO User (UserId, UserName, FirstName, LastName, Email) VALUES (@UserId, @UserName, @FirstName, @LastName, @Email);", user);
+            await _databaseService.ExecuteInsertCommand(_sqliteConnection, "INSERT INTO User (UserId, UserName, FirstName, LastName, Email, AccountType) VALUES (@UserId, @UserName, @FirstName, @LastName, @Email, @AccountType);", user);
             await _databaseService.ExecuteInsertCommand(_sqliteConnection, "INSERT INTO Review (ReviewId, UserId, RouteId, Rating, Text) VALUES (@ReviewId, @UserId, @RouteId, @Rating, @Text);", review);
 
             // Act

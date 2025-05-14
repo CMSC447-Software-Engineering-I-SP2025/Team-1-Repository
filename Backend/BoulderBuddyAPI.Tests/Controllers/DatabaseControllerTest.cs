@@ -208,7 +208,9 @@ namespace BoulderBuddyAPI.Tests.Controllers
                 new UserRelation
                 {
                     User1Id = "user1",
+                    User1Name = "user1",
                     User2Id = "user2",
+                    User2Name = "user2",
                     RelationType = "friends",
                     RequestDate = "2023-01-01",
                     FriendSince = "2023-01-02"
@@ -232,7 +234,9 @@ namespace BoulderBuddyAPI.Tests.Controllers
                 new UserRelation
                 {
                     User1Id = "user1",
+                    User1Name = "user1",
                     User2Id = "user2",
+                    User2Name = "user2",
                     RelationType = "friends",
                     RequestDate = "2023-01-01",
                     FriendSince = "2023-01-02"
@@ -283,6 +287,7 @@ namespace BoulderBuddyAPI.Tests.Controllers
                 new ClimbGroupRelation
                 {
                     GroupId = 1,
+                    GroupName = "group",
                     UserId = "user1",
                     RelationType = "member",
                     InviteDate = "2023-01-01",

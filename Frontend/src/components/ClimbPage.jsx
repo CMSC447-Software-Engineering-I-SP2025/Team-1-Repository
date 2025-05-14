@@ -1,9 +1,126 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, use } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import { useUser } from "./UserProvider";
+import { useLocation } from "react-router-dom";
 
-const ClimbPage = ({ selectedClimb, isLoggedIn, currentUser }) => {
+const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
+  const { user: currentUser } = useUser(); // Access currentUser using useUser hook
+  const [favoriteClimbs, setFavoriteClimbs] = useState([]);
+  const [isFavorite, setIsFavorite] = useState(false); // State for heart icon
+  const [favButtonText, setFavButtonText] = useState("♡");
+
+  useEffect(() => {
+    if (isFavorite) {
+      setFavButtonText("♥");
+    } else {
+      setFavButtonText("♡");
+    }
+  }),
+    [isFavorite];
+
+  useEffect(() => {
+    const fetchFavoriteClimbs = async () => {
+      if (!currentUser?.id) {
+        console.error("User is not logged in. Cannot fetch favorite climbs.");
+        return;
+      }
+
+      try {
+        const response = await axios.get(
+          "https://localhost:7195/api/Database/FavoriteClimb",
+          {
+            params: { userId: currentUser.id },
+          }
+        );
+
+        console.log("Fetched favorite climbs:", response.data);
+        setFavoriteClimbs(response.data);
+
+        if (response.data.some((fav) => fav.climbId === selectedClimb?.id)) {
+          setIsFavorite(true);
+          console.log("Climb is a favorite:", selectedClimb.name);
+        }
+      } catch (error) {
+        console.error("Error fetching favorite climbs:", error);
+      }
+    };
+
+    fetchFavoriteClimbs();
+  }, [currentUser, selectedClimb]);
+
+  const areaId = selectedClimb?.area?.metadata?.areaId;
+  const addFavoriteClimb = async (climb) => {
+    if (!currentUser?.id) {
+      console.error("User is not logged in. Cannot add favorite climb.");
+      return;
+    }
+
+    // Validate climb object
+    if (!climb?.id || !selectedClimb?.area?.metadata?.areaId || !climb?.name) {
+      console.error("Invalid climb object:", climb);
+      return;
+    }
+
+    try {
+      console.log("Adding favorite climb with payload:", {
+        userId: currentUser.id,
+        climbId: climb.id,
+        parentAreaId: selectedClimb?.area?.metadata?.areaId,
+      });
+
+      await axios.post("https://localhost:7195/api/Database/FavoriteClimb", {
+        userId: currentUser.id,
+        climbId: climb.id,
+        parentAreaId: selectedClimb?.area?.metadata?.areaId,
+      });
+
+      setFavoriteClimbs((prev) => [...prev, climb]);
+      console.log("Successfully added favorite climb:", climb);
+    } catch (error) {
+      console.error("Error adding favorite climb:", error);
+    }
+  };
+
+  const removeFavoriteClimb = async (climbId) => {
+    if (!currentUser?.id) return;
+
+    try {
+      await axios.delete("https://localhost:7195/api/Database/FavoriteClimb", {
+        data: {
+          userId: currentUser.id,
+          climbId,
+        },
+      });
+
+      console.log("Successfully removed favorite climb:", climbId);
+      setFavoriteClimbs((prev) => prev.filter((fav) => fav.id !== climbId));
+    } catch (error) {
+      console.error("Error removing favorite climb:", error);
+    }
+  };
+
+  const toggleFavoriteClimb = async (climb) => {
+    if (!currentUser?.id) return;
+
+    if (isFavorite) {
+      setFavoriteClimbs((prev) =>
+        prev.filter((fav) => fav.climbId !== climb.id)
+      );
+      await removeFavoriteClimb(climb.id);
+      setIsFavorite(false);
+    } else {
+      const newClimb = {
+        id: climb.id,
+        parentAreaId: selectedClimb?.area?.metadata?.areaId,
+        name: climb.name,
+      };
+      setFavoriteClimbs((prev) => [...prev, newClimb]);
+      await addFavoriteClimb(newClimb);
+      setIsFavorite(true);
+    }
+  };
+
   if (!selectedClimb) {
     return <div className="text-center text-gray-500">No climb selected</div>;
   }
@@ -75,6 +192,10 @@ const ClimbPage = ({ selectedClimb, isLoggedIn, currentUser }) => {
   };
 
   useEffect(() => {
+    if (selectedClimb) {
+      console.log("Selected climb ID:", selectedClimb.id);
+    }
+
     const fetchAvg = async () => {
       try {
         const res = await axios.get(
@@ -350,9 +471,20 @@ const ClimbPage = ({ selectedClimb, isLoggedIn, currentUser }) => {
         <div className="flex flex-col gap-8 lg:flex-row">
           {/* Climb Info */}
           <div className="flex-1">
-            <h1 className="mb-4 text-4xl font-bold text-center text-gray-900">
-              {selectedClimb.name}
-            </h1>
+            <div className="flex items-center justify-center mb-4">
+              <h1 className="mr-4 text-4xl font-bold text-gray-900">
+                {selectedClimb.name}
+              </h1>
+              {isLoggedIn && (
+                <button
+                  onClick={() => toggleFavoriteClimb(selectedClimb)}
+                  className="text-6xl text-red-500 hover:text-red-700"
+                  aria-label="Toggle Favorite"
+                >
+                  {favButtonText}
+                </button>
+              )}
+            </div>
             <div className="flex justify-center mb-4">{renderStars(score)}</div>
             <p className="mb-2 text-lg text-center text-gray-700">
               <strong>Area:</strong> {selectedClimb.area.areaName}

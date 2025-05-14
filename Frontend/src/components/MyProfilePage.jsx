@@ -28,21 +28,38 @@ const MyProfilePage = ({ onSave }) => {
   const [activeTab, setActiveTab] = useState("editProfile"); // State for active tab
   const [emailError, setEmailError] = useState(""); // State for email error
   const [phoneError, setPhoneError] = useState(""); // State for phone error
-    const maxBioLength = 200; // Maximum character limit for bio
-
-    /*const [userRelation1] = useState({
-        user1ID: "12345",
-        user2ID: "2",
-        relationType: "pending_user1"
-    });
-    const [userRelation2] = useState({
-        user1ID: "12345",
-        user2ID: "1",
-        relationType: "friends"
-    });*/
+  const [firstNameError, setFirstNameError] = useState(""); // State for first name error
+  const [lastNameError, setLastNameError] = useState(""); // State for last name error
+  const [reviews, setReviews] = useState([]); // Ensure reviews is initialized as an array
+  const [reviewsError, setReviewsError] = useState(""); // State for error handling
+  const [climbNames, setClimbNames] = useState({}); // State to store climb names
+  const [editingReviewId, setEditingReviewId] = useState(null); // State for editing review
+  const maxBioLength = 200; // Maximum character limit for bio
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [bio, setBio] = useState("");
+  const [username, setUsername] = useState("");
+  const [profilePic, setProfilePic] = useState("");
+  const [favoriteClimbs, setFavoriteClimbs] = useState([]); // State for favorite climbs
 
     const [userRelations, setUserRelations] = useState();//useState([userRelation1, userRelation2]);
 
+  const fetchReviews = async () => {
+    try {
+      console.log("Fetching reviews for user ID:", currentUser.UserId);
+      const response = await axios.get(
+        `https://localhost:7195/api/Database/reviewsByUser/${currentUser.UserId}`
+      );
+      setReviews(response.data);
+      setReviewsError("");
+      console.log("Fetched reviews:", response.data);
+    } catch (error) {
+      console.error("Error fetching reviews:", error);
+      setReviewsError("Failed to load reviews. Please try again later.");
+    }
+  };
     /*const [groupRelation1] = useState({
         groupID: "1",
         relationType: "invited"
@@ -84,6 +101,11 @@ const MyProfilePage = ({ onSave }) => {
 
         fetchFriends(user.id);
   }, [user.id]);
+  useEffect(() => {
+    if (activeTab === "reviews" && currentUser) {
+      fetchReviews();
+    }
+  });
 
     useEffect(() => {
 
@@ -139,6 +161,115 @@ const MyProfilePage = ({ onSave }) => {
         }
     };
 
+    useEffect(() => {
+        if (activeTab === "myClimbs" && currentUser) {
+            const fetchFavoriteClimbs = async () => {
+                try {
+                    // Fetch the list of favorite climbs
+                    const response = await axios.get(
+                        "https://localhost:7195/api/Database/FavoriteClimb",
+                        {
+                            params: { userId: currentUser.UserId },
+                        }
+                    );
+
+                    const favoriteClimbsData = response.data;
+                    console.log("Fetched favorite climbs:", favoriteClimbsData);
+
+                    // Fetch additional details for each climb using ClimbWithParentArea API
+                    const detailedClimbs = await Promise.all(
+                        favoriteClimbsData.map(async (climb) => {
+                            try {
+                                const climbDetailsResponse = await axios.post(
+                                    "https://localhost:7195/Search/ClimbWithParentArea",
+                                    {
+                                        climbId: climb.climbId,
+                                        parentAreaId: climb.parentAreaId,
+                                    }
+                                );
+
+                                const climbDetails = climbDetailsResponse.data;
+                                console.log("Climb details response:", climbDetails);
+
+                                // Get the climb object from the list of climbs in the response
+                                const climbData = climbDetails.climbs.find(c => c.id === climb.climbId);
+
+                                if (!climbData) {
+                                    console.warn("Climb not found in response.climbs:", climb.climbId);
+                                    return null;
+                                }
+
+                                // Log area details to the console
+                                console.log(`Climb ID: ${climb.id}`);
+                                console.log(`Area Name: ${climbDetails.areaName}`);
+                                console.log(`Location: Lat: ${climbDetails.metadata.lat}, Lng: ${climbDetails.metadata.lng}`);
+
+                                return {
+                                    id: climb.climbId,
+                                    name: climbData.name,
+                                    areaName: climbDetails.areaName,
+                                    location: {
+                                        lat: climbDetails.metadata.lat,
+                                        lng: climbDetails.metadata.lng,
+                                    },
+                                };
+                            } catch (error) {
+                                console.error(
+                                    `Error fetching details for climb ID ${climb.id}:`,
+                                    error
+                                );
+                                return null; // Return null if there's an error
+                            }
+                        })
+                    );
+
+                    // Filter out any null values (in case of errors)
+                    const validClimbs = detailedClimbs.filter((climb) => climb !== null);
+                    console.log("Valid climbs:", validClimbs);
+
+                    setFavoriteClimbs(validClimbs);
+                } catch (error) {
+                    console.error("Error fetching favorite climbs:", error);
+                }
+            };
+
+            fetchFavoriteClimbs();
+        }
+    }, [activeTab, currentUser]);
+
+    console.log("Debugging favoriteClimbs:", favoriteClimbs);
+    console.log("Debugging currentUser in MyProfilePage:", currentUser.UserId);
+    console.log("Debugging Climb name:", favoriteClimbs.map((climb) => climb.name));
+
+    const removeFavoriteClimb = async (climbId) => {
+        try {
+            await axios.delete("https://localhost:7195/api/Database/FavoriteClimb", {
+                data: {
+                    userId: currentUser.UserId,
+                    climbId: climbId,
+                },
+            });
+
+            console.log("Successfully removed favorite climb:", climbId);
+
+            // Remove from UI
+            setFavoriteClimbs((prev) => prev.filter((climb) => climb.id !== climbId));
+        } catch (error) {
+            console.error("Error removing favorite climb:", error);
+        }
+    };
+
+    useEffect(() => {
+        const fetchClimbNames = async () => {
+            const names = {};
+            for (const review of reviews) {
+                if (!climbNames[review.RouteId]) {
+                    names[review.RouteId] = await GetClimb(review.RouteId);
+                }
+            }
+            setClimbNames((prev) => ({ ...prev, ...names }));
+        };
+
   const validateEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
@@ -156,17 +287,38 @@ const MyProfilePage = ({ onSave }) => {
     return match ? `(${match[1]}) ${match[2]}-${match[3]}` : phone;
   };
 
-  const handleImageChange = (event) => {
+  const handleProfilePicChange = async (event) => {
     const file = event.target.files[0];
     if (file) {
       const reader = new FileReader();
-      reader.onload = () => {
-        setProfilePic(reader.result); // Update the profile picture
+      reader.onloadend = () => {
+        setProfilePic(reader.result); // Set Base64 string in profilePic state
       };
-      reader.readAsDataURL(file);
+      reader.readAsDataURL(file); // Convert file to Base64
     }
   };
 
+  const base64ToBlob = (base64, mimeType) => {
+    const base64Data = base64.split(",")[1]; // Extract Base64 data after the comma
+    const byteCharacters = atob(base64Data);
+    const byteNumbers = new Array(byteCharacters.length)
+      .fill()
+      .map((_, i) => byteCharacters.charCodeAt(i));
+    const byteArray = new Uint8Array(byteNumbers);
+    return new Blob([byteArray], { type: mimeType });
+  };
+
+  const handleSaveChanges = async (event) => {
+    event.preventDefault();
+
+    let hasError = false;
+    // Validate first name
+    if (!firstName.trim()) {
+      setFirstNameError("First name cannot be empty.");
+      hasError = true;
+    } else {
+      setFirstNameError("");
+  };
   const handleBioChange = (event) => {
     if (event.target.value.length <= maxBioLength) {
       setBio(event.target.value); // Update bio state
@@ -206,7 +358,67 @@ const MyProfilePage = ({ onSave }) => {
       boulderGradeRange,
       ropeGradeRange,
     };
-    onSave(updatedUser); // Call the onSave callback with updated user data
+
+    if (profilePic && profilePic.startsWith("data:image")) {
+      console.log("Uploading profile picture to Supabase...");
+      try {
+        const fileBlob = base64ToBlob(profilePic, "image/jpeg");
+        const fileName = `${supabaseUser.id}-${Date.now()}.jpg`; // Generate a unique file name
+
+        const { data, error } = await supabase.storage
+          .from("profile-pictures") // Replace with your bucket name
+          .upload(`images/${fileName}`, fileBlob, {
+            cacheControl: "3600",
+            upsert: true,
+          });
+
+        if (error) {
+          console.error("Error uploading profile picture:", error);
+        } else {
+          console.log("Profile picture uploaded successfully:", data);
+          updatedUser.ProfileImage = `https://ibxxlcyqbpfmzohqrtma.supabase.co/storage/v1/object/public/profile-pictures/images/${fileName}`;
+        }
+      } catch (error) {
+        console.error("Error during file upload:", error);
+      }
+    }
+
+    console.log("Payload being sent to the server:", updatedUser); // Log payload for debugging
+
+    onSave(updatedUser);
+  };
+
+  const handleDeleteReview = async (reviewId) => {
+    try {
+      await axios.delete(
+        `https://localhost:7195/api/Database/review/${reviewId}`
+      );
+      fetchReviews();
+      console.log(`Review with ID ${reviewId} deleted successfully.`);
+    } catch (error) {
+      console.error(`Failed to delete review with ID ${reviewId}:`, error);
+    }
+  };
+
+  const handleUpdateReview = async (review) => {
+    try {
+      const updatedReview = {
+        ...review,
+        Rating: review.Rating,
+        Text: review.Text,
+      };
+      await axios.put(
+        `https://localhost:7195/api/Database/review/${review.ReviewId}`,
+        updatedReview
+      );
+      fetchReviews();
+      console.log(`Review with ID ${review.ReviewId} updated successfully.`);
+    } catch (error) {
+      console.error(
+        `Failed to update review with ID ${review.ReviewId}:`,
+        error
+      );
+    }
   };
 
     return (authenticatedUser && (
@@ -491,19 +703,145 @@ const MyProfilePage = ({ onSave }) => {
             </form>
           )}
 
-          {activeTab === "myClimbs" && (
-            <div>
-              <h2 className="text-xl font-bold text-gray-800">My Climbs</h2>
-              <p className="text-gray-600">List of climbs will go here.</p>
-            </div>
-          )}
+        {activeTab === "myClimbs" && (
+          <div>
+            <h2 className="text-xl font-bold text-gray-800">
+              My Favorite Climbs
+            </h2>
+            {favoriteClimbs.length === 0 ? (
+              <p className="text-gray-600">You have no favorite climbs yet.</p>
+            ) : (
+              <ul className="space-y-4">
+                {favoriteClimbs.map((climb) => (
+                  <li
+                    key={climb.id}
+                    className="flex flex-col p-4 space-y-2 bg-gray-100 rounded shadow"
+                  >
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-semibold">{climb.name}</h3>
+                      <button
+                        onClick={() => removeFavoriteClimb(climb.id)}
+                        className="text-2xl text-red-500 hover:text-red-700"
+                        title="Remove from favorites"
+                      >
+                        ♥
+                      </button>
+                    </div>
+                    <p className="text-sm text-gray-700">
+                      <strong>Area Name:</strong> {climb.areaName}
+                    </p>
+                    <p className="text-sm text-gray-700">
+                      <strong>Location:</strong> Lat: {climb.location.lat}, Lng:{" "}
+                      {climb.location.lng}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
 
-          {activeTab === "reviews" && (
-            <div>
-              <h2 className="text-xl font-bold text-gray-800">Reviews</h2>
-              <p className="text-gray-600">List of reviews will go here.</p>
-            </div>
-          )}
+        {activeTab === "reviews" && (
+          <div>
+            <h2 className="text-xl font-bold text-gray-800">Reviews</h2>
+            {reviewsError ? (
+              <p className="text-red-500">{reviewsError}</p>
+            ) : !Array.isArray(reviews) || reviews.length === 0 ? ( // Validate reviews is an array
+              <p className="text-gray-600">You have no reviews yet.</p>
+            ) : (
+              <ul className="space-y-4">
+                {reviews.map((review, index) => (
+                  <li
+                    key={index}
+                    className="relative flex items-center p-4 bg-gray-100 rounded shadow"
+                  >
+                    <div className="flex-1 pr-24">
+                      {" "}
+                      {/* Add padding to the right */}
+                      <div className="flex items-center">
+                        <h3 className="mr-2 text-lg font-semibold">
+                          {climbNames[review.RouteId] || "Loading..."}
+                        </h3>
+                        <div className="flex items-center space-x-1">
+                          {[...Array(5)].map((_, i) => {
+                            const starValue = i + 1;
+                            return (
+                              <span
+                                key={i}
+                                className={`text-2xl ${
+                                  review.Rating >= starValue * 2
+                                    ? "text-yellow-500"
+                                    : "text-gray-300"
+                                }`}
+                              >
+                                ★
+                              </span>
+                            );
+                          })}
+                        </div>
+                      </div>
+                      {editingReviewId === review.ReviewId ? (
+                        <>
+                          <textarea
+                            defaultValue={review.Text}
+                            onChange={(e) =>
+                              setReviews((prev) =>
+                                prev.map((r) =>
+                                  r.ReviewId === review.ReviewId
+                                    ? { ...r, Text: e.target.value }
+                                    : r
+                                )
+                              )
+                            }
+                            className="w-full p-2 mt-2 border rounded"
+                          ></textarea>
+                        </>
+                      ) : (
+                        <p className="mt-2 text-gray-700">{review.Text}</p>
+                      )}
+                    </div>
+                    <div className="absolute flex flex-col space-y-2 top-4 right-4">
+                      {editingReviewId === review.ReviewId ? (
+                        <>
+                          <button
+                            onClick={() => {
+                              handleUpdateReview(review);
+                              setEditingReviewId(null);
+                            }}
+                            className="w-20 px-4 py-2 text-sm text-white bg-green-500 rounded hover:bg-green-600"
+                          >
+                            Submit
+                          </button>
+                          <button
+                            onClick={() => setEditingReviewId(null)}
+                            className="w-20 px-4 py-2 text-sm text-white bg-gray-500 rounded hover:bg-gray-600"
+                          >
+                            Cancel
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => setEditingReviewId(review.ReviewId)}
+                            className="w-20 px-4 py-2 text-sm text-white bg-blue-500 rounded hover:bg-blue-600"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDeleteReview(review.ReviewId)}
+                            className="w-20 px-4 py-2 text-sm text-white bg-red-500 rounded hover:bg-red-600"
+                          >
+                            Delete
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
 
         {activeTab === "photos" && (
           <div>
@@ -565,4 +903,4 @@ const MyProfilePage = ({ onSave }) => {
   );
 };
 
-export default MyProfilePage;
+        export default MyProfilePage;

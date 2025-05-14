@@ -40,12 +40,7 @@ namespace BoulderBuddyAPI.Tests.Controllers
             foreach (var invalid in invalidStatesToTry)
             {
                 var result = await controller.SearchByLocation(invalid); //act
-
-                Assert.IsType<BadRequestObjectResult>(result);
-                var resultAsObjectResult = (BadRequestObjectResult)result;
-
-                var errMsg = resultAsObjectResult.Value;
-                Assert.IsType<string>(errMsg);
+                AssertBadRequest(result);
             }
         }
 
@@ -356,6 +351,16 @@ namespace BoulderBuddyAPI.Tests.Controllers
             var mockLogger = new Mock<ILogger<SearchController>>();
             var controller = new SearchController(mockLogger.Object, openBetaQueryService, null);
             return controller;
+        }
+
+        //asserts BadRequest type IActionResult, with a string error message
+        private void AssertBadRequest(IActionResult? result)
+        {
+            Assert.IsType<BadRequestObjectResult>(result);
+            var resultAsObjectResult = (BadRequestObjectResult)result;
+
+            var errMsg = resultAsObjectResult.Value;
+            Assert.IsType<string>(errMsg);
         }
     }
 }
