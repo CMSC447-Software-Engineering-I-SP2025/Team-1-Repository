@@ -41,15 +41,10 @@ const SettingsPage = () => {
 
           if (response.status === 200) {
               const settings = response.data;
-              setAccountType(settings.accountType || "public");
-              setReviewComments(settings.enableReviewCommentNotifications || "enable");
-              setGroupInvites(settings.enableGroupInviteNotifications || "enable");
+              setAccountType(settings.AccountType || "public");
+              setReviewComments(settings.EnableReviewCommentNotifications || "enable");
+              setGroupInvites(settings.EnableGroupInviteNotifications || "enable");
 
-              // Log the fetched settings to the console
-              console.log("Fetched user settings:", settings);
-              console.log("Raw fetched groupInvites from backend:", settings.enableGroupInviteNotifications);
-              console.log("Raw fetched reviewComments from backend:", settings.enableReviewCommentNotifications);
-              console.log("Raw fetched accountType from backend:", settings.accountType);
           } else {
               console.error("Failed to fetch settings: Unexpected response status", response.status);
           }
@@ -408,21 +403,6 @@ const SettingsPage = () => {
             </div>
           </>
         );
-      //case "support":
-        //return (
-          //<>
-            //<div className="mb-6">
-              //<a
-                //href="https://forms.gle/your-form-link"
-                //target="_blank"
-                //rel="noopener noreferrer"
-                //className="text-blue-500 hover:underline"
-              //>
-                //Report a Bug
-              //</a>
-            //</div>
-          //</>
-        //);
       default:
         return null;
     }

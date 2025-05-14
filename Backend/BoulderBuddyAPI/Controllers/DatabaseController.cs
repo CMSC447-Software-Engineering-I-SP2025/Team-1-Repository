@@ -533,6 +533,24 @@ namespace BoulderBuddyAPI.Controllers
             }
         }
 
+        [HttpGet("groupsOwnedByUser/{userId}")]
+        public async Task<IActionResult> GetGroupsOwnedByUser(string userId)
+        {
+            try
+            {
+                var groups = await _databaseService.GetGroupsOwnedByUser(userId);
+                if (groups == null || !groups.Any())
+                {
+                    return NotFound(new { message = $"No groups found owned by user with ID {userId}." });
+                }
+                return Ok(groups);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
         // DELETE methods for deleting data from the database
 
         [HttpDelete("users/{userId}")]
@@ -646,7 +664,6 @@ namespace BoulderBuddyAPI.Controllers
 
             try
             {
-
                 await _databaseService.UpdateUser(userId, new
                 {
                     user.UserName,
@@ -829,10 +846,6 @@ namespace BoulderBuddyAPI.Controllers
             }
         }
 
-
-
-
-
         [HttpDelete("FavoriteClimb")]
         public async Task<IActionResult> DeleteFavoriteClimb(ClimbAndUserIDs favorite)
         {
@@ -934,5 +947,12 @@ namespace BoulderBuddyAPI.Services
 
         //method for getting pictures by route ID
         Task<List<Picture>> GetPicturesByRouteId(string routeId);
+
+        //method for getting groups owned by user ID
+        Task<List<ClimbGroup>> GetGroupsOwnedByUser(string userId);
+        
+        Task<List<ClimbAndParentAreaIDs>> GetFavoriteClimbs(string UserID);
+        Task UpdateUserSettings(object parameters);
+        Task DeleteFromFavoriteClimbTable(ClimbAndUserIDs favorite);
     }
 }

@@ -28,18 +28,23 @@ const CreateEventPage = ({ }) => {  // Assuming userId is passed as a prop or fr
 
 		// Prepare the data for the review
 		const eventData = {
-			UserId: user.id,
+            //UserId: user.id,
+            EventId: 0, //this is stupid
 			GroupId: groupID,
 			EventName: name,
-			EventDescription: description,
+            EventDescription: description,
+            EventDate: "string",
 			EventTime: time,
 			EventLocation: place
-		};
+        };
 
-		try {
-			//const response = await axios.post('https://localhost:7195/api/Database/climbGroupEvent', eventData);
-			//console.log('Event created successfully:', response.data);
-			navigate('/group', { state: { groupID: groupID }})
+        console.log("Posting event: ", eventData);
+
+        try {
+            const url = `https://localhost:7195/api/Database/climbGroupEvent`;
+			const response = await axios.post(url, eventData);
+			console.log('Event created successfully:', response.data);
+			//navigate('/group', { state: { groupID: groupID }})
 		} catch (error) {
 			console.error('Error creating event:', error);
 		}

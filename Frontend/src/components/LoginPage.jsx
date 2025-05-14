@@ -3,7 +3,7 @@ import { supabase } from "../lib/supabaseClient";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "./UserProvider";
 
-const LoginPage = ({ OnLoginClick, setCurrentPage }) => {
+const LoginPage = ({ OnLoginClick, setCurrentPage, setCurrentUser}  ) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);

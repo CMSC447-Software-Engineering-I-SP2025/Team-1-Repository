@@ -62,7 +62,11 @@ const App = () => {
   };
 
   const handleStateChange = (event) => {
-    setStateName(event.target.value);
+    try {
+      setStateName(event.target.value);
+    } catch (error) {
+      console.error("Error updating state name:", error);
+    }
   };
 
   useEffect(() => {
@@ -244,6 +248,7 @@ const App = () => {
                 <MyProfilePage
                   currentUser={currentUser}
                   onSave={handleSaveUser}
+                  setSelectedClimb={setSelectedClimb}
                 />
               }
             />
@@ -317,6 +322,7 @@ const App = () => {
                       currentUser={currentUser}
                       supabaseUser={user}
                       onSave={handleSaveUser}
+                      setSelectedClimb={setSelectedClimb}
                     />
                   );
                 } else if (currentPage === "settings") {

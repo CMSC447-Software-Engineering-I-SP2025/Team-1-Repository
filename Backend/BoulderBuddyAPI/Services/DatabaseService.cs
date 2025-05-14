@@ -81,8 +81,8 @@ namespace BoulderBuddyAPI.Services
 
         public Task InsertIntoClimbGroupTable(object parameters) =>
             ExecuteInsertCommand(@"
-                INSERT INTO ClimbGroup (GroupId, GroupName, GroupDescription, JoinRequirements, Price, GroupType, GroupOwner, GroupImage) 
-                VALUES (@GroupId, @GroupName, @GroupDescription, @JoinRequirements, @Price, @GroupType, @GroupOwner, @GroupImage);", parameters);
+                INSERT INTO ClimbGroup (GroupName, GroupDescription, JoinRequirements, Price, GroupType, GroupOwner, GroupImage) 
+                VALUES (@GroupName, @GroupDescription, @JoinRequirements, @Price, @GroupType, @GroupOwner, @GroupImage);", parameters);
 
         public Task InsertIntoClimbGroupRelationTable(object parameters) =>
             ExecuteInsertCommand(@"
@@ -91,8 +91,8 @@ namespace BoulderBuddyAPI.Services
 
         public Task InsertIntoClimbGroupEventTable(object parameters) =>
             ExecuteInsertCommand(@"
-                INSERT INTO ClimbGroupEvent (GroupId, EventName, EventDescription, EventDate, EventTime, EventLocation, EventImage) 
-                VALUES (@GroupId, @EventName, @EventDescription, @EventDate, @EventTime, @EventLocation, @EventImage);", parameters);
+                INSERT INTO ClimbGroupEvent (EventName, GroupId, EventDescription, EventDate, EventTime, EventLocation, EventImage) 
+                VALUES (@EventName, @GroupId, @EventDescription, @EventDate, @EventTime, @EventLocation, @EventImage);", parameters);
 
         public Task InsertIntoBadgeTable(object parameters) =>
             ExecuteInsertCommand(@"
@@ -211,7 +211,8 @@ namespace BoulderBuddyAPI.Services
                 SELECT 
                     UserId, UserName, ProfileImage, FirstName, LastName, Email, PhoneNumber, 
                     BoulderGradeLowerLimit, BoulderGradeUpperLimit, 
-                    RopeClimberLowerLimit, RopeClimberUpperLimit, Bio, AccountType
+                    RopeClimberLowerLimit, RopeClimberUpperLimit, Bio, AccountType, 
+                    EnableReviewCommentNotifications, EnableGroupInviteNotifications
                 FROM User;", new object());
 
         //select from review table
@@ -380,6 +381,7 @@ namespace BoulderBuddyAPI.Services
                     RopeClimberLowerLimit = @RopeClimberLowerLimit, 
                     RopeClimberUpperLimit = @RopeClimberUpperLimit, 
                     Bio = @Bio
+                    AccountType = @AccountType,
                 WHERE UserId = @UserId;",
                 flattenedParameters);
         }
@@ -900,5 +902,23 @@ namespace BoulderBuddyAPI.Services
                 new { UserId = userId });
         }
 
+        //get the groups owned by a user
+        public Task<List<ClimbGroup>> GetGroupsOwnedByUser(string userId)
+        {
+            return ExecuteSelectCommand<ClimbGroup>(@"
+                SELECT 
+                    GroupId, 
+                    GroupName, 
+                    GroupDescription, 
+                    JoinRequirements, 
+                    Price, 
+                    GroupType, 
+                    GroupOwner,
+                    GroupImage
+                FROM ClimbGroup
+                WHERE GroupOwner = @UserId;",
+                new { UserId = userId });
+        }
+        
     }
 }

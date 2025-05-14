@@ -2,6 +2,7 @@ import React, { useState, useEffect, use } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import { useUser } from "./UserProvider";
+import { useLocation } from "react-router-dom";
 import defaultProfileImage from "../../assets/default-profile.jpg";
 
 const ClimbPage = ({ selectedClimb, isLoggedIn, currentUser }) => {
