@@ -32,7 +32,6 @@ const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [stateName, setStateName] = useState("Maryland");
   const [currentUser, setCurrentUser] = useState(null);
-  const [currentUser, setCurrentUser] = useState(null);
 
   const handleSaveUser = async (updatedUser) => {
     try {
@@ -217,10 +216,6 @@ const App = () => {
     console.log("All climbs:", allClimbs);
   }, [areas]);
 
-  useEffect(() => {
-    console.log("Debugging currentUser in App.jsx:", currentUser);
-  }, [currentUser]);
-
   return (
     <UserProvider>
       <Router>
@@ -240,7 +235,6 @@ const App = () => {
             <Route path="/signup" element={<CreateAccountPage />} />
             <Route
               path="/login"
-              element={<LoginPage OnLoginClick={setCurrentPage} />}
               element={<LoginPage OnLoginClick={setCurrentPage} />}
             />
             <Route
@@ -296,7 +290,6 @@ const App = () => {
                           setSelectedArea={setSelectedArea}
                           isLoading={isLoading}
                           currentSelectedState={stateName}
-                          currentSelectedState={stateName}
                         />
                       </div>
                     </div>
@@ -318,12 +311,6 @@ const App = () => {
                   );
                 } else if (currentPage === "profile") {
                   return (
-                    <MyProfilePage
-                      setCurrentUser={setCurrentUser}
-                      currentUser={currentUser}
-                      supabaseUser={user}
-                      onSave={handleSaveUser}
-                    />
                     <MyProfilePage
                       setCurrentUser={setCurrentUser}
                       currentUser={currentUser}

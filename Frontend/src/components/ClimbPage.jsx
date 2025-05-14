@@ -1,11 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, use } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import { useUser } from "./UserProvider";
-import defaultProfilePic from "../../assets/default-profile.jpg";
 
-const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
-  const { user: currentUser } = useUser(); // Access currentUser using useUser hook
+const ClimbPage = ({ selectedClimb, isLoggedIn, currentUser }) => {
   const [favoriteClimbs, setFavoriteClimbs] = useState([]);
   const [isFavorite, setIsFavorite] = useState(false); // State for heart icon
   const [favButtonText, setFavButtonText] = useState("♡");
@@ -20,17 +18,13 @@ const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
     [isFavorite];
 
   useEffect(() => {
+    console.log("Current user:", currentUser);
     const fetchFavoriteClimbs = async () => {
-      if (!currentUser?.id) {
-        console.error("User is not logged in. Cannot fetch favorite climbs.");
-        return;
-      }
-
       try {
         const response = await axios.get(
           "https://localhost:7195/api/Database/FavoriteClimb",
           {
-            params: { userId: currentUser.id },
+            params: { userId: currentUser.UserId },
           }
         );
 
@@ -51,7 +45,7 @@ const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
 
   const areaId = selectedClimb?.area?.metadata?.areaId;
   const addFavoriteClimb = async (climb) => {
-    if (!currentUser?.id) {
+    if (!currentUser?.UserId) {
       console.error("User is not logged in. Cannot add favorite climb.");
       return;
     }
@@ -64,13 +58,13 @@ const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
 
     try {
       console.log("Adding favorite climb with payload:", {
-        userId: currentUser.id,
+        userId: currentUser.UserId,
         climbId: climb.id,
         parentAreaId: selectedClimb?.area?.metadata?.areaId,
       });
 
       await axios.post("https://localhost:7195/api/Database/FavoriteClimb", {
-        userId: currentUser.id,
+        userId: currentUser.UserId,
         climbId: climb.id,
         parentAreaId: selectedClimb?.area?.metadata?.areaId,
       });
@@ -83,12 +77,12 @@ const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
   };
 
   const removeFavoriteClimb = async (climbId) => {
-    if (!currentUser?.id) return;
+    if (!currentUser?.UserId) return;
 
     try {
       await axios.delete("https://localhost:7195/api/Database/FavoriteClimb", {
         data: {
-          userId: currentUser.id,
+          userId: currentUser.UserId,
           climbId,
         },
       });
@@ -101,8 +95,8 @@ const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
   };
 
   const toggleFavoriteClimb = async (climb) => {
-    if (!currentUser?.id) return;
-
+    if (!currentUser?.UserId) return;
+    console.log("Toggling favorite climb:", climb);
     if (isFavorite) {
       setFavoriteClimbs((prev) =>
         prev.filter((fav) => fav.climbId !== climb.id)
@@ -136,7 +130,6 @@ const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
   const [rating, setRating] = useState(""); // Rating will be a string to match your model
   const [description, setDescription] = useState("");
   const [hasReviewed, setHasReviewed] = useState(false);
-  const [climbTypes, setClimbTypes] = useState({});
 
   const renderStars = (rating) => {
     const fullStars = Math.floor(rating);
@@ -201,8 +194,6 @@ const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
         }
       );
 
-      console.log("Fetched reviews:", reviewResponse.data); // Log the fetched reviews
-
       const reviewsWithProfilePictures = await Promise.all(
         reviewResponse.data.map(async (review) => {
           try {
@@ -212,7 +203,8 @@ const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
             return {
               ...review,
               ProfilePicture:
-                userResponse.data.ProfileImage || defaultProfilePic, // Fallback to placeholder if not provided
+                userResponse.data.ProfileImage ||
+                "https://via.placeholder.com/40",
             };
           } catch (err) {
             console.error(
@@ -221,17 +213,13 @@ const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
             );
             return {
               ...review,
-              ProfilePicture: "https://via.placeholder.com/40", // Fallback to placeholder
+              ProfilePicture: "https://via.placeholder.com/40",
             };
           }
         })
       );
 
       setReviews(reviewsWithProfilePictures);
-      console.log(
-        "Fetched reviews with profile pictures:",
-        reviewsWithProfilePictures
-      );
     } catch (err) {
       console.error("Failed to fetch reviews:", err);
     }
@@ -294,19 +282,6 @@ const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
     fetchAvg();
     if (selectedClimb) {
       fetchReviews();
-      setClimbTypes({
-        isAidType: selectedClimb.type.aid,
-        isAlpineType: selectedClimb.type.alpine,
-        isBoulderingType: selectedClimb.type.bouldering,
-        isIceType: selectedClimb.type.ice,
-        isMixedType: selectedClimb.type.mixed,
-        isSnowType: selectedClimb.type.snow,
-        isSportType: selectedClimb.type.sport,
-        isTrType: selectedClimb.type.tr,
-        isTradType: selectedClimb.type.trad,
-      });
-      console.log(selectedClimb);
-      console.log("climbTypes:", climbTypes);
     }
   }, [selectedClimb]);
 
@@ -516,182 +491,6 @@ const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
         <div className="flex flex-col gap-8 lg:flex-row">
           {/* Climb Info */}
           <div className="flex-1">
-            <h1 className="mb-4 text-4xl font-bold text-center text-gray-900">
-              {selectedClimb.name}
-            </h1>
-            <div className="flex justify-center mb-4">{renderStars(score)}</div>
-            <p className="mb-2 text-lg text-center text-gray-700">
-              <strong>Area:</strong> {selectedClimb.area.areaName}
-            </p>
-            <p className="mb-2 text-lg text-center text-gray-700">
-              <strong>Location:</strong> {selectedClimb.metadata.lat},{" "}
-              {selectedClimb.metadata.lng}
-            </p>
-            <p className="mb-2 text-lg text-center text-gray-700">
-              <strong>Climb Type:</strong>{" "}
-              {Object.entries(climbTypes)
-                .filter(([key, value]) => value)
-                .map(([key]) =>
-                  key.replace("is", "").replace("Type", "") === "Tr"
-                    ? "Top Rope"
-                    : key.replace("is", "").replace("Type", "")
-                )
-                .join(", ")}
-            </p>
-            <div className="mt-6 text-center">
-              <h2 className="mb-2 text-2xl font-semibold text-gray-800">
-                Grade
-              </h2>
-              <span className="inline-block px-4 py-2 text-lg bg-gray-200 rounded">
-                {selectedClimb.grades.yds},{" "}
-                {selectedClimb.grades.french
-                  ? selectedClimb.grades.french
-                  : selectedClimb.grades.font}
-              </span>
-            </div>
-          </div>
-
-          {/* Map */}
-          <div
-            id="climb-map"
-            className="flex-1 rounded-lg shadow-lg h-96"
-          ></div>
-        </div>
-
-        {/* Reviews Section */}
-        <div className="mt-12">
-          {/* Leave a Review Box */}
-          {isLoggedIn && !hasReviewed && (
-            <div className="p-6 mb-8 bg-gray-100 rounded-lg shadow-md">
-              <h3 className="mb-4 text-xl font-semibold text-gray-800">
-                Leave a Review
-              </h3>
-              <div className="flex justify-center mb-4">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <svg
-                    key={star}
-                    onClick={() => handleStarClick(star)}
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill={star <= newRating ? "gold" : "gray"}
-                    viewBox="0 0 24 24"
-                    width="36"
-                    height="36"
-                    className="cursor-pointer"
-                  >
-                    <path d="M12 .587l3.668 7.568L24 9.423l-6 5.847 1.417 8.23L12 18.897l-7.417 4.603L6 15.27 0 9.423l8.332-1.268z" />
-                  </svg>
-                ))}
-              </div>
-              <textarea
-                value={newReview}
-                onChange={(e) => setNewReview(e.target.value)}
-                className="w-full p-4 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                rows="4"
-                placeholder="Write your review here..."
-              ></textarea>
-              {reviewError && (
-                <p className="mt-2 text-sm text-red-500">{reviewError}</p>
-              )}
-              <button
-                onClick={handleReviewSubmit}
-                className="px-6 py-2 mt-4 text-white bg-blue-600 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                Submit Review
-              </button>
-            </div>
-          )}
-
-          {/* List of Reviews */}
-          <h2 className="mb-6 text-3xl font-semibold text-center text-gray-800">
-            Reviews
-          </h2>
-          <div>
-            {reviews.length === 0 ? (
-              <p className="text-center text-gray-600">No reviews yet.</p>
-            ) : (
-              <ul className="space-y-4">
-                {reviews.map((review, index) => (
-                  <li
-                    key={index}
-                    className="p-4 text-gray-800 bg-white rounded-lg shadow-md"
-                  >
-                    <div className="flex items-center">
-                      {/* Profile Picture */}
-                      <img
-                        src={review.ProfilePicture}
-                        alt={`${review.UserName || "Anonymous"}'s profile`}
-                        className="w-10 h-10 rounded-full"
-                      />
-                      <div className="ml-4">
-                        <strong>{review.UserName || "Anonymous"}</strong>
-                        <div className="flex mt-1">
-                          {renderStars(review.Rating / 2)}
-                        </div>
-                      </div>
-                    </div>
-                    <p className="mt-2">{review.Text}</p>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        </div>
-    <div className="flex flex-col items-center justify-center min-h-screen p-8 bg-gradient-to-r from-blue-100 to-blue-200">
-      <div className="w-full max-w-5xl p-6 overflow-hidden bg-white rounded-lg shadow-lg">
-        {/* Photo Section */}
-        <div className="grid grid-cols-2 gap-4 mb-8">
-          {photos.length >= 2 ? (
-            photos.slice(0, 2).map((url, index) => (
-              <div
-                key={index}
-                className="relative block overflow-hidden rounded-lg shadow-md hover:cursor-pointer"
-                onClick={() => setPopupImage(url)}
-              >
-                <img
-                  decoding="async"
-                  data-nimg="fill"
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                  src={url}
-                  alt={`Climb photo ${index + 1}`}
-                  className="object-cover w-full h-64"
-                />
-                {index === 1 && (
-                  <div className="absolute right-4 bottom-4">
-                    <button
-                      onClick={() => ShowGallery()}
-                      className="flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        width="20"
-                        height="20"
-                        fill="currentColor"
-                        viewBox="0 0 256 256"
-                        className="mr-2"
-                      >
-                        <path d="M104,40H56A16,16,0,0,0,40,56v48a16,16,0,0,0,16,16h48a16,16,0,0,0,16-16V56A16,16,0,0,0,104,40Zm0,64H56V56h48v48Zm96-64H152a16,16,0,0,0-16,16v48a16,16,0,0,0,16,16h48a16,16,0,0,0,16-16V56A16,16,0,0,0,200,40Zm0,64H152V56h48v48Zm-96,32H56a16,16,0,0,0-16,16v48a16,16,0,0,0,16,16h48a16,16,0,0,0,16-16V152A16,16,0,0,0,104,136Zm0,64H56V152h48v48Zm96-64H152a16,16,0,0,0-16,16v48a16,16,0,0,0,16,16h48a16,16,0,0,0,16-16V152A16,16,0,0,0,200,136Zm0,64H152V152h48v48Z"></path>
-                      </svg>
-                      See more photos
-                    </button>
-                  </div>
-                )}
-              </div>
-            ))
-          ) : (
-            <div className="flex items-center justify-center h-64 col-span-2 bg-gray-200 rounded-lg">
-              <img
-                src="https://via.placeholder.com/300x200?text=No+Image+Available"
-                alt="No Image Available"
-                className="object-contain h-full"
-              />
-            </div>
-          )}
-        </div>
-
-        {/* Main content and map layout */}
-        <div className="flex flex-col gap-8 lg:flex-row">
-          {/* Climb Info */}
-          <div className="flex-1">
             <div className="flex items-center justify-center mb-4">
               <h1 className="mr-4 text-4xl font-bold text-gray-900">
                 {selectedClimb.name}
@@ -791,12 +590,20 @@ const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
                     key={index}
                     className="p-4 text-gray-800 bg-white rounded-lg shadow-md"
                   >
-                    <div className="flex">
-                      <strong>{review.UserName || "Anonymous"} </strong> <br />
-                      {renderStars(review.Rating / 2)}{" "}
-                      {/* Display rating as stars */}
+                    <div className="flex items-center">
+                      <img
+                        src={review.ProfilePicture}
+                        alt={`${review.UserName || "Anonymous"}'s profile`}
+                        className="w-10 h-10 rounded-full"
+                      />
+                      <div className="ml-4">
+                        <strong>{review.UserName || "Anonymous"}</strong>
+                        <div className="flex mt-1">
+                          {renderStars(review.Rating / 2)}
+                        </div>
+                      </div>
                     </div>
-                    {review.Text}
+                    <p className="mt-2">{review.Text}</p>
                   </li>
                 ))}
               </ul>

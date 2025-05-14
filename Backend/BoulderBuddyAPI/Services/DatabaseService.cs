@@ -13,7 +13,7 @@ namespace BoulderBuddyAPI.Services
         // Constructor for production use
         public DatabaseService(IConfiguration configuration)
         {
-            _connectionString = configuration?.GetConnectionString("DefaultConnection") 
+            _connectionString = configuration?.GetConnectionString("DefaultConnection")
                 ?? throw new ArgumentNullException(nameof(configuration), "Configuration cannot be null");
             _configuration = configuration;
         }
@@ -131,7 +131,7 @@ namespace BoulderBuddyAPI.Services
                     RouteId = @RouteId,
                     Image = @Image,
                     UploadDate = current_timestamp
-                WHERE PictureId = @PictureId;", 
+                WHERE PictureId = @PictureId;",
                 new { PictureId = pictureId, parameters });
 
         //execute select command
@@ -237,7 +237,7 @@ namespace BoulderBuddyAPI.Services
                 JOIN User ON Review.UserId = User.UserId
                 WHERE Review.RouteId = @RouteID
                 ORDER BY RANDOM() LIMIT 10;", new { RouteID });
-        
+
         //get average rating for a specific climb
         public Task<List<SingleItemWrapper<double>>> GetAvgReview(string RouteID) =>
             ExecuteSelectCommand<SingleItemWrapper<double>>("SELECT AVG(Rating) as Val " +
@@ -258,7 +258,7 @@ namespace BoulderBuddyAPI.Services
                     u2.UserName AS User2Name
                 FROM UserRelation ur
                 JOIN User u1 ON ur.User1Id = u1.UserId COLLATE NOCASE
-                JOIN User u2 ON ur.User2Id = u2.UserId COLLATE NOCASE;", 
+                JOIN User u2 ON ur.User2Id = u2.UserId COLLATE NOCASE;",
                 new object());
 
         //select from climb group table
@@ -380,7 +380,6 @@ namespace BoulderBuddyAPI.Services
                     RopeClimberLowerLimit = @RopeClimberLowerLimit, 
                     RopeClimberUpperLimit = @RopeClimberUpperLimit, 
                     Bio = @Bio
-                    AccountType = @AccountType,
                 WHERE UserId = @UserId;",
                 flattenedParameters);
         }
@@ -573,7 +572,7 @@ namespace BoulderBuddyAPI.Services
             ExecuteDeleteCommand("DELETE FROM User WHERE UserId = @UserId;", parameters);
 
         public Task DeleteFromUserTable(string userId) =>
-            ExecuteDeleteCommand("DELETE FROM User WHERE UserId = @UserId;", new { UserId = userId });    
+            ExecuteDeleteCommand("DELETE FROM User WHERE UserId = @UserId;", new { UserId = userId });
 
         //delete from review table
         public Task DeleteFromReviewTable(string reviewId) =>
@@ -592,7 +591,7 @@ namespace BoulderBuddyAPI.Services
 
         //delete from climb group relation table
         public Task DeleteFromClimbGroupRelationTable(string groupId, string userId) =>
-            ExecuteDeleteCommand("DELETE FROM ClimbGroupRelation WHERE GroupId = @GroupId AND UserId = @UserId;", 
+            ExecuteDeleteCommand("DELETE FROM ClimbGroupRelation WHERE GroupId = @GroupId AND UserId = @UserId;",
                 new { GroupId = groupId, UserId = userId });
 
         //delete from climb group event table
@@ -848,7 +847,7 @@ namespace BoulderBuddyAPI.Services
                 FROM User
                 WHERE UserId = @UserId;",
                 new { UserId = userId });
-        
+
             return result.FirstOrDefault() ?? throw new Exception($"User with ID {userId} not found.");
         }
 
@@ -900,6 +899,6 @@ namespace BoulderBuddyAPI.Services
                 WHERE UserId = @UserId;",
                 new { UserId = userId });
         }
-        
+
     }
 }

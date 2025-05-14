@@ -91,8 +91,11 @@ const CreateAccountPage = ({ setCurrentPage }) => {
         RopeClimberLowerLimit: "",
         RopeClimberUpperLimit: "",
         Bio: "",
+        AccountType: "public",
+        EnableReviewCommentNotifications: "",
+        EnableGroupInviteNotifications: "",
       };
-
+      console.log("User data to be sent:", userData);
       try {
         await axios.post("https://localhost:7195/api/Database/user", userData);
         setCurrentPage("profile");
