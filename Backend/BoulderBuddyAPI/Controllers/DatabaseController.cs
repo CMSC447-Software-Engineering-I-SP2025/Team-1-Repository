@@ -460,6 +460,42 @@ namespace BoulderBuddyAPI.Controllers
             }
         }
 
+        [HttpGet("picturesByUser/{userId}")]
+        public async Task<IActionResult> GetPicturesByUserId(string userId)
+        {
+            try
+            {
+                var pictures = await _databaseService.GetPicturesByUserId(userId);
+                if (pictures == null || !pictures.Any())
+                {
+                    return NotFound(new { message = $"No pictures found for user with ID {userId}." });
+                }
+                return Ok(pictures);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        [HttpGet("groupsOwnedByUser/{userId}")]
+        public async Task<IActionResult> GetGroupsOwnedByUser(string userId)
+        {
+            try
+            {
+                var groups = await _databaseService.GetGroupsOwnedByUser(userId);
+                if (groups == null || !groups.Any())
+                {
+                    return NotFound(new { message = $"No groups found owned by user with ID {userId}." });
+                }
+                return Ok(groups);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
         // DELETE methods for deleting data from the database
 
         [HttpDelete("users/{userId}")]
@@ -807,6 +843,9 @@ namespace BoulderBuddyAPI.Services
         Task<List<Badge>> GetBadges();
         Task<List<BadgeRelation>> GetBadgeRelations();
 
+        //method for getting pictures by user ID
+        Task<List<Picture>> GetPicturesByUserId(string userId);
+
         //methods for handling friend requests
         Task SendFriendRequest(string senderUserId, string receiverUserName);
         Task AcceptFriendRequest(string senderUserId, string receiverUserId);
@@ -835,5 +874,8 @@ namespace BoulderBuddyAPI.Services
 
         //method for getting pictures by route ID
         Task<List<Picture>> GetPicturesByRouteId(string routeId);
+
+        //method for getting groups owned by user ID
+        Task<List<ClimbGroup>> GetGroupsOwnedByUser(string userId);
     }
 }

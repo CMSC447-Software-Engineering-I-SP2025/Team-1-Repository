@@ -862,6 +862,39 @@ namespace BoulderBuddyAPI.Services
                 WHERE RouteId = @RouteId;",
                 new { RouteId = routeId });
         }
+
+        //get picture by user id
+        public Task<List<Picture>> GetPicturesByUserId(string userId)
+        {
+            return ExecuteSelectCommand<Picture>(@"
+                SELECT 
+                    PictureId, 
+                    UserId, 
+                    RouteId, 
+                    Image, 
+                    UploadDate
+                FROM Picture
+                WHERE UserId = @UserId;",
+                new { UserId = userId });
+        }
+
+        //get the groups owned by a user
+        public Task<List<ClimbGroup>> GetGroupsOwnedByUser(string userId)
+        {
+            return ExecuteSelectCommand<ClimbGroup>(@"
+                SELECT 
+                    GroupId, 
+                    GroupName, 
+                    GroupDescription, 
+                    JoinRequirements, 
+                    Price, 
+                    GroupType, 
+                    GroupOwner,
+                    GroupImage
+                FROM ClimbGroup
+                WHERE GroupOwner = @UserId;",
+                new { UserId = userId });
+        }
         
     }
 }
