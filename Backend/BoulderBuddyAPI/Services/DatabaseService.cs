@@ -901,6 +901,24 @@ namespace BoulderBuddyAPI.Services
                 WHERE UserId = @UserId;",
                 new { UserId = userId });
         }
+
+        //get the groups owned by a user
+        public Task<List<ClimbGroup>> GetGroupsOwnedByUser(string userId)
+        {
+            return ExecuteSelectCommand<ClimbGroup>(@"
+                SELECT 
+                    GroupId, 
+                    GroupName, 
+                    GroupDescription, 
+                    JoinRequirements, 
+                    Price, 
+                    GroupType, 
+                    GroupOwner,
+                    GroupImage
+                FROM ClimbGroup
+                WHERE GroupOwner = @UserId;",
+                new { UserId = userId });
+        }
         
     }
 }
