@@ -28,6 +28,7 @@ const AddGroupPage = () => {  // Assuming userId is passed as a prop or from con
     };
 
     return (
+        <div>
         <div className="login-container">
             <form className="login-form" onSubmit={joinGroup}>
                 <h2>Join Group</h2>
@@ -42,6 +43,22 @@ const AddGroupPage = () => {  // Assuming userId is passed as a prop or from con
                 </div>
                 <button type="submit">Submit</button>
             </form>
+        </div>
+        <div className="login-container">
+            <form className="login-form" onSubmit={joinGroup}>
+                <h2>Create Group</h2>
+                <div className="form-group">
+                    <input
+                        type="text"
+                        placeholder="MD Group"
+                        id="group"
+                        value={group}
+                        onChange={(e) => setGroup(e.target.value)}
+                    />
+                </div>
+                <button type="submit">Submit</button>
+            </form>
+            </div>
         </div>
     );
 };

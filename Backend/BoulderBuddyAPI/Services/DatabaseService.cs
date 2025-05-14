@@ -80,8 +80,8 @@ namespace BoulderBuddyAPI.Services
 
         public Task InsertIntoClimbGroupTable(object parameters) =>
             ExecuteInsertCommand(@"
-                INSERT INTO ClimbGroup (GroupId, GroupName, GroupDescription, JoinRequirements, Price, GroupType, GroupOwner, GroupImage) 
-                VALUES (@GroupId, @GroupName, @GroupDescription, @JoinRequirements, @Price, @GroupType, @GroupOwner, @GroupImage);", parameters);
+                INSERT INTO ClimbGroup (GroupName, GroupDescription, JoinRequirements, Price, GroupType, GroupOwner, GroupImage) 
+                VALUES (@GroupName, @GroupDescription, @JoinRequirements, @Price, @GroupType, @GroupOwner, @GroupImage);", parameters);
 
         public Task InsertIntoClimbGroupRelationTable(object parameters) =>
             ExecuteInsertCommand(@"
