@@ -31,7 +31,36 @@ const SettingsPage = () => {
 
   useEffect(() => {
     localStorage.setItem("fontSize", fontSize);
-  }, [fontSize]);
+  }, [fontSize]);  
+
+  const fetchSettings = async () => {
+      if (!user?.id) return;
+
+      try {
+          const response = await axios.get(`https://localhost:7195/api/Database/user/${user.id}`);
+
+          if (response.status === 200) {
+              const settings = response.data;
+              setAccountType(settings.accountType || "public");
+              setReviewComments(settings.enableReviewCommentNotifications || "enable");
+              setGroupInvites(settings.enableGroupInviteNotifications || "enable");
+
+              // Log the fetched settings to the console
+              console.log("Fetched user settings:", settings);
+              console.log("Raw fetched groupInvites from backend:", settings.enableGroupInviteNotifications);
+              console.log("Raw fetched reviewComments from backend:", settings.enableReviewCommentNotifications);
+              console.log("Raw fetched accountType from backend:", settings.accountType);
+          } else {
+              console.error("Failed to fetch settings: Unexpected response status", response.status);
+          }
+      } catch (error) {
+          console.error("Failed to fetch settings:", error);
+      }
+  };
+
+  useEffect(() => {
+    fetchSettings();
+  }, [user]);
 
   const handleDeleteAccount = async () => {
     setDeleteMessage("");
@@ -81,8 +110,7 @@ const SettingsPage = () => {
       setDeletePassword("");
       setIsDeleteConfirmed(false); // Reset confirmation state
 
-      // Debugging navigation
-      console.log("Navigating to sign up...");
+    
       navigate("/signup");
     } catch (error) {
       setDeleteMessage(error.message || "An error occurred while deleting the account.");
@@ -105,7 +133,9 @@ const SettingsPage = () => {
       const response = await axios.post("https://localhost:7195/api/Database/UpdateUserSettings", settings);
 
       if (response.status !== 200) throw new Error("Failed to save settings.");
+      
       alert("Settings saved successfully!");
+      
     } catch (err) {
       alert(err.message || "An error occurred while saving settings.");
     }

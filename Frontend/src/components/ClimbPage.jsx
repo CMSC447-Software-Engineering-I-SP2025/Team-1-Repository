@@ -6,6 +6,7 @@ import { useUser } from "./UserProvider";
 const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
   const { user: currentUser } = useUser(); // Access currentUser using useUser hook
   const [favoriteClimbs, setFavoriteClimbs] = useState([]);
+  const [isFavorite, setIsFavorite] = useState(false); // State for heart icon
 
   useEffect(() => {
     const fetchFavoriteClimbs = async () => {
@@ -22,14 +23,12 @@ const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
           }
         );
 
-        const simplifiedFavorites = response.data.map((climb) => ({
-          id: climb.id,
-          parentAreaId: climb.parentAreaId,
-          name: climb.name,
-        }));
+        console.log("Fetched response.data climbs:", response.data);
+        setFavoriteClimbs(response.data);
 
-        console.log("Fetched favorite climbs:", simplifiedFavorites);
-        setFavoriteClimbs(simplifiedFavorites);
+        if (response.data.some((fav) => fav.climbId === selectedClimb?.id)) {
+          console.log("Selected climb is a favorite.");
+        }
       } catch (error) {
         console.error("Error fetching favorite climbs:", error);
       }
@@ -38,30 +37,28 @@ const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
     fetchFavoriteClimbs();
   }, [currentUser]);
 
+  useEffect(() => {
+    if (selectedClimb) {
+      const isFavoriteClimb = favoriteClimbs.some(
+        (fav) => fav.id === selectedClimb.id
+      );
+      setIsFavorite(isFavoriteClimb); // Update the heart icon state
+    }
+  }, [selectedClimb, favoriteClimbs]);
+
+  const areaId = selectedClimb?.area?.metadata?.areaId;
+  console.log("Area ID in ClimbPage:", areaId);
+  console.log("Climb object in ClimbPage:", selectedClimb);
+  console.log("Simplified favorite climbs:", favoriteClimbs);
+
   const addFavoriteClimb = async (climb) => {
     if (!currentUser?.id) {
       console.error("User is not logged in. Cannot add favorite climb.");
       return;
     }
 
-    // Fetch parentAreaId if undefined
-    if (!climb?.parentAreaId) {
-      try {
-        console.log("Fetching parentAreaId for climb ID:", climb.id);
-        const response = await axios.get(
-          `https://localhost:7195/api/Database/GetParentAreaIdByClimbId`,
-          { params: { climbId: climb.id } }
-        );
-        climb.parentAreaId = response.data.parentAreaId;
-        console.log("Fetched parentAreaId:", climb.parentAreaId);
-      } catch (error) {
-        console.error("Error fetching parentAreaId:", error);
-        return;
-      }
-    }
-
     // Validate climb object
-    if (!climb?.id || !climb?.parentAreaId || !climb?.name) {
+    if (!climb?.id || !selectedClimb?.area?.metadata?.areaId || !climb?.name) {
       console.error("Invalid climb object:", climb);
       return;
     }
@@ -70,13 +67,13 @@ const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
       console.log("Adding favorite climb with payload:", {
         userId: currentUser.id,
         climbId: climb.id,
-        parentAreaId: climb.parentAreaId,
+        parentAreaId: selectedClimb?.area?.metadata?.areaId,
       });
 
       await axios.post("https://localhost:7195/api/Database/FavoriteClimb", {
         userId: currentUser.id,
         climbId: climb.id,
-        parentAreaId: climb.parentAreaId,
+        parentAreaId: selectedClimb?.area?.metadata?.areaId,
       });
 
       setFavoriteClimbs((prev) => [...prev, climb]);
@@ -97,6 +94,7 @@ const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
         },
       });
 
+      console.log("Successfully removed favorite climb:", climbId);
       setFavoriteClimbs((prev) => prev.filter((fav) => fav.id !== climbId));
     } catch (error) {
       console.error("Error removing favorite climb:", error);
@@ -109,12 +107,12 @@ const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
     const isFavorite = favoriteClimbs.some((fav) => fav.id === climb.id);
 
     if (isFavorite) {
-      setFavoriteClimbs((prev) => prev.filter((fav) => fav.id !== climb.id));
+      setFavoriteClimbs((prev) => prev.filter((fav) => fav.climbId !== climb.id));
       await removeFavoriteClimb(climb.id);
     } else {
       const newClimb = {
         id: climb.id,
-        parentAreaId: climb.parentAreaId,
+        parentAreaId: selectedClimb?.area?.metadata?.areaId,
         name: climb.name,
       };
       setFavoriteClimbs((prev) => [...prev, newClimb]);
@@ -122,7 +120,6 @@ const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
     }
   };
 
-  const isFavorite = favoriteClimbs.some((fav) => fav.id === selectedClimb?.id);
   if (!selectedClimb) {
     return <div className="text-center text-gray-500">No climb selected</div>;
   }
@@ -138,7 +135,6 @@ const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
   const [rating, setRating] = useState(""); // Rating will be a string to match your model
   const [description, setDescription] = useState("");
   const [hasReviewed, setHasReviewed] = useState(false);
-
 
   const renderStars = (rating) => {
     const fullStars = Math.floor(rating);
@@ -195,6 +191,10 @@ const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
   };
 
   useEffect(() => {
+    if (selectedClimb) {
+      console.log("Selected climb ID:", selectedClimb.id);
+    }
+
     const fetchAvg = async () => {
       try {
         const res = await axios.get(

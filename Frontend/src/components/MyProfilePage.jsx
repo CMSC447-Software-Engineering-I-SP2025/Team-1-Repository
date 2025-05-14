@@ -5,12 +5,14 @@ import defaultProfilePic from "../../assets/default-profile.jpg";
 import { Link } from "react-router-dom";
 import { useUser } from "./UserProvider";
 import axios from "axios";
+import ClimbPage from "./ClimbPage";
 
 const MyProfilePage = ({
   onSave,
   currentUser,
   setCurrentUser,
   supabaseUser,
+  setSelectedClimb,
 }) => {
   const [activeTab, setActiveTab] = useState("editProfile"); // State for active tab
   const [emailError, setEmailError] = useState(""); // State for email error
@@ -26,7 +28,7 @@ const MyProfilePage = ({
   const [phone, setPhone] = useState("");
   const [bio, setBio] = useState("");
   const [username, setUsername] = useState("");
-  const { favoriteClimbs } = useFavoriteClimbs();
+  const [favoriteClimbs, setFavoriteClimbs] = useState([]); // State for favorite climbs
 
   useEffect(() => {
     if (activeTab === "reviews" && currentUser) {
@@ -49,6 +51,103 @@ const MyProfilePage = ({
     }
   }, [activeTab, currentUser]);
 
+  useEffect(() => {
+    if (activeTab === "myClimbs" && currentUser) {
+      const fetchFavoriteClimbs = async () => {
+        try {
+          // Fetch the list of favorite climbs
+          const response = await axios.get(
+            "https://localhost:7195/api/Database/FavoriteClimb",
+            {
+              params: { userId: currentUser.UserId },
+            }
+          );
+
+          const favoriteClimbsData = response.data;
+          console.log("Fetched favorite climbs:", favoriteClimbsData);
+
+          // Fetch additional details for each climb using ClimbWithParentArea API
+          const detailedClimbs = await Promise.all(
+            favoriteClimbsData.map(async (climb) => {
+              try {
+                const climbDetailsResponse = await axios.post(
+                  "https://localhost:7195/Search/ClimbWithParentArea",
+                  {
+                    climbId: climb.climbId,
+                    parentAreaId: climb.parentAreaId,
+                  }
+                );
+
+                const climbDetails = climbDetailsResponse.data;
+                console.log("Climb details response:", climbDetails);
+
+                // Get the climb object from the list of climbs in the response
+                const climbData = climbDetails.climbs.find(c => c.id === climb.climbId);
+
+                if (!climbData) {
+                  console.warn("Climb not found in response.climbs:", climb.climbId);
+                  return null;
+                }
+
+                // Log area details to the console
+                console.log(`Climb ID: ${climb.id}`);
+                console.log(`Area Name: ${climbDetails.areaName}`);
+                console.log(`Location: Lat: ${climbDetails.metadata.lat}, Lng: ${climbDetails.metadata.lng}`);
+
+                return {
+                  id: climb.climbId,
+                  name: climbData.name,
+                  areaName: climbDetails.areaName,
+                  location: {
+                    lat: climbDetails.metadata.lat,
+                    lng: climbDetails.metadata.lng,
+                  },
+                };
+              } catch (error) {
+                console.error(
+                  `Error fetching details for climb ID ${climb.id}:`,
+                  error
+                );
+                return null; // Return null if there's an error
+              }
+            })
+          );
+
+          // Filter out any null values (in case of errors)
+          const validClimbs = detailedClimbs.filter((climb) => climb !== null);
+          console.log("Valid climbs:", validClimbs);
+
+          setFavoriteClimbs(validClimbs);
+        } catch (error) {
+          console.error("Error fetching favorite climbs:", error);
+        }
+      };
+
+      fetchFavoriteClimbs();
+    }
+  }, [activeTab, currentUser]);
+
+  console.log("Debugging favoriteClimbs:", favoriteClimbs);
+  console.log("Debugging currentUser in MyProfilePage:", currentUser.UserId);
+  console.log("Debugging Climb name:", favoriteClimbs.map((climb) => climb.name));
+
+  const removeFavoriteClimb = async (climbId) => {
+    try {
+      await axios.delete("https://localhost:7195/api/Database/FavoriteClimb", {
+        data: {
+          userId: currentUser.UserId,
+          climbId: climbId,
+        },
+      });
+
+      console.log("Successfully removed favorite climb:", climbId);
+
+      // Remove from UI
+      setFavoriteClimbs((prev) => prev.filter((climb) => climb.id !== climbId));
+    } catch (error) {
+      console.error("Error removing favorite climb:", error);
+    }
+  };
   useEffect(() => {
     if (currentUser) {
       setFirstName(currentUser.FirstName || "");
@@ -301,19 +400,25 @@ const MyProfilePage = ({
                 {favoriteClimbs.map((climb) => (
                   <li
                     key={climb.id}
-                    className="p-4 bg-gray-100 rounded shadow flex justify-between items-center"
+                    className="p-4 bg-gray-100 rounded shadow flex flex-col space-y-2"
                   >
-                    <div>
+                    <div className="flex items-center justify-between">
                       <h3 className="text-lg font-semibold">{climb.name}</h3>
-                      <p className="text-gray-700 text-sm">Area ID: {climb.parentAreaId}</p>
+                      <button
+                        onClick={() => removeFavoriteClimb(climb.id)}
+                        className="text-red-500 hover:text-red-700 text-2xl"
+                        title="Remove from favorites"
+                      >
+                        ♥
+                      </button>
                     </div>
-                    <button
-                      onClick={() => toggleFavoriteClimb(climb)}
-                      className="text-red-500 text-2xl focus:outline-none"
-                      title="Toggle Favorite"
-                    >
-                      {favoriteClimbs.some((fav) => fav.id === climb.id) ? "♥" : "♡"}
-                    </button>
+                    <p className="text-gray-700 text-sm">
+                      <strong>Area Name:</strong> {climb.areaName}
+                    </p>
+                    <p className="text-gray-700 text-sm">
+                      <strong>Location:</strong> Lat: {climb.location.lat}, Lng:{" "}
+                      {climb.location.lng}
+                    </p>
                   </li>
                 ))}
               </ul>

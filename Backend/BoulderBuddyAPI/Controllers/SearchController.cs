@@ -81,6 +81,23 @@ public class SearchController : ControllerBase
         return Ok(areas.ToList()); //HTTP 200 (Ok) response with content
     }
 
+    [HttpPost("ClimbID/{climbID}")]
+    public async Task<IActionResult> SearchByClimbID(string climbID)
+    {
+        if (climbID is null)
+            return BadRequest("Null climb ID.");
+
+        try
+        {
+            var climb = await _openBetaQuerySvc.QueryClimbByClimbID(climbID);
+            return Ok(climb); //HTTP 200 (Ok) response with content
+        }
+        catch (ArgumentException)
+        {
+            return BadRequest("Invalid climb ID (does not exist in OpenBeta)."); //HTTP 400 (BadRequest) response with error msg
+        }
+    }
+
     //POST /Search/AreaID/{areaID} - performs OpenBeta API query to find area and its climbs/metadata by area ID
     [HttpPost("AreaID/{areaID}")]
     public async Task<IActionResult> SearchByAreaID(string areaID)

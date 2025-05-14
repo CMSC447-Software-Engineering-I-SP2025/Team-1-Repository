@@ -59,23 +59,23 @@ namespace BoulderBuddyAPI.Tests.Services
             await Assert.ThrowsAsync<ArgumentException>(() => service.QuerySubAreasInArea(null));
         }
         [Fact]
-        public async Task QueryAreaByAreaID_GivenValidRootArea_ReturnsAreaWithClimbs()
+        public async Task QueryClimbByClimbID_GivenValidClimb_ReturnsClimb()
         {
-            var service = ArrangeTestableObject("TestResources/AreaResponse_ccee8a41-32ec-5a26-96f6-f8c2743423e3.json"); //arrange
-            var area = await service.QueryAreaByAreaID("ccee8a41-32ec-5a26-96f6-f8c2743423e3"); //act
+            var service = ArrangeTestableObject("TestResources/ClimbResponse_882ce4a9-0acf-5fbf-b7db-99448873c568.json"); //arrange
+            var area = await service.QueryClimbByClimbID("882ce4a9-0acf-5fbf-b7db-99448873c568"); //act
 
             //read expected output from file
-            var jsonString = File.ReadAllText("TestResources/Area_ccee8a41-32ec-5a26-96f6-f8c2743423e3.json");
-            var expectedReturn = JsonSerializer.Deserialize<Area>(jsonString);
+            var jsonString = File.ReadAllText("TestResources/Climb_882ce4a9-0acf-5fbf-b7db-99448873c568.json");
+            var expectedReturn = JsonSerializer.Deserialize<Climb>(jsonString);
 
             //assert deep equivalence
             Assert.Equivalent(expectedReturn, area);
         }
 
         [Fact]
-        public async Task QueryAreaByAreaID_ReadsFromCache()
+        public async Task QueryClimbByClimbID_ReadsFromCache()
         {
-            var service = ArrangeTestableObject("TestResources/AreaResponse_ccee8a41-32ec-5a26-96f6-f8c2743423e3.json");
+            var service = ArrangeTestableObject("TestResources/ClimbResponse_882ce4a9-0acf-5fbf-b7db-99448873c568.json");
 
             //start this test with an OpenBeta query, not a cache hit
             var expectedDirPath = $"cached_responses_test\\{DateTime.Now.ToString("yyyyMMdd")}";
@@ -83,28 +83,28 @@ namespace BoulderBuddyAPI.Tests.Services
                 Directory.Delete(expectedDirPath, true);
 
             //act (1)
-            var area1 = await service.QueryAreaByAreaID("ccee8a41-32ec-5a26-96f6-f8c2743423e3"); //expecting OpenBeta query
+            var climb1 = await service.QueryClimbByClimbID("882ce4a9-0acf-5fbf-b7db-99448873c568"); //expecting OpenBeta query
 
             //caching requires the creation of file and directory (since directory was previously deleted)
             Assert.True(Directory.Exists(expectedDirPath));
-            Assert.True(Path.Exists($"{expectedDirPath}\\ccee8a41-32ec-5a26-96f6-f8c2743423e3.json"));
+            Assert.True(Path.Exists($"{expectedDirPath}\\882ce4a9-0acf-5fbf-b7db-99448873c568.json"));
 
             //act (2)
-            var area2 = await service.QueryAreaByAreaID("ccee8a41-32ec-5a26-96f6-f8c2743423e3"); //expecting cache hit
+            var climb2 = await service.QueryClimbByClimbID("882ce4a9-0acf-5fbf-b7db-99448873c568"); //expecting cache hit
 
             //the response from the first search should be read by the second
-            Assert.Equivalent(area1, area2);
+            Assert.Equivalent(climb1, climb2);
         }
 
         [Fact]
-        public async Task QueryAreaByAreaID_GivenInvalidRootArea_ThrowsArgumentException()
+        public async Task QueryClimbByClimbID_GivenInvalidClimb_ThrowsArgumentException()
         {
             var service = ArrangeTestableObject("TestResources/DelawareResponse.json"); //arrange
 
             //example invalid inputs
-            await Assert.ThrowsAsync<ArgumentException>(() => service.QueryAreaByAreaID("string"));
-            await Assert.ThrowsAsync<ArgumentException>(() => service.QueryAreaByAreaID(""));
-            await Assert.ThrowsAsync<ArgumentException>(() => service.QueryAreaByAreaID(null));
+            await Assert.ThrowsAsync<ArgumentException>(() => service.QueryClimbByClimbID("string"));
+            await Assert.ThrowsAsync<ArgumentException>(() => service.QueryClimbByClimbID(""));
+            await Assert.ThrowsAsync<ArgumentException>(() => service.QueryClimbByClimbID(null));
         }
 
         //create OpenBetaQueryService object using a mocked HttpClient that returns json content read from given file path

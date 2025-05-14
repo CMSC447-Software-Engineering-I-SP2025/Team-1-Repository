@@ -30,12 +30,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="TestResources\Area_ccee8a41-32ec-5a26-96f6-f8c2743423e3.json">
+    <None Update="TestResources\Climb_882ce4a9-0acf-5fbf-b7db-99448873c568.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="TestResources\AreaResponse_ccee8a41-32ec-5a26-96f6-f8c2743423e3.json">
+    <None Update="TestResources\ClimbResponse_882ce4a9-0acf-5fbf-b7db-99448873c568.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	</None>
+    </None>
     <None Update="TestResources\ColoradoResponse.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

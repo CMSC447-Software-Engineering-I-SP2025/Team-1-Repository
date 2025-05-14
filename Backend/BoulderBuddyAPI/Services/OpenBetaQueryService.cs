@@ -75,6 +75,63 @@ namespace BoulderBuddyAPI.Services
             return subareas;
         }
 
+        //query OpenBeta API for a specific climb by climb ID
+        public async Task<Climb> QueryClimbByClimbID(string climbID)
+        {
+            if (climbID is null)
+                throw new ArgumentException("Null climb ID.");
+
+            //build HTTP data section for OpenBeta POST request
+            QueryHTTPDataSection data = new QueryHTTPDataSection
+            {
+                query = MakeClimbByIDQuery(climbID),
+                operationName = "ClimbByID"
+            };
+
+            //get expected file path for the cache file for this root area
+            var formattedDate = DateTime.Now.ToString("yyyyMMdd");
+            var fullDirectory = $"{_cacheDirectory}\\{formattedDate}";
+            var cacheFilePath = $"{fullDirectory}\\{climbID}.json";
+
+            Climb climb;
+
+            //read from today's cached file
+            if (File.Exists(cacheFilePath))
+            {
+                _logger.LogInformation($"Cache hit for \"{climbID}\" search");
+
+                var jsonContent = File.ReadAllText(cacheFilePath);
+                climb = JsonSerializer.Deserialize<Climb>(jsonContent);
+            }
+
+            //climb hasn't been cached today; query OpenBeta
+            else
+            {
+                _logger.LogInformation($"OpenBeta query necessary for \"{climbID}\" search");
+
+                //POST request to OpenBeta API
+                using var response = await _httpClient.PostAsJsonAsync("", data);
+
+                response.EnsureSuccessStatusCode(); //throw if not a successful request
+
+                //gives { data: {...} } (SearchByClimbRootObj)
+                var responseString = await response.Content.ReadAsStringAsync();
+                var decodedQueryResponse = JsonSerializer.Deserialize<SearchByClimbRootObj>(responseString);
+
+                climb = decodedQueryResponse.data.climb;
+
+                if (climb is null)
+                    throw new ArgumentException("Given climb does not exist");
+
+                //cache this response
+                Directory.CreateDirectory(fullDirectory);
+                File.WriteAllText(cacheFilePath, JsonSerializer.Serialize(climb));
+            }
+
+            _logger.LogInformation($"Successfully ran ClimbByID query for \"{climbID}\". Found climb.");
+            return climb;
+        }
+
         //query OpenBeta API for a specific area by area ID
         public async Task<Area> QueryAreaByAreaID(string rootAreaID)
         {
@@ -493,6 +550,44 @@ query ClimbsInAreaName {
       }
     }
   }
+}
+            ";
+
+            return query;
+        }
+
+        private string MakeClimbByIDQuery(string climbID)
+        {
+            string query = @"
+query ClimbByID {
+  climb(uuid: ";
+            query += "\"" + climbID + "\"";
+            query += @") {
+        name
+        metadata {
+          lat
+          lng
+        }
+        id
+        grades {
+          font
+          french
+          vscale
+          yds
+        }
+        safety
+        type {
+          aid
+          alpine
+          bouldering
+          ice
+          mixed
+          snow
+          sport
+          tr
+          trad
+        }
+    }
 }
             ";
 
