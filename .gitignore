@@ -19,3 +19,6 @@ x64/
 # Ignore Coverlet unit test code coverage reports
 Backend/**/TestResults/*
 Backend/**/coveragereport/*
+
+# Ignore cached OpenBeta responses
+Backend/**/cached_responses/**

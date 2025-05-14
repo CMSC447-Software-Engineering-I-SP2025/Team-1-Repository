@@ -54,8 +54,24 @@ public class SearchController : ControllerBase
             return BadRequest("Invalid root area (state or country)."); //HTTP 400 (BadRequest) response with error msg
         }
 
+        //perform area/climb name filter before everything else (since it filters the most out)
+        if (options.SearchTerm is not null)
+        {
+            areas = areas.Where(a =>
+            {
+                //area-level filter succeeds when area contains search term
+                if (a.areaName.Contains(options.SearchTerm, StringComparison.OrdinalIgnoreCase))
+                    return true;
 
-        //filter climbs to climbs that meet filter options, and removes areas that had all their climbs filtered out
+                //where area doesn't contain search term, filter climbs list to climbs that match search term
+                a.climbs = a.climbs.Where(c => c.name.Contains(options.SearchTerm, StringComparison.OrdinalIgnoreCase)).ToList();
+
+                //if area name didn't match and no climb names matched, then filter area out
+                return a.climbs.Count > 0;
+            });
+        }
+
+        //filter climbs to climbs that meet all other filter options, and removes areas that had all their climbs filtered out
         areas = areas.Where(a =>
         {
             a.climbs = a.climbs.Where(c => SearchFilter(options, c)).ToList();
@@ -99,6 +115,13 @@ public class SearchController : ControllerBase
     //determines if climb should be included based on all desired filter options (pass=true, fail=false)
     private bool SearchFilter(SearchWithFiltersOptions options, Climb c)
     {
+        if (options.DistOptions is not null)
+        {
+            double dist = DistanceInMiles(c.metadata.lat, c.metadata.lng, options.DistOptions.Lat, options.DistOptions.Lng);
+            if (dist > options.DistOptions.Miles)
+                return false;
+        }
+
         if (c.grades is null) //there are rare occasions where this happens. Better to catch it here than pass it downstream
             return false;
         if (ShouldTest(options.MinFont, c.grades.font) && !AboveMin(c.grades.font, options.MinFont, _ranges.Font))
@@ -119,7 +142,7 @@ public class SearchController : ControllerBase
             if (c.grades.yds.EndsWith("-") || c.grades.yds.EndsWith("+"))
                 c.grades.yds = c.grades.yds.Substring(0, c.grades.yds.Length - 1);
 
-        if (!AboveMin(c.grades.yds, options.MinYDS, _ranges.Yds))
+            if (!AboveMin(c.grades.yds, options.MinYDS, _ranges.Yds))
                 return false;
         }
         if (ShouldTest(options.MaxYDS, c.grades.yds) && !c.grades.yds.StartsWith("V"))
@@ -131,12 +154,27 @@ public class SearchController : ControllerBase
             if (!BelowMax(c.grades.yds, options.MaxYDS, _ranges.Yds))
                 return false;
         }
-        if (options.DistOptions is not null)
-        {
-            double dist = DistanceInMiles(c.metadata.lat, c.metadata.lng, options.DistOptions.Lat, options.DistOptions.Lng);
-            if (dist > options.DistOptions.Miles)
-                return false;
-        }
+
+        if (c.type is null)
+            return false;
+        if (options.IsAidType is not null && options.IsAidType != c.type.aid)
+            return false;
+        if (options.IsAlpineType is not null && options.IsAlpineType != c.type.alpine)
+            return false;
+        if (options.IsBoulderingType is not null && options.IsBoulderingType != c.type.bouldering)
+            return false;
+        if (options.IsIceType is not null && options.IsIceType != c.type.ice)
+            return false;
+        if (options.IsMixedType is not null && options.IsMixedType != c.type.mixed)
+            return false;
+        if (options.IsSnowType is not null && options.IsSnowType != c.type.snow)
+            return false;
+        if (options.IsSportType is not null && options.IsSportType != c.type.sport)
+            return false;
+        if (options.IsTrType is not null && options.IsTrType != c.type.tr)
+            return false;
+        if (options.IsTradType is not null && options.IsTradType != c.type.trad)
+            return false;
 
         return true;
     }
