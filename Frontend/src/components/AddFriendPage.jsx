@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useLocation } from 'react-router-dom';
 
-const AddFriendPage = ({ userId }) => {  // Assuming userId is passed as a prop or from context
+const AddFriendPage = () => {  // Assuming userId is passed as a prop or from context
 
     const [receiver, setReceiver] = useState('');
     const location = useLocation();

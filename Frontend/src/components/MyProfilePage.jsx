@@ -103,7 +103,7 @@ const MyProfilePage = ({ onSave }) => {
             }
         };
 
-        //fetchGroups(user.id);
+        fetchGroups(user.id);
     }, [user.id]);
 
     const acceptFriendRequest = async (senderID, receiverID) => {
@@ -537,7 +537,7 @@ const MyProfilePage = ({ onSave }) => {
                           </ul>
                       )}
                       <h2 className="text-xl font-bold text-gray-800">Groups</h2>
-                      <Link to="/add-group" className="px-3">
+                        <Link to="/add-group" className="px-3" state={{ userID: user.id }} >
                           +
                       </Link>
                       {groupRelations.length === 0 ? (
@@ -547,8 +547,8 @@ const MyProfilePage = ({ onSave }) => {
                                   {groupRelations.map((groupRelation, index) => (
                                   <li key={index} style={{ marginBottom: "1rem" }}>
                                           <Link to="/group" state={{ groupID: groupRelation.groupID }} className="px-3">
-                                          <strong>GroupID:</strong> {groupRelation.groupID} <br />
-                                          <strong>RelationType:</strong> {groupRelation.relationType}
+                                          <strong>Name:</strong> {groupRelation.GroupName} <br />
+                                              <strong>Description:</strong> {groupRelation.GroupDescription}
                                     </Link>
                                   </li>
                               ))}
