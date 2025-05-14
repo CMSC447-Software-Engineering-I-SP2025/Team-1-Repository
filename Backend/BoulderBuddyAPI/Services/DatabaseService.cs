@@ -90,8 +90,8 @@ namespace BoulderBuddyAPI.Services
 
         public Task InsertIntoClimbGroupEventTable(object parameters) =>
             ExecuteInsertCommand(@"
-                INSERT INTO ClimbGroupEvent (GroupId, EventName, EventDescription, EventDate, EventTime, EventLocation, EventImage) 
-                VALUES (@GroupId, @EventName, @EventDescription, @EventDate, @EventTime, @EventLocation, @EventImage);", parameters);
+                INSERT INTO ClimbGroupEvent (EventName, GroupId, EventDescription, EventDate, EventTime, EventLocation, EventImage) 
+                VALUES (@EventName, @GroupId, @EventDescription, @EventDate, @EventTime, @EventLocation, @EventImage);", parameters);
 
         public Task InsertIntoBadgeTable(object parameters) =>
             ExecuteInsertCommand(@"
