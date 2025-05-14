@@ -267,47 +267,47 @@ public class SearchController : ControllerBase
         //treat type filters as OR expression
         var passesTypeFilters = false;
         var anyTypeFiltered = false;
-        if (options.IsAidType is not null)
+        if (options.IsAidType is not null && options.IsAidType == true)
         {
             passesTypeFilters |= options.IsAidType == c.type.aid;
             anyTypeFiltered = true;
         }
-        if (options.IsAlpineType is not null)
+        if (options.IsAlpineType is not null && options.IsAlpineType == true)
         {
             passesTypeFilters |= options.IsAlpineType == c.type.alpine;
             anyTypeFiltered = true;
         }
-        if (options.IsBoulderingType is not null)
+        if (options.IsBoulderingType is not null && options.IsBoulderingType == true)
         {
             passesTypeFilters |= options.IsBoulderingType == c.type.bouldering;
             anyTypeFiltered = true;
         }
-        if (options.IsIceType is not null)
+        if (options.IsIceType is not null && options.IsIceType == true)
         {
             passesTypeFilters |= options.IsIceType == c.type.ice;
             anyTypeFiltered = true;
         }
-        if (options.IsMixedType is not null)
+        if (options.IsMixedType is not null && options.IsMixedType == true)
         {
             passesTypeFilters |= options.IsMixedType == c.type.mixed;
             anyTypeFiltered = true;
         }
-        if (options.IsSnowType is not null)
+        if (options.IsSnowType is not null && options.IsSnowType == true)
         {
             passesTypeFilters |= options.IsSnowType == c.type.snow;
             anyTypeFiltered = true;
         }
-        if (options.IsSportType is not null)
+        if (options.IsSportType is not null && options.IsSportType == true)
         {
             passesTypeFilters |= options.IsSportType == c.type.sport;
             anyTypeFiltered = true;
         }
-        if (options.IsTrType is not null)
+        if (options.IsTrType is not null && options.IsTrType == true)
         {
             passesTypeFilters |= options.IsTrType == c.type.tr;
             anyTypeFiltered = true;
         }
-        if (options.IsTradType is not null)
+        if (options.IsTradType is not null && options.IsTradType == true)
         {
             passesTypeFilters |= options.IsTradType == c.type.trad;
             anyTypeFiltered = true;
