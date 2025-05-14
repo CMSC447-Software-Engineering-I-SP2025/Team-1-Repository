@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 import axios from "axios";
 
-const CreateAccountPage = ({ setCurrentPage }) => {
+const CreateAccountPage = ({ setCurrentPage, setCurrentUser }) => {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -98,6 +98,7 @@ const CreateAccountPage = ({ setCurrentPage }) => {
       console.log("User data to be sent:", userData);
       try {
         await axios.post("https://localhost:7195/api/Database/user", userData);
+        setCurrentUser(userData);
         setCurrentPage("profile");
       } catch (error) {
         console.error("Error adding user to Database:", error);

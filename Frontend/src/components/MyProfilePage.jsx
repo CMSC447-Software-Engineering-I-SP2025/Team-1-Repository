@@ -42,23 +42,23 @@ const MyProfilePage = ({
 
   const climbCache = {};
 
+  const fetchReviews = async () => {
+    try {
+      console.log("Fetching reviews for user ID:", currentUser.UserId);
+      const response = await axios.get(
+        `https://localhost:7195/api/Database/reviewsByUser/${currentUser.UserId}`
+      );
+      setReviews(response.data); // Update reviews state with fetched data
+      setReviewsError(""); // Clear any previous errors
+      console.log("Fetched reviews:", response.data);
+    } catch (error) {
+      console.error("Error fetching reviews:", error);
+      setReviewsError("Failed to load reviews. Please try again later.");
+    }
+  };
+
   useEffect(() => {
     if (activeTab === "reviews" && currentUser) {
-      const fetchReviews = async () => {
-        try {
-          console.log("Fetching reviews for user ID:", currentUser.UserId);
-          const response = await axios.get(
-            `https://localhost:7195/api/Database/reviewsByUser/${currentUser.UserId}`
-          );
-          setReviews(response.data); // Update reviews state with fetched data
-          setReviewsError(""); // Clear any previous errors
-          console.log("Fetched reviews:", response.data);
-        } catch (error) {
-          console.error("Error fetching reviews:", error);
-          setReviewsError("Failed to load reviews. Please try again later.");
-        }
-      };
-
       fetchReviews();
     }
   }, [activeTab, currentUser]);
@@ -632,6 +632,32 @@ const MyProfilePage = ({
                             }
                             className="w-full p-2 mt-2 border rounded"
                           ></textarea>
+                          <div className="flex items-center mt-2">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <svg
+                                key={star}
+                                onClick={() =>
+                                  setReviews((prev) =>
+                                    prev.map((r) =>
+                                      r.ReviewId === review.ReviewId
+                                        ? { ...r, Rating: star * 2 }
+                                        : r
+                                    )
+                                  )
+                                }
+                                xmlns="http://www.w3.org/2000/svg"
+                                fill={
+                                  review.Rating >= star * 2 ? "gold" : "gray"
+                                }
+                                viewBox="0 0 24 24"
+                                width="24"
+                                height="24"
+                                className="cursor-pointer"
+                              >
+                                <path d="M12 .587l3.668 7.568L24 9.423l-6 5.847 1.417 8.23L12 18.897l-7.417 4.603L6 15.27 0 9.423l8.332-1.268z" />
+                              </svg>
+                            ))}
+                          </div>
                         </>
                       ) : (
                         <p className="mt-2 text-gray-700">{review.Text}</p>

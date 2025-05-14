@@ -165,6 +165,7 @@ const App = () => {
                 "Error fetching user data on auth state change:",
                 error
               );
+              setIsLoggedIn(false);
             });
         }
       }
@@ -322,12 +323,15 @@ const App = () => {
                   return <SettingsPage />;
                 } else if (currentPage === "login") {
                   return <LoginPage setCurrentPage={setCurrentPage} />;
-                  return <LoginPage setCurrentPage={setCurrentPage} />;
                 } else if (currentPage === "signup") {
-                  return <CreateAccountPage setCurrentPage={setCurrentPage} />;
+                  return (
+                    <CreateAccountPage
+                      setCurrentPage={setCurrentPage}
+                      setCurrentUser={setCurrentUser}
+                    />
+                  );
                 } else if (currentPage === "forgot-password") {
                   return <ForgotPassword />;
-                  return <CreateAccountPage setCurrentPage={setCurrentPage} />;
                 } else if (currentPage === "forgot-password") {
                   return <ForgotPassword />;
                 } else {

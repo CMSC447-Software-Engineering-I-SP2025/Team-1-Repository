@@ -24,14 +24,14 @@ const HeroSection = ({
   const [minFrench, setMinFrench] = useState("");
   const [maxFrench, setMaxFrench] = useState("");
   const [isFilterPopupOpen, setIsFilterPopupOpen] = useState(false);
-  const [isAidType, setIsAidType] = useState(false);
-  const [isAlpineType, setIsAlpineType] = useState(false);
-  const [isBoulderingType, setIsBoulderingType] = useState(false);
-  const [isIceType, setIsIceType] = useState(false);
-  const [isMixedType, setIsMixedType] = useState(false);
-  const [isSnowType, setIsSnowType] = useState(false);
-  const [isSportType, setIsSportType] = useState(false);
-  const [isTrType, setIsTrType] = useState(false);
+  const [isAidType, setIsAidType] = useState(true);
+  const [isAlpineType, setIsAlpineType] = useState(true);
+  const [isBoulderingType, setIsBoulderingType] = useState(true);
+  const [isIceType, setIsIceType] = useState(true);
+  const [isMixedType, setIsMixedType] = useState(true);
+  const [isSnowType, setIsSnowType] = useState(true);
+  const [isSportType, setIsSportType] = useState(true);
+  const [isTrType, setIsTrType] = useState(true);
   const [isTradType, setIsTradType] = useState(true);
 
   const difficultyLevels = [
@@ -138,6 +138,10 @@ const HeroSection = ({
     "9c",
     "9c+",
   ];
+
+  useEffect(() => {
+    handleInputChange(searchTerm);
+  }, []);
 
   useEffect(() => {
     handleFilterChange();

@@ -2,6 +2,7 @@ import React, { useState, useEffect, use } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import { useUser } from "./UserProvider";
+import defaultProfileImage from "../../assets/default-profile.jpg";
 
 const ClimbPage = ({ selectedClimb, isLoggedIn, currentUser }) => {
   const [favoriteClimbs, setFavoriteClimbs] = useState([]);
@@ -205,8 +206,7 @@ const ClimbPage = ({ selectedClimb, isLoggedIn, currentUser }) => {
             return {
               ...review,
               ProfilePicture:
-                userResponse.data.ProfileImage ||
-                "https://via.placeholder.com/40",
+                userResponse.data.ProfileImage || defaultProfileImage,
             };
           } catch (err) {
             console.error(
