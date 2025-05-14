@@ -280,6 +280,7 @@ const App = () => {
                           isLoggedIn={isLoggedIn}
                           stateName={stateName}
                           setStateName={setStateName}
+                          setAllAreas={setAllAreas}
                         />
                       </div>
                       <div className="w-3/4">

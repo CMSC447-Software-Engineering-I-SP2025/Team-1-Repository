@@ -10,12 +10,188 @@ const HeroSection = ({
   isLoading,
   isLoggedIn,
   stateName,
-  setStateName, // Receive stateName and setStateName
+  setStateName,
+  setAllAreas,
 }) => {
   const [filteredClimbs, setFilteredClimbs] = useState([]);
+  //FILTERS
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterOptions, setFilterOptions] = useState({});
+  const [minYds, setMinYds] = useState("");
+  const [maxYds, setMaxYds] = useState("");
+  const [minVscale, setMinVscale] = useState("");
+  const [maxVscale, setMaxVscale] = useState("");
+  const [minFrench, setMinFrench] = useState("");
+  const [maxFrench, setMaxFrench] = useState("");
+  const [isFilterPopupOpen, setIsFilterPopupOpen] = useState(false);
+  const [isAidType, setIsAidType] = useState(false);
+  const [isAlpineType, setIsAlpineType] = useState(false);
+  const [isBoulderingType, setIsBoulderingType] = useState(false);
+  const [isIceType, setIsIceType] = useState(false);
+  const [isMixedType, setIsMixedType] = useState(false);
+  const [isSnowType, setIsSnowType] = useState(false);
+  const [isSportType, setIsSportType] = useState(false);
+  const [isTrType, setIsTrType] = useState(false);
+  const [isTradType, setIsTradType] = useState(true);
+
+  const difficultyLevels = [
+    "5.0",
+    "5.1",
+    "5.2",
+    "5.3",
+    "5.4",
+    "5.5",
+    "5.6",
+    "5.7",
+    "5.8",
+    "5.9",
+    "5.10a",
+    "5.10b",
+    "5.10c",
+    "5.10d",
+    "5.11a",
+    "5.11b",
+    "5.11c",
+    "5.11d",
+    "5.12a",
+    "5.12b",
+    "5.12c",
+    "5.12d",
+    "5.13a",
+    "5.13b",
+    "5.13c",
+    "5.13d",
+    "5.14a",
+    "5.14b",
+    "5.14c",
+    "5.14d",
+    "5.15a",
+    "5.15b",
+    "5.15c",
+    "5.15d",
+  ];
+
+  const vScaleLevels = [
+    "V0",
+    "V1",
+    "V2",
+    "V3",
+    "V4",
+    "V5",
+    "V6",
+    "V7",
+    "V8",
+    "V9",
+    "V10",
+    "V11",
+    "V12",
+    "V13",
+    "V14",
+    "V15",
+    "V16",
+    "V17",
+  ];
+  const frenchScaleLevels = [
+    "1-",
+    "1",
+    "1+",
+    "2-",
+    "2",
+    "2+",
+    "3-",
+    "3",
+    "3+",
+    "4a",
+    "4a+",
+    "4b",
+    "4b+",
+    "4c",
+    "4c+",
+    "5a",
+    "5a+",
+    "5b",
+    "5b+",
+    "5c",
+    "5c+",
+    "6a",
+    "6a+",
+    "6b",
+    "6b+",
+    "6c",
+    "6c+",
+    "7a",
+    "7a+",
+    "7b",
+    "7b+",
+    "7c",
+    "7c+",
+    "8a",
+    "8a+",
+    "8b",
+    "8b+",
+    "8c",
+    "8c+",
+    "9a",
+    "9a+",
+    "9b",
+    "9b+",
+    "9c",
+    "9c+",
+  ];
 
   useEffect(() => {
-    // Select up to 15 random climbs once when the component mounts
+    handleFilterChange();
+  }, [
+    minYds,
+    maxYds,
+    minVscale,
+    maxVscale,
+    minFrench,
+    maxFrench,
+    isAidType,
+    isAlpineType,
+    isBoulderingType,
+    isIceType,
+    isMixedType,
+    isSnowType,
+    isSportType,
+    isTrType,
+    isTradType,
+  ]);
+
+  const handleFilterChange = () => {
+    let updatedFilterOptions = {};
+    if (minYds !== "") {
+      updatedFilterOptions.minYds = minYds;
+    }
+    if (maxYds !== "") {
+      updatedFilterOptions.maxYds = maxYds;
+    }
+    if (minVscale !== "") {
+      updatedFilterOptions.minVscale = minVscale;
+    }
+    if (maxVscale !== "") {
+      updatedFilterOptions.maxVscale = maxVscale;
+    }
+    if (minFrench !== "") {
+      updatedFilterOptions.minFrench = minFrench;
+    }
+    if (maxFrench !== "") {
+      updatedFilterOptions.maxFrench = maxFrench;
+    }
+    updatedFilterOptions.isAidType = isAidType;
+    updatedFilterOptions.isAlpineType = isAlpineType;
+    updatedFilterOptions.isBoulderingType = isBoulderingType;
+    updatedFilterOptions.isIceType = isIceType;
+    updatedFilterOptions.isMixedType = isMixedType;
+    updatedFilterOptions.isSnowType = isSnowType;
+    updatedFilterOptions.isSportType = isSportType;
+    updatedFilterOptions.isTrType = isTrType;
+    updatedFilterOptions.isTradType = isTradType;
+    setFilterOptions(updatedFilterOptions);
+  };
+
+  useEffect(() => {
     setFilteredClimbs(allClimbs);
   }, [allClimbs]);
 
@@ -25,13 +201,20 @@ const HeroSection = ({
   };
 
   const handleInputChange = async (searchTerm) => {
+    setSearchTerm(searchTerm);
+    console.log("Search term:", searchTerm);
+    console.log("Filter options:", filterOptions);
     try {
       const response = await axios.post(
         "https://localhost:7195/Search/StateWithFilters",
-        { State: stateName, SearchTerm: searchTerm }
+        {
+          state: stateName,
+          searchTerm,
+          ...filterOptions,
+        }
       );
       console.log("Search results:", response.data);
-
+      setAllAreas(response.data);
       const allClimbsFromAreas = response.data.flatMap((area) =>
         (area.climbs || []).map((climb) => ({
           ...climb,
@@ -42,6 +225,12 @@ const HeroSection = ({
       setFilteredClimbs(allClimbsFromAreas);
     } catch (error) {
       console.error("Error fetching search results:", error);
+    }
+  };
+
+  const handleSearchKeyPress = (event) => {
+    if (event.key === "Enter") {
+      handleInputChange(event.target.value);
     }
   };
 
@@ -95,6 +284,13 @@ const HeroSection = ({
       setCurrentUser(response.data);
     } catch (error) {
       console.error("Error updating user:", error);
+    }
+  };
+
+  const toggleFilterPopup = () => {
+    setIsFilterPopupOpen(!isFilterPopupOpen);
+    if (isFilterPopupOpen) {
+      handleInputChange(searchTerm);
     }
   };
 
@@ -180,7 +376,8 @@ const HeroSection = ({
           </div>
           <SearchBar
             placeholder="Search for a climb by name"
-            onInputChange={handleInputChange}
+            onInputChange={handleInputChange} // Pass handleInputChange directly
+            onKeyPress={handleSearchKeyPress}
           />
           <div className="mt-6">
             <h2 className="mb-4 text-2xl font-bold">Current Climbs</h2>
@@ -221,10 +418,285 @@ const HeroSection = ({
             ))}
           </select>
         </div>
-        <SearchBar
-          placeholder="Search for a climb by name"
-          onInputChange={handleInputChange}
-        />
+        <div className="mb-6">
+          <div className="flex items-center justify-center">
+            <SearchBar
+              placeholder="Search for a climb by name"
+              onInputChange={handleInputChange} // Pass handleInputChange directly
+              onKeyPress={handleSearchKeyPress}
+            />
+          </div>
+          <div className="flex items-center justify-center mt-4">
+            <button
+              className="px-4 py-2 text-white bg-blue-500 rounded-lg hover:bg-blue-600"
+              onClick={toggleFilterPopup}
+            >
+              Filters
+            </button>
+          </div>
+        </div>
+
+        {isFilterPopupOpen && (
+          <div
+            className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50"
+            style={{ zIndex: 1000 }} // Ensure the popup is above other elements
+          >
+            <div className="w-11/12 max-w-lg p-6 bg-white rounded-lg shadow-lg">
+              <h3 className="mb-4 text-lg font-bold">Filter Options</h3>
+              <div className="grid grid-cols-2 gap-4">
+                {/* Min and Max YDS */}
+                <div>
+                  <label
+                    htmlFor="min-difficulty"
+                    className="block mb-2 text-sm font-medium text-gray-700"
+                  >
+                    Min Difficulty (YDS)
+                  </label>
+                  <select
+                    id="min-difficulty"
+                    className="px-4 py-2 text-sm border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    value={filterOptions.minYds || ""}
+                    onChange={(e) => setMinYds(e.target.value)}
+                  >
+                    <option value="">Select</option>
+                    {difficultyLevels.map((level) => (
+                      <option key={level} value={level}>
+                        {level}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label
+                    htmlFor="max-difficulty"
+                    className="block mb-2 text-sm font-medium text-gray-700"
+                  >
+                    Max Difficulty (YDS)
+                  </label>
+                  <select
+                    id="max-difficulty"
+                    className="px-4 py-2 text-sm border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    value={filterOptions.maxYds || ""}
+                    onChange={(e) => setMaxYds(e.target.value)}
+                  >
+                    <option value="">Select</option>
+                    {difficultyLevels.map((level) => (
+                      <option key={level} value={level}>
+                        {level}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Min and Max V-scale */}
+                <div>
+                  <label
+                    htmlFor="min-vscale"
+                    className="block mb-2 text-sm font-medium text-gray-700"
+                  >
+                    Min Difficulty (V-scale)
+                  </label>
+                  <select
+                    id="min-vscale"
+                    className="px-4 py-2 text-sm border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    value={filterOptions.minVscale || ""}
+                    onChange={(e) => setMinVscale(e.target.value)}
+                  >
+                    <option value="">Select</option>
+                    {vScaleLevels.map((level) => (
+                      <option key={level} value={level}>
+                        {level}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label
+                    htmlFor="max-vscale"
+                    className="block mb-2 text-sm font-medium text-gray-700"
+                  >
+                    Max Difficulty (V-scale)
+                  </label>
+                  <select
+                    id="max-vscale"
+                    className="px-4 py-2 text-sm border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    value={filterOptions.maxVscale || ""}
+                    onChange={(e) => setMaxVscale(e.target.value)}
+                  >
+                    <option value="">Select</option>
+                    {vScaleLevels.map((level) => (
+                      <option key={level} value={level}>
+                        {level}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Min and Max French scale */}
+                <div>
+                  <label
+                    htmlFor="min-french"
+                    className="block mb-2 text-sm font-medium text-gray-700"
+                  >
+                    Min Difficulty (French)
+                  </label>
+                  <select
+                    id="min-french"
+                    className="px-4 py-2 text-sm border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    value={filterOptions.minFrench || ""}
+                    onChange={(e) => setMinFrench(e.target.value)}
+                  >
+                    <option value="">Select</option>
+                    {frenchScaleLevels.map((level) => (
+                      <option key={level} value={level}>
+                        {level}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label
+                    htmlFor="max-french"
+                    className="block mb-2 text-sm font-medium text-gray-700"
+                  >
+                    Max Difficulty (French)
+                  </label>
+                  <select
+                    id="max-french"
+                    className="px-4 py-2 text-sm border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    value={filterOptions.maxFrench || ""}
+                    onChange={(e) => setMaxFrench(e.target.value)}
+                  >
+                    <option value="">Select</option>
+                    {frenchScaleLevels.map((level) => (
+                      <option key={level} value={level}>
+                        {level}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Checkboxes for climbing types */}
+                <div className="col-span-2">
+                  <label className="block mb-2 text-sm font-medium text-gray-700">
+                    Climbing Types
+                  </label>
+                  <div className="grid grid-cols-2 gap-2">
+                    <label className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={isAidType}
+                        onChange={(e) => setIsAidType(e.target.checked)}
+                        className="w-4 h-4 text-blue-500 border-gray-300 rounded focus:ring-blue-500"
+                      />
+                      <span>Aid</span>
+                    </label>
+                    <label className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={isAlpineType}
+                        onChange={(e) => setIsAlpineType(e.target.checked)}
+                        className="w-4 h-4 text-blue-500 border-gray-300 rounded focus:ring-blue-500"
+                      />
+                      <span>Alpine</span>
+                    </label>
+                    <label className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={isBoulderingType}
+                        onChange={(e) => setIsBoulderingType(e.target.checked)}
+                        className="w-4 h-4 text-blue-500 border-gray-300 rounded focus:ring-blue-500"
+                      />
+                      <span>Bouldering</span>
+                    </label>
+                    <label className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={isIceType}
+                        onChange={(e) => setIsIceType(e.target.checked)}
+                        className="w-4 h-4 text-blue-500 border-gray-300 rounded focus:ring-blue-500"
+                      />
+                      <span>Ice</span>
+                    </label>
+                    <label className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={isMixedType}
+                        onChange={(e) => setIsMixedType(e.target.checked)}
+                        className="w-4 h-4 text-blue-500 border-gray-300 rounded focus:ring-blue-500"
+                      />
+                      <span>Mixed</span>
+                    </label>
+                    <label className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={isSnowType}
+                        onChange={(e) => setIsSnowType(e.target.checked)}
+                        className="w-4 h-4 text-blue-500 border-gray-300 rounded focus:ring-blue-500"
+                      />
+                      <span>Snow</span>
+                    </label>
+                    <label className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={isSportType}
+                        onChange={(e) => setIsSportType(e.target.checked)}
+                        className="w-4 h-4 text-blue-500 border-gray-300 rounded focus:ring-blue-500"
+                      />
+                      <span>Sport</span>
+                    </label>
+                    <label className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={isTrType}
+                        onChange={(e) => setIsTrType(e.target.checked)}
+                        className="w-4 h-4 text-blue-500 border-gray-300 rounded focus:ring-blue-500"
+                      />
+                      <span>Top Rope</span>
+                    </label>
+                    <label className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        checked={isTradType}
+                        onChange={(e) => setIsTradType(e.target.checked)}
+                        className="w-4 h-4 text-blue-500 border-gray-300 rounded focus:ring-blue-500"
+                      />
+                      <span>Trad</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-6 text-right">
+                <button
+                  className="px-4 py-2 mr-2 text-white bg-gray-500 rounded-lg hover:bg-gray-600"
+                  onClick={toggleFilterPopup}
+                >
+                  Close
+                </button>
+                <button
+                  className="px-4 py-2 text-white bg-blue-500 rounded-lg hover:bg-blue-600"
+                  onClick={() => {
+                    toggleFilterPopup();
+                    console.log("Filters applied:", filterOptions, {
+                      isAidType,
+                      isAlpineType,
+                      isBoulderingType,
+                      isIceType,
+                      isMixedType,
+                      isSnowType,
+                      isSportType,
+                      isTrType,
+                      isTradType,
+                    });
+                  }}
+                >
+                  Apply Filters
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         <div className="mt-6">
           <h2 className="mb-4 text-2xl font-bold">Current Climbs</h2>
           <div className="overflow-y-auto border border-gray-300 rounded-lg max-h-80">

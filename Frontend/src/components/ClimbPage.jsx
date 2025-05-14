@@ -20,6 +20,7 @@ const ClimbPage = ({ selectedClimb, isLoggedIn, currentUser }) => {
   const [rating, setRating] = useState(""); // Rating will be a string to match your model
   const [description, setDescription] = useState("");
   const [hasReviewed, setHasReviewed] = useState(false);
+  const [climbTypes, setClimbTypes] = useState({});
 
   const renderStars = (rating) => {
     const fullStars = Math.floor(rating);
@@ -173,6 +174,19 @@ const ClimbPage = ({ selectedClimb, isLoggedIn, currentUser }) => {
     fetchAvg();
     if (selectedClimb) {
       fetchReviews();
+      setClimbTypes({
+        isAidType: selectedClimb.type.aid,
+        isAlpineType: selectedClimb.type.alpine,
+        isBoulderingType: selectedClimb.type.bouldering,
+        isIceType: selectedClimb.type.ice,
+        isMixedType: selectedClimb.type.mixed,
+        isSnowType: selectedClimb.type.snow,
+        isSportType: selectedClimb.type.sport,
+        isTrType: selectedClimb.type.tr,
+        isTradType: selectedClimb.type.trad,
+      });
+      console.log(selectedClimb);
+      console.log("climbTypes:", climbTypes);
     }
   }, [selectedClimb]);
 
@@ -392,6 +406,17 @@ const ClimbPage = ({ selectedClimb, isLoggedIn, currentUser }) => {
             <p className="mb-2 text-lg text-center text-gray-700">
               <strong>Location:</strong> {selectedClimb.metadata.lat},{" "}
               {selectedClimb.metadata.lng}
+            </p>
+            <p className="mb-2 text-lg text-center text-gray-700">
+              <strong>Climb Type:</strong>{" "}
+              {Object.entries(climbTypes)
+                .filter(([key, value]) => value)
+                .map(([key]) =>
+                  key.replace("is", "").replace("Type", "") === "Tr"
+                    ? "Top Rope"
+                    : key.replace("is", "").replace("Type", "")
+                )
+                .join(", ")}
             </p>
             <div className="mt-6 text-center">
               <h2 className="mb-2 text-2xl font-semibold text-gray-800">
