@@ -35,8 +35,11 @@ const App = () => {
 
   const handleSaveUser = async (updatedUser) => {
     try {
-      if (!user?.id) {
+      if (!updatedUser.UserId) {
         throw new Error("User ID is required to update the user.");
+      }
+      if (!updatedUser.UserName || !updatedUser.Email) {
+        throw new Error("UserName and Email are required fields.");
       }
       console.log("Updating user:", updatedUser);
       const response = await axios.put(
@@ -51,12 +54,19 @@ const App = () => {
       console.log("User updated successfully:", response.data);
       setCurrentUser(updatedUser);
     } catch (error) {
-      console.error("Error updating user data:", error);
+      console.error(
+        "Error updating user data:",
+        error.response?.data || error.message
+      );
     }
   };
 
   const handleStateChange = (event) => {
-    setStateName(event.target.value);
+    try {
+      setStateName(event.target.value);
+    } catch (error) {
+      console.error("Error updating state name:", error);
+    }
   };
 
   useEffect(() => {
@@ -227,6 +237,7 @@ const App = () => {
             setIsLoggedIn={setIsLoggedIn}
             setCurrentPage={setCurrentPage}
             setCurrentUser={setCurrentUser}
+            currentUser={currentUser}
           />
           <Routes>
             <Route path="/signup" element={<CreateAccountPage />} />
@@ -237,7 +248,11 @@ const App = () => {
             <Route
               path="/profile"
               element={
-                <MyProfilePage currentUser={user} onSave={handleSaveUser} />
+                <MyProfilePage
+                  currentUser={currentUser}
+                  onSave={handleSaveUser}
+                  setSelectedClimb={setSelectedClimb}
+                />
               }
             />
             <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -257,16 +272,6 @@ const App = () => {
             <Route path="/add-group" element={<AddGroupPage />} />
             <Route path="/group" element={<GroupPage />} />
             <Route path="/create-event" element={<CreateEventPage />} />
-            <Route
-              path="/climb"
-              element={
-                <ClimbPage
-                  selectedClimb={selectedClimb}
-                  isLoggedIn={isLoggedIn}
-                  currentUser={user}
-                />
-              }
-            />
 
             <Route
               path="/"
@@ -284,6 +289,7 @@ const App = () => {
                           isLoggedIn={isLoggedIn}
                           stateName={stateName}
                           setStateName={setStateName}
+                          setAllAreas={setAllAreas}
                         />
                       </div>
                       <div className="w-3/4">
@@ -302,7 +308,7 @@ const App = () => {
                     <ClimbPage
                       selectedClimb={selectedClimb}
                       isLoggedIn={isLoggedIn}
-                      userId={currentUser?.UserId}
+                      currentUser={currentUser}
                     />
                   );
                 } else if (currentPage === "area") {
@@ -319,6 +325,7 @@ const App = () => {
                       currentUser={currentUser}
                       supabaseUser={user}
                       onSave={handleSaveUser}
+                      setSelectedClimb={setSelectedClimb}
                     />
                   );
                 } else if (currentPage === "settings") {

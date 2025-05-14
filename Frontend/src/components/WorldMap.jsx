@@ -7,7 +7,7 @@ const WorldMap = ({
   area,
   setSelectedArea,
   isLoading,
-  setStateName,
+  currentSelectedState,
 }) => {
   const [mapCenter, setMapCenter] = useState({ lat: 0, lng: 0 });
   const [map, setMap] = useState(null);
@@ -28,7 +28,7 @@ const WorldMap = ({
             component.types.includes("administrative_area_level_1")
           );
           if (stateComponent) {
-            setStateName(stateComponent.long_name);
+            //setStateName(stateComponent.long_name);
             setCurrentStateName(stateComponent.long_name); // Update state name for display
           }
         }
@@ -135,6 +135,28 @@ const WorldMap = ({
       `https://maps.googleapis.com/maps/api/js?key=AIzaSyAwR8VfIU19NHVjF1mMR2cInjKNG9OLFzQ&callback=initMap`
     );
   }, []);
+
+  useEffect(() => {
+    const zoomToState = async () => {
+      if (currentSelectedState && map) {
+        try {
+          const response = await fetch(
+            `https://maps.googleapis.com/maps/api/geocode/json?address=${currentSelectedState}&key=AIzaSyAwR8VfIU19NHVjF1mMR2cInjKNG9OLFzQ`
+          );
+          const data = await response.json();
+          if (data.results && data.results.length > 0) {
+            const location = data.results[0].geometry.location;
+            map.setCenter(location);
+            map.setZoom(7); // Adjust zoom level as needed
+          }
+        } catch (error) {
+          console.error("Failed to zoom to state:", error);
+        }
+      }
+    };
+
+    zoomToState();
+  }, [currentSelectedState, map]);
 
   if (!areas || !Array.isArray(areas)) {
     return null;

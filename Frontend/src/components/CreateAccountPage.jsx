@@ -281,7 +281,7 @@ const CreateAccountPage = ({ setCurrentPage }) => {
         <p className="mt-4 text-sm text-center text-gray-600">
           Already have an account?{" "}
           <a
-            onClick={() => typeof setCurrentPage === "function" && setCurrentPage("login")}
+            onClick={() => setCurrentPage("login")}
             className="text-blue-500 cursor-pointer hover:underline"
           >
             Log in

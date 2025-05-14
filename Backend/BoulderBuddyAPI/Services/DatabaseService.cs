@@ -211,7 +211,8 @@ namespace BoulderBuddyAPI.Services
                 SELECT 
                     UserId, UserName, ProfileImage, FirstName, LastName, Email, PhoneNumber, 
                     BoulderGradeLowerLimit, BoulderGradeUpperLimit, 
-                    RopeClimberLowerLimit, RopeClimberUpperLimit, Bio, AccountType
+                    RopeClimberLowerLimit, RopeClimberUpperLimit, Bio, AccountType, 
+                    EnableReviewCommentNotifications, EnableGroupInviteNotifications
                 FROM User;", new object());
 
         //select from review table
@@ -249,8 +250,17 @@ namespace BoulderBuddyAPI.Services
         public Task<List<UserRelation>> GetUserRelations() =>
             ExecuteSelectCommand<UserRelation>(@"
                 SELECT 
-                    User1Id, User2Id, RelationType, RequestDate, FriendSince 
-                FROM UserRelation;", new object());
+                    ur.User1Id, 
+                    ur.User2Id, 
+                    ur.RelationType, 
+                    ur.RequestDate, 
+                    ur.FriendSince,
+                    u1.UserName AS User1Name,
+                    u2.UserName AS User2Name
+                FROM UserRelation ur
+                JOIN User u1 ON ur.User1Id = u1.UserId COLLATE NOCASE
+                JOIN User u2 ON ur.User2Id = u2.UserId COLLATE NOCASE;", 
+                new object());
 
         //select from climb group table
         public Task<List<ClimbGroup>> GetClimbGroups() =>
@@ -264,9 +274,15 @@ namespace BoulderBuddyAPI.Services
         public Task<List<ClimbGroupRelation>> GetClimbGroupRelations() =>
             ExecuteSelectCommand<ClimbGroupRelation>(@"
                 SELECT 
-                    GroupId, UserId, RelationType, 
-                    InviteDate, MemberSince 
-                FROM ClimbGroupRelation;", new object());
+                    ClimbGroupRelation.GroupId, 
+                    ClimbGroupRelation.UserId, 
+                    ClimbGroupRelation.RelationType, 
+                    ClimbGroupRelation.InviteDate, 
+                    ClimbGroupRelation.MemberSince,
+                    ClimbGroup.GroupName
+                FROM ClimbGroupRelation
+                JOIN ClimbGroup ON ClimbGroupRelation.GroupId = ClimbGroup.GroupId;",
+                new object());
 
         //select from climb group event table
         public Task<List<ClimbGroupEvent>> GetClimbGroupEvents() =>
@@ -641,7 +657,7 @@ namespace BoulderBuddyAPI.Services
                 await connection.OpenAsync();
 
                 // Get the UserId of the receiver based on their username
-                string getUserIdQuery = "SELECT UserId FROM User WHERE FirstName || ' ' || LastName = @ReceiverUserName";
+                string getUserIdQuery = "SELECT UserId FROM User WHERE UserName = @ReceiverUserName COLLATE NOCASE";
                 using (var getUserIdCommand = new SqliteCommand(getUserIdQuery, connection))
                 {
                     getUserIdCommand.Parameters.AddWithValue("@ReceiverUserName", receiverUserName);
@@ -650,6 +666,24 @@ namespace BoulderBuddyAPI.Services
                     if (receiverUserId == null)
                     {
                         throw new Exception("Receiver user not found.");
+                    }
+
+                    // Check if a friend request already exists
+                    string checkExistingQuery = @"
+                        SELECT COUNT(*) 
+                        FROM UserRelation 
+                        WHERE User1Id = @SenderUserId AND User2Id = @ReceiverUserId AND RelationType = 'pending_user1'";
+                    using (var checkCommand = new SqliteCommand(checkExistingQuery, connection))
+                    {
+                        checkCommand.Parameters.AddWithValue("@SenderUserId", senderUserId);
+                        checkCommand.Parameters.AddWithValue("@ReceiverUserId", receiverUserId.ToString());
+                        var result = await checkCommand.ExecuteScalarAsync();
+                        var existingCount = result != null ? (long)result : 0;
+
+                        if (existingCount > 0)
+                        {
+                            throw new Exception("A friend request already exists.");
+                        }
                     }
 
                     // Insert the friend request into the UserRelation table
@@ -700,9 +734,17 @@ namespace BoulderBuddyAPI.Services
         {
             return ExecuteSelectCommand<UserRelation>(@"
                 SELECT 
-                    User1Id, User2Id, RelationType, RequestDate, FriendSince
-                FROM UserRelation
-                WHERE User1Id = @UserId OR User2Id = @UserId;",
+                    ur.User1Id, 
+                    ur.User2Id, 
+                    ur.RelationType, 
+                    ur.RequestDate, 
+                    ur.FriendSince,
+                    u1.UserName AS User1Name,
+                    u2.UserName AS User2Name
+                FROM UserRelation ur
+                JOIN User u1 ON ur.User1Id = u1.UserId COLLATE NOCASE
+                JOIN User u2 ON ur.User2Id = u2.UserId COLLATE NOCASE
+                WHERE ur.User1Id = @UserId OR ur.User2Id = @UserId;",
                 new { UserId = userId });
         }
 
@@ -773,7 +815,8 @@ namespace BoulderBuddyAPI.Services
                     ClimbGroup.JoinRequirements, 
                     ClimbGroup.GroupType, 
                     ClimbGroup.Price, 
-                    ClimbGroup.GroupOwner
+                    ClimbGroup.GroupOwner,
+                    ClimbGroupRelation.RelationType
                 FROM ClimbGroupRelation
                 JOIN ClimbGroup ON ClimbGroupRelation.GroupId = ClimbGroup.GroupId
                 WHERE ClimbGroupRelation.UserId = @UserId;",
@@ -795,8 +838,9 @@ namespace BoulderBuddyAPI.Services
                 new { UserId = userId });
 
         //get user by id
-        public Task<User> GetUserById(string userId) =>
-            ExecuteSelectCommand<User>(@"
+        public async Task<User> GetUserById(string userId)
+        {
+            var result = await ExecuteSelectCommand<User>(@"
                 SELECT 
                     UserId, UserName, ProfileImage, FirstName, LastName, Email, PhoneNumber, 
                     BoulderGradeLowerLimit, BoulderGradeUpperLimit, 
@@ -804,6 +848,59 @@ namespace BoulderBuddyAPI.Services
                     EnableReviewCommentNotifications, EnableGroupInviteNotifications
                 FROM User
                 WHERE UserId = @UserId;",
-                new { UserId = userId }).ContinueWith(task => task.Result.FirstOrDefault());
+                new { UserId = userId });
+        
+            return result.FirstOrDefault() ?? throw new Exception($"User with ID {userId} not found.");
+        }
+
+        //get event by group id
+        public Task<List<ClimbGroupEvent>> GetEventsByGroupId(string groupId)
+        {
+            return ExecuteSelectCommand<ClimbGroupEvent>(@"
+                SELECT 
+                    EventId, 
+                    GroupId, 
+                    EventName, 
+                    EventDescription, 
+                    EventDate, 
+                    EventTime, 
+                    EventLocation, 
+                    EventImage
+                FROM ClimbGroupEvent
+                WHERE GroupId = @GroupId
+                ORDER BY EventDate ASC;",
+                new { GroupId = groupId });
+        }
+
+        //get picture by route id
+        public Task<List<Picture>> GetPicturesByRouteId(string routeId)
+        {
+            return ExecuteSelectCommand<Picture>(@"
+                SELECT 
+                    PictureId, 
+                    UserId, 
+                    RouteId, 
+                    Image, 
+                    UploadDate
+                FROM Picture
+                WHERE RouteId = @RouteId;",
+                new { RouteId = routeId });
+        }
+
+        //get picture by user id
+        public Task<List<Picture>> GetPicturesByUserId(string userId)
+        {
+            return ExecuteSelectCommand<Picture>(@"
+                SELECT 
+                    PictureId, 
+                    UserId, 
+                    RouteId, 
+                    Image, 
+                    UploadDate
+                FROM Picture
+                WHERE UserId = @UserId;",
+                new { UserId = userId });
+        }
+        
     }
 }
