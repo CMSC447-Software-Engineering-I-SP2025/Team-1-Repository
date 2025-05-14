@@ -171,6 +171,7 @@ public class SearchController : ControllerBase
     //determines if climb should be included based on all desired filter options (pass=true, fail=false)
     private bool SearchFilter(SearchWithFiltersOptions options, Climb c)
     {
+        //filter by distance
         if (options.DistOptions is not null)
         {
             double dist = DistanceInMiles(c.metadata.lat, c.metadata.lng, options.DistOptions.Lat, options.DistOptions.Lng);
@@ -178,74 +179,188 @@ public class SearchController : ControllerBase
                 return false;
         }
 
-        if (c.grades is null) //there are rare occasions where this happens. Better to catch it here than pass it downstream
+        //there are rare occasions where this happens. Better to catch it here than pass it downstream
+        if (c.grades is null || c.type is null)
             return false;
-        if (ShouldTest(options.MinFont, c.grades.font) && !AboveMin(c.grades.font, options.MinFont, _ranges.Font))
-            return false;
-        if (ShouldTest(options.MaxFont, c.grades.font) && !BelowMax(c.grades.font, options.MaxFont, _ranges.Font))
-            return false;
-        if (ShouldTest(options.MinFrench, c.grades.french) && !AboveMin(c.grades.french, options.MinFrench, _ranges.French))
-            return false;
-        if (ShouldTest(options.MaxFrench, c.grades.french) && !BelowMax(c.grades.french, options.MaxFrench, _ranges.French))
-            return false;
-        if (ShouldTest(options.MinVscale, c.grades.vscale) && !AboveMin(c.grades.vscale, options.MinVscale, _ranges.Vscale))
-            return false;
-        if (ShouldTest(options.MaxVscale, c.grades.vscale) && !BelowMax(c.grades.vscale, options.MaxVscale, _ranges.Vscale))
-            return false;
-        if (ShouldTest(options.MinYDS, c.grades.yds) && !c.grades.yds.StartsWith("V"))
-        {
-            //sometimes OpenBeta data's YDS grade has a "-" or "+", which isn't valid for YDS format
-            if (c.grades.yds.EndsWith("-") || c.grades.yds.EndsWith("+"))
-                c.grades.yds = c.grades.yds.Substring(0, c.grades.yds.Length - 1);
 
-            if (!AboveMin(c.grades.yds, options.MinYDS, _ranges.Yds))
-                return false;
+        //options.MinFont <= c.grades.font <= options.MaxFont
+        var passesMinFont = true;
+        var passesMaxFont = true;
+        var fontFiltered = false;
+        if (options.MinFont is not null)
+        {
+            fontFiltered = true;
+            if (c.grades.font is not null && c.grades.font != "")
+                passesMinFont = AboveMin(c.grades.font, options.MinFont, _ranges.Font);
+            else
+                passesMinFont = false; //we can't run comparisons since c.grades.font is a nonexisting value
         }
-        if (ShouldTest(options.MaxYDS, c.grades.yds) && !c.grades.yds.StartsWith("V"))
+        if (options.MaxFont is not null)
         {
-            //sometimes OpenBeta data's YDS grade has a "-" or "+", which isn't valid for YDS format
-            if (c.grades.yds.EndsWith("-") || c.grades.yds.EndsWith("+"))
-                c.grades.yds = c.grades.yds.Substring(0, c.grades.yds.Length - 1);
-
-            if (!BelowMax(c.grades.yds, options.MaxYDS, _ranges.Yds))
-                return false;
+            fontFiltered = true;
+            if (c.grades.font is not null && c.grades.font != "")
+                passesMaxFont = BelowMax(c.grades.font, options.MaxFont, _ranges.Font);
+            else
+                passesMaxFont = false; //we can't run comparisons since c.grades.font is a nonexisting value
         }
 
-        if (c.type is null)
-            return false;
-        if (options.IsAidType is not null && options.IsAidType != c.type.aid)
-            return false;
-        if (options.IsAlpineType is not null && options.IsAlpineType != c.type.alpine)
-            return false;
-        if (options.IsBoulderingType is not null && options.IsBoulderingType != c.type.bouldering)
-            return false;
-        if (options.IsIceType is not null && options.IsIceType != c.type.ice)
-            return false;
-        if (options.IsMixedType is not null && options.IsMixedType != c.type.mixed)
-            return false;
-        if (options.IsSnowType is not null && options.IsSnowType != c.type.snow)
-            return false;
-        if (options.IsSportType is not null && options.IsSportType != c.type.sport)
-            return false;
-        if (options.IsTrType is not null && options.IsTrType != c.type.tr)
-            return false;
-        if (options.IsTradType is not null && options.IsTradType != c.type.trad)
-            return false;
+        //options.MinFrench <= c.grades.french <= options.MaxFrench
+        var passesMinFrench = true;
+        var passesMaxFrench = true;
+        var frenchFiltered = false;
+        if (options.MinFrench is not null)
+        {
+            frenchFiltered = true;
+            if (c.grades.french is not null && c.grades.french != "")
+                passesMinFrench = AboveMin(c.grades.french, options.MinFrench, _ranges.French);
+            else
+                passesMinFrench = false; //we can't run comparisons since c.grades.french is a nonexisting value
+        }
+        if (options.MaxFrench is not null)
+        {
+            frenchFiltered = true;
+            if (c.grades.french is not null && c.grades.french != "")
+                passesMaxFrench = BelowMax(c.grades.french, options.MaxFrench, _ranges.French);
+            else
+                passesMaxFrench = false; //we can't run comparisons since c.grades.french is a nonexisting value
+        }
 
-        return true;
-    }
+        //options.MinVscale <= c.grades.vscale <= options.MaxVscale
+        var passesMinVscale = true;
+        var passesMaxVscale = true;
+        var vscaleFiltered = false;
+        if (options.MinVscale is not null)
+        {
+            vscaleFiltered = true;
+            if (c.grades.vscale is not null && c.grades.vscale != "")
+                passesMinVscale = AboveMin(c.grades.vscale, options.MinVscale, _ranges.Vscale);
+            else
+                passesMinVscale = false; //we can't run comparisons since c.grades.vscale is a nonexisting value
+        }
+        if (options.MaxVscale is not null)
+        {
+            vscaleFiltered = true;
+            if (c.grades.vscale is not null && c.grades.vscale != "")
+                passesMaxVscale = BelowMax(c.grades.vscale, options.MaxVscale, _ranges.Vscale);
+            else
+                passesMaxVscale = false; //we can't run comparisons since c.grades.vscale is a nonexisting value
+        }
 
-    //checks whether given filter needs to be ran (options entry and grade data are nonnull)
-    private bool ShouldTest(string? fromOptions, string? fromData)
-    {
-        return fromOptions is not null && fromData is not null && fromData != "";
+        //options.MinYDS <= c.grades.yds <= options.MaxYDS
+        var passesMinYDS = true;
+        var passesMaxYDS = true;
+        var ydsFiltered = false;
+        if (options.MinYDS is not null)
+        {
+            ydsFiltered = true;
+            if (c.grades.yds is not null && c.grades.yds != "" && !c.grades.yds.StartsWith("V"))
+            {
+                //sometimes OpenBeta data's YDS grade has a "-" or "+", which isn't valid for YDS format
+                if (c.grades.yds.EndsWith("-") || c.grades.yds.EndsWith("+"))
+                    c.grades.yds = c.grades.yds.Substring(0, c.grades.yds.Length - 1);
+
+                passesMinYDS = AboveMin(c.grades.yds, options.MinYDS, _ranges.Yds);
+            }
+            else
+                passesMinYDS = false; //we can't run comparisons since c.grades.yds is an invalid or nonexisting value
+        }
+        if (options.MaxYDS is not null)
+        {
+            ydsFiltered = true;
+            if (c.grades.yds is not null && c.grades.yds != "" && !c.grades.yds.StartsWith("V"))
+            {
+                //sometimes OpenBeta data's YDS grade has a "-" or "+", which isn't valid for YDS format
+                if (c.grades.yds.EndsWith("-") || c.grades.yds.EndsWith("+"))
+                    c.grades.yds = c.grades.yds.Substring(0, c.grades.yds.Length - 1);
+
+                passesMaxYDS = BelowMax(c.grades.yds, options.MaxYDS, _ranges.Yds);
+            }
+            else
+                passesMaxYDS = false; //we can't run comparisons since c.grades.yds is an invalid or nonexisting value
+        }
+
+        //fail filter when at least one grade was checked (option was specified) and we didn't pass any grade
+        if (fontFiltered || frenchFiltered || vscaleFiltered || ydsFiltered)
+        {
+            //treat min and max of same kind of grade as AND expression
+            var passesFont = passesMinFont && passesMaxFont;
+            var passesFrench = passesMinFrench && passesMaxFrench;
+            var passesVscale = passesMinVscale && passesMaxVscale;
+            var passesYDS = passesMinYDS && passesMaxYDS;
+
+            //treat different kinds of grade as OR expression
+            var passesGradeFilters = false;
+            if (fontFiltered)
+                passesGradeFilters |= passesFont;
+            if (frenchFiltered)
+                passesGradeFilters |= passesFrench;
+            if (vscaleFiltered)
+                passesGradeFilters |= passesVscale;
+            if (ydsFiltered)
+                passesGradeFilters |= passesYDS;
+
+            if (!passesGradeFilters)
+                return false;
+        }
+
+        //treat type filters as OR expression
+        var passesTypeFilters = false;
+        var anyTypeFiltered = false;
+        if (options.IsAidType is not null && options.IsAidType == true)
+        {
+            passesTypeFilters |= options.IsAidType == c.type.aid;
+            anyTypeFiltered = true;
+        }
+        if (options.IsAlpineType is not null && options.IsAlpineType == true)
+        {
+            passesTypeFilters |= options.IsAlpineType == c.type.alpine;
+            anyTypeFiltered = true;
+        }
+        if (options.IsBoulderingType is not null && options.IsBoulderingType == true)
+        {
+            passesTypeFilters |= options.IsBoulderingType == c.type.bouldering;
+            anyTypeFiltered = true;
+        }
+        if (options.IsIceType is not null && options.IsIceType == true)
+        {
+            passesTypeFilters |= options.IsIceType == c.type.ice;
+            anyTypeFiltered = true;
+        }
+        if (options.IsMixedType is not null && options.IsMixedType == true)
+        {
+            passesTypeFilters |= options.IsMixedType == c.type.mixed;
+            anyTypeFiltered = true;
+        }
+        if (options.IsSnowType is not null && options.IsSnowType == true)
+        {
+            passesTypeFilters |= options.IsSnowType == c.type.snow;
+            anyTypeFiltered = true;
+        }
+        if (options.IsSportType is not null && options.IsSportType == true)
+        {
+            passesTypeFilters |= options.IsSportType == c.type.sport;
+            anyTypeFiltered = true;
+        }
+        if (options.IsTrType is not null && options.IsTrType == true)
+        {
+            passesTypeFilters |= options.IsTrType == c.type.tr;
+            anyTypeFiltered = true;
+        }
+        if (options.IsTradType is not null && options.IsTradType == true)
+        {
+            passesTypeFilters |= options.IsTradType == c.type.trad;
+            anyTypeFiltered = true;
+        }
+
+        //fail filter when at least one type was checked (option was specified) and we didn't pass any type
+        return !anyTypeFiltered || passesTypeFilters;
     }
 
     //returns true when 'grade' is null/empty or at/above 'min' in the given gradeRange. False if grade is below min or if error
     private bool AboveMin(string grade, string min, string[] gradeRange)
     {
         if (grade is null || grade == "")
-            return true;
+            return false;
 
         int minIndex = Array.IndexOf(gradeRange, min);
         int targetIndex = Array.IndexOf(gradeRange, grade);
@@ -269,7 +384,7 @@ public class SearchController : ControllerBase
     private bool BelowMax(string grade, string max, string[] gradeRange)
     {
         if (grade is null || grade == "")
-            return true;
+            return false;
 
         int maxIndex = Array.IndexOf(gradeRange, max);
         int targetIndex = Array.IndexOf(gradeRange, grade);
