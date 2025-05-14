@@ -222,38 +222,81 @@ public class SearchController : ControllerBase
             anyGradeFiltered = true;
         }
 
-        //treat min and max of same kind of grade as AND expression
-        var passesFont = passesMinFont && passesMaxFont;
-        var passesFrench = passesMinFrench && passesMaxFrench;
-        var passesVscale = passesMinVscale && passesMaxVscale;
-        var passesYDS = passesMinYDS && passesMaxYDS;
+        //fail filter when at least one grade was checked (option was specified) and we didn't pass any grade
+        if (anyGradeFiltered)
+        {
+            //treat min and max of same kind of grade as AND expression
+            var passesFont = passesMinFont && passesMaxFont;
+            var passesFrench = passesMinFrench && passesMaxFrench;
+            var passesVscale = passesMinVscale && passesMaxVscale;
+            var passesYDS = passesMinYDS && passesMaxYDS;
 
-        //treat different kinds of grade as OR expression
-        var passesGradeFilters = false;
-        if (fontFiltered)
-            passesGradeFilters |= passesFont;
-        if (frenchFiltered)
-            passesGradeFilters |= passesFrench;
-        if (vscaleFiltered)
-            passesGradeFilters |= passesVscale;
-        if (ydsFiltered)
-            passesGradeFilters |= passesYDS;
+            //treat different kinds of grade as OR expression
+            var passesGradeFilters = false;
+            if (fontFiltered)
+                passesGradeFilters |= passesFont;
+            if (frenchFiltered)
+                passesGradeFilters |= passesFrench;
+            if (vscaleFiltered)
+                passesGradeFilters |= passesVscale;
+            if (ydsFiltered)
+                passesGradeFilters |= passesYDS;
 
-        //fail filter when at least one grade was checked (options for grade was specified) and we didn't pass any grade
-        if (anyGradeFiltered && !passesGradeFilters)
-            return false;
-        if (options.IsMixedType is not null && options.IsMixedType != c.type.mixed)
-            return false;
-        if (options.IsSnowType is not null && options.IsSnowType != c.type.snow)
-            return false;
-        if (options.IsSportType is not null && options.IsSportType != c.type.sport)
-            return false;
-        if (options.IsTrType is not null && options.IsTrType != c.type.tr)
-            return false;
-        if (options.IsTradType is not null && options.IsTradType != c.type.trad)
-            return false;
+            if (!passesGradeFilters)
+                return false;
+        }
 
-        return true;
+        //treat type filters as OR expression
+        var passesTypeFilters = false;
+        var anyTypeFiltered = false;
+        if (options.IsAidType is not null)
+        {
+            passesTypeFilters |= options.IsAidType == c.type.aid;
+            anyTypeFiltered = true;
+        }
+        if (options.IsAlpineType is not null)
+        {
+            passesTypeFilters |= options.IsAlpineType == c.type.alpine;
+            anyTypeFiltered = true;
+        }
+        if (options.IsBoulderingType is not null)
+        {
+            passesTypeFilters |= options.IsBoulderingType == c.type.bouldering;
+            anyTypeFiltered = true;
+        }
+        if (options.IsIceType is not null)
+        {
+            passesTypeFilters |= options.IsIceType == c.type.ice;
+            anyTypeFiltered = true;
+        }
+        if (options.IsMixedType is not null)
+        {
+            passesTypeFilters |= options.IsMixedType == c.type.mixed;
+            anyTypeFiltered = true;
+        }
+        if (options.IsSnowType is not null)
+        {
+            passesTypeFilters |= options.IsSnowType == c.type.snow;
+            anyTypeFiltered = true;
+        }
+        if (options.IsSportType is not null)
+        {
+            passesTypeFilters |= options.IsSportType == c.type.sport;
+            anyTypeFiltered = true;
+        }
+        if (options.IsTrType is not null)
+        {
+            passesTypeFilters |= options.IsTrType == c.type.tr;
+            anyTypeFiltered = true;
+        }
+        if (options.IsTradType is not null)
+        {
+            passesTypeFilters |= options.IsTradType == c.type.trad;
+            anyTypeFiltered = true;
+        }
+
+        //fail filter when at least one type was checked (option was specified) and we didn't pass any type
+        return !anyTypeFiltered || passesTypeFilters;
     }
 
     //checks whether given filter needs to be ran (options entry and grade data are nonnull)
