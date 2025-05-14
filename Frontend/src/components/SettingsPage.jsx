@@ -408,21 +408,6 @@ const SettingsPage = () => {
             </div>
           </>
         );
-      //case "support":
-        //return (
-          //<>
-            //<div className="mb-6">
-              //<a
-                //href="https://forms.gle/your-form-link"
-                //target="_blank"
-                //rel="noopener noreferrer"
-                //className="text-blue-500 hover:underline"
-              //>
-                //Report a Bug
-              //</a>
-            //</div>
-          //</>
-        //);
       default:
         return null;
     }

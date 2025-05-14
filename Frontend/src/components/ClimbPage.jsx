@@ -6,7 +6,6 @@ import { useUser } from "./UserProvider";
 const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
   const { user: currentUser } = useUser(); // Access currentUser using useUser hook
   const [favoriteClimbs, setFavoriteClimbs] = useState([]);
-  const [isFavorite, setIsFavorite] = useState(false); // State for heart icon
 
   useEffect(() => {
     const fetchFavoriteClimbs = async () => {
@@ -23,11 +22,14 @@ const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
           }
         );
 
+        
+
         console.log("Fetched response.data climbs:", response.data);
         setFavoriteClimbs(response.data);
 
-        if (response.data.some((fav) => fav.climbId === selectedClimb?.id)) {
+        if(response.data.some((fav) => fav.climbId === selectedClimb?.id)) {
           console.log("Selected climb is a favorite.");
+          
         }
       } catch (error) {
         console.error("Error fetching favorite climbs:", error);
@@ -37,26 +39,19 @@ const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
     fetchFavoriteClimbs();
   }, [currentUser]);
 
-  useEffect(() => {
-    if (selectedClimb) {
-      const isFavoriteClimb = favoriteClimbs.some(
-        (fav) => fav.id === selectedClimb.id
-      );
-      setIsFavorite(isFavoriteClimb); // Update the heart icon state
-    }
-  }, [selectedClimb, favoriteClimbs]);
-
   const areaId = selectedClimb?.area?.metadata?.areaId;
   console.log("Area ID in ClimbPage:", areaId);
   console.log("Climb object in ClimbPage:", selectedClimb);
   console.log("Simplified favorite climbs:", favoriteClimbs);
+
+  
 
   const addFavoriteClimb = async (climb) => {
     if (!currentUser?.id) {
       console.error("User is not logged in. Cannot add favorite climb.");
       return;
     }
-
+    
     // Validate climb object
     if (!climb?.id || !selectedClimb?.area?.metadata?.areaId || !climb?.name) {
       console.error("Invalid climb object:", climb);
@@ -83,6 +78,7 @@ const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
     }
   };
 
+  
   const removeFavoriteClimb = async (climbId) => {
     if (!currentUser?.id) return;
 
@@ -120,6 +116,7 @@ const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
     }
   };
 
+  const isFavorite = favoriteClimbs.some((fav) => fav.id === selectedClimb?.id);
   if (!selectedClimb) {
     return <div className="text-center text-gray-500">No climb selected</div>;
   }
@@ -135,6 +132,7 @@ const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
   const [rating, setRating] = useState(""); // Rating will be a string to match your model
   const [description, setDescription] = useState("");
   const [hasReviewed, setHasReviewed] = useState(false);
+
 
   const renderStars = (rating) => {
     const fullStars = Math.floor(rating);
@@ -192,7 +190,7 @@ const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
 
   useEffect(() => {
     if (selectedClimb) {
-      console.log("Selected climb ID:", selectedClimb.id);
+        console.log("Selected climb ID:", selectedClimb.id);
     }
 
     const fetchAvg = async () => {
