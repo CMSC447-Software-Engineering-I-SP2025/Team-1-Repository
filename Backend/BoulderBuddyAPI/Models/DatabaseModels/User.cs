@@ -8,9 +8,9 @@ public class User
 
     [JsonPropertyName("UserName")]
     public string UserName { get; set; }
-    
+
     [JsonPropertyName("ProfileImage")]
-    public byte[] ProfileImage { get; set; } 
+    public string ProfileImage { get; set; }
 
     [JsonPropertyName("FirstName")]
     public string FirstName { get; set; }
@@ -39,6 +39,14 @@ public class User
     [JsonPropertyName("Bio")]
     public string Bio { get; set; }
 
+    [JsonPropertyName("AccountType")]
+    public string AccountType { get; set; }
+
+    [JsonPropertyName("EnableReviewCommentNotifications")]
+    public string EnableReviewCommentNotifications { get; set; } 
+
+    [JsonPropertyName("EnableGroupInviteNotifications")]
+    public string EnableGroupInviteNotifications { get; set; } 
     //parameterless constructor
     public User() { }
 }

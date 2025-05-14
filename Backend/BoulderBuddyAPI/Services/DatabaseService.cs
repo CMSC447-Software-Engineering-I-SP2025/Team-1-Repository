@@ -1,3 +1,4 @@
+using BoulderBuddyAPI.Models;
 using BoulderBuddyAPI.Models.DatabaseModels;
 using Microsoft.Data.Sqlite;
 
@@ -60,12 +61,12 @@ namespace BoulderBuddyAPI.Services
                 INSERT INTO User (
                     UserId, UserName, ProfileImage, FirstName, LastName, Email, PhoneNumber, 
                     BoulderGradeLowerLimit, BoulderGradeUpperLimit, 
-                    RopeClimberLowerLimit, RopeClimberUpperLimit, Bio
+                    RopeClimberLowerLimit, RopeClimberUpperLimit, Bio, AccountType
                 ) 
                 VALUES (
                     @UserId, @UserName, @ProfileImage, @FirstName, @LastName, @Email, @PhoneNumber, 
                     @BoulderGradeLowerLimit, @BoulderGradeUpperLimit, 
-                    @RopeClimberLowerLimit, @RopeClimberUpperLimit, @Bio
+                    @RopeClimberLowerLimit, @RopeClimberUpperLimit, @Bio, @AccountType
                 );", parameters);
 
         public Task InsertIntoReviewTable(object parameters) =>
@@ -102,6 +103,10 @@ namespace BoulderBuddyAPI.Services
             ExecuteInsertCommand(@"
                 INSERT INTO BadgeRelation (UserId, BadgeId) 
                 VALUES (@UserId, @BadgeId);", parameters);
+        public Task InsertIntoFavoriteClimbTable(object parameters) =>
+            ExecuteInsertCommand(@"
+                INSERT INTO FavoriteClimb (UserId, ClimbId, ParentAreaId)
+                VALUES (@UserId, @ClimbId, @ParentAreaId)", parameters);
 
         //******Handle images and blobs******//
 
@@ -206,7 +211,8 @@ namespace BoulderBuddyAPI.Services
                 SELECT 
                     UserId, UserName, ProfileImage, FirstName, LastName, Email, PhoneNumber, 
                     BoulderGradeLowerLimit, BoulderGradeUpperLimit, 
-                    RopeClimberLowerLimit, RopeClimberUpperLimit, Bio 
+                    RopeClimberLowerLimit, RopeClimberUpperLimit, Bio, AccountType, 
+                    EnableReviewCommentNotifications, EnableGroupInviteNotifications
                 FROM User;", new object());
 
         //select from review table
@@ -301,6 +307,9 @@ namespace BoulderBuddyAPI.Services
                     BadgeRelationId, UserId, BadgeId 
                 FROM BadgeRelation;", new object());
 
+        public Task<List<ClimbAndParentAreaIDs>> GetFavoriteClimbs(string UserID) =>
+            ExecuteSelectCommand<ClimbAndParentAreaIDs>($"SELECT * FROM FavoriteClimb WHERE userId = '{UserID}';", new object());
+
         //excute update command
         public async Task ExecuteUpdateCommand(string commandText, object parameters)
         {
@@ -372,9 +381,19 @@ namespace BoulderBuddyAPI.Services
                     RopeClimberLowerLimit = @RopeClimberLowerLimit, 
                     RopeClimberUpperLimit = @RopeClimberUpperLimit, 
                     Bio = @Bio
+                    AccountType = @AccountType,
                 WHERE UserId = @UserId;",
                 flattenedParameters);
         }
+
+        //update user settings in user table
+        public Task UpdateUserSettings(object parameters) =>
+            ExecuteUpdateCommand("UPDATE User " + //note: COALESCE(param, ColumnName) means update value only if param is not null
+                "SET " +
+                "AccountType = COALESCE(@AccountType, AccountType), " +
+                "EnableReviewCommentNotifications = COALESCE(@EnableReviewCommentNotifications, EnableReviewCommentNotifications), " +
+                "EnableGroupInviteNotifications = COALESCE(@EnableGroupInviteNotifications, EnableGroupInviteNotifications) " +
+                "WHERE UserId = @UserID", parameters);
 
         //update review table
         public Task UpdateReview(string reviewId, object parameters)
@@ -588,6 +607,9 @@ namespace BoulderBuddyAPI.Services
         //delete from badge relation table
         public Task DeleteFromBadgeRelationTable(string userId, string badgeId) =>
             ExecuteDeleteCommand("DELETE FROM BadgeRelation WHERE UserId = @UserId AND BadgeId = @BadgeId;", new { UserId = userId, BadgeId = badgeId });
+
+        public Task DeleteFromFavoriteClimbTable(ClimbAndUserIDs parameters) =>
+            ExecuteDeleteCommand(@"DELETE FROM FavoriteClimb WHERE userId = @UserId AND climbId = @ClimbId;", parameters);
 
         //for testing purposes only
         public async Task<T> ExecuteQueryCommand<T>(string query, object parameters)
@@ -822,7 +844,8 @@ namespace BoulderBuddyAPI.Services
                 SELECT 
                     UserId, UserName, ProfileImage, FirstName, LastName, Email, PhoneNumber, 
                     BoulderGradeLowerLimit, BoulderGradeUpperLimit, 
-                    RopeClimberLowerLimit, RopeClimberUpperLimit, Bio
+                    RopeClimberLowerLimit, RopeClimberUpperLimit, Bio, AccountType,
+                    EnableReviewCommentNotifications, EnableGroupInviteNotifications
                 FROM User
                 WHERE UserId = @UserId;",
                 new { UserId = userId });

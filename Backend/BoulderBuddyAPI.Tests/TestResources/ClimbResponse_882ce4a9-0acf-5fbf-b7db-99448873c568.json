@@ -1,0 +1,30 @@
+{
+    "data": {
+        "climb": {
+            "name": "Hi-Ball",
+            "metadata": {
+                "lat": 39.58155,
+                "lng": -78.89771
+            },
+            "id": "882ce4a9-0acf-5fbf-b7db-99448873c568",
+            "grades": {
+                "font": "5+",
+                "french": null,
+                "vscale": "V2",
+                "yds": "V2"
+            },
+            "safety": "UNSPECIFIED",
+            "type": {
+                "aid": false,
+                "alpine": false,
+                "bouldering": true,
+                "ice": false,
+                "mixed": false,
+                "snow": false,
+                "sport": false,
+                "tr": false,
+                "trad": false
+            }
+        }
+    }
+}

@@ -1,6 +1,7 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, use } from "react";
 import { supabase } from "../lib/supabaseClient";
 import defaultProfilePic from "../../assets/default-profile.jpg";
+import { useEffect } from "react";
 
 const Header = ({
   onHomeClick,
@@ -10,9 +11,16 @@ const Header = ({
   setUser,
   setIsLoggedIn,
   setCurrentPage, // Receive setCurrentPage as a prop
+  setCurrentUser,
+  currentUser,
 }) => {
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false); // Dropdown is closed by default
   const timeoutRef = useRef(null);
+  const [profilePic, setProfilePic] = useState(null); // State to hold the profile picture
+
+  useEffect(() => {
+    setProfilePic(currentUser?.ProfileImage || defaultProfilePic); // Set the profile picture from currentUser or use default
+  }, [currentUser]);
 
   const handleMouseEnter = () => {
     clearTimeout(timeoutRef.current);
@@ -29,6 +37,7 @@ const Header = ({
     try {
       await supabase.auth.signOut(); // Log out the user
       setUser(null); // Reset user state
+      setCurrentUser(null); // Reset current user state
       setIsLoggedIn(false); // Update login state
       console.log("You have successfully logged out.");
       setCurrentPage("login"); // Update current page to "login"
@@ -54,7 +63,7 @@ const Header = ({
           >
             <div className="flex items-center justify-center w-10 h-10 overflow-hidden bg-blue-500 rounded-full cursor-pointer">
               <img
-                src={defaultProfilePic} // Use the default profile picture for now
+                src={profilePic} // Use the default profile picture for now
                 alt="Profile"
                 className="object-cover w-full h-full"
               />

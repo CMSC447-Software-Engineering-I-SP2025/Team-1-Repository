@@ -3,10 +3,14 @@ import React, { useState } from "react";
 const SearchBar = ({ placeholder, onInputChange }) => {
   const [searchTerm, setSearchTerm] = useState("");
 
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter") {
+      onInputChange(searchTerm); // Trigger search on Enter key press
+    }
+  };
+
   const handleInputChange = (e) => {
-    const value = e.target.value;
-    setSearchTerm(value);
-    onInputChange(value);
+    setSearchTerm(e.target.value);
   };
 
   return (
@@ -17,6 +21,7 @@ const SearchBar = ({ placeholder, onInputChange }) => {
         placeholder={placeholder}
         value={searchTerm}
         onChange={handleInputChange}
+        onKeyDown={handleKeyDown} // Use onKeyDown instead of onKeyPress
       />
     </div>
   );
