@@ -120,7 +120,6 @@ const MyProfilePage = ({ onSave }) => {
                 url
             );
             console.log("API Response for friends:", response.data);
-            setGroupRelations(response.data);
         } catch (err) {
             console.error("Failed accept friend request:", err);
         }
@@ -135,7 +134,6 @@ const MyProfilePage = ({ onSave }) => {
                 url
             );
             console.log("API Response:", response.data);
-            setGroupRelations(response.data);
         } catch (err) {
             console.error("Failed reject friend request:", err);
         }
@@ -528,13 +526,13 @@ const MyProfilePage = ({ onSave }) => {
                                       <strong>User1:</strong> {userRelation.User1Name} <br />
                                       <strong>User2:</strong> {userRelation.User2Name}<br />
                                       <strong>RelationType:</strong> {userRelation.RelationType}
-                                      {(userRelation.UserRelationType == "pending_user1" && userRelation.User1Id == user.id) ||
-                                          (userRelation.UserRelationType == "pending_user2" && userRelation.User2Id == user.id) ? (
-                                              <p></p>
-                                      ): (
+                                      {(userRelation.RelationType == "pending_user1" && userRelation.User1Id == user.id) ||
+                                          (userRelation.RelationType == "pending_user2" && userRelation.User2Id == user.id) ? (
                                               <div><button onClick={() => acceptFriendRequest(userRelation.User1Id, userRelation.User2Id)}>Accept</button>
                                                   <p> or </p>
-                                                  <button onClick={() => rejectFriendRequest(userRelation.User1Id, userRelation.User2Id)}>reject</button></div>
+                                                  <button onClick={() => rejectFriendRequest(userRelation.User1Id, userRelation.User2Id)}>reject</button></div> 
+                                      ): (
+                                          <div><button onClick={() => rejectFriendRequest(userRelation.User1Id, userRelation.User2Id)}>unfriend</button></div>
                                       )
                                   }
                                   </li>
