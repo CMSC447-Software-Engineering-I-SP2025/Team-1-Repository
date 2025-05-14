@@ -132,6 +132,7 @@ public class SearchController : ControllerBase
     //determines if climb should be included based on all desired filter options (pass=true, fail=false)
     private bool SearchFilter(SearchWithFiltersOptions options, Climb c)
     {
+        //filter by distance
         if (options.DistOptions is not null)
         {
             double dist = DistanceInMiles(c.metadata.lat, c.metadata.lng, options.DistOptions.Lat, options.DistOptions.Lng);
@@ -139,28 +140,76 @@ public class SearchController : ControllerBase
                 return false;
         }
 
-        if (c.grades is null) //there are rare occasions where this happens. Better to catch it here than pass it downstream
+        //there are rare occasions where this happens. Better to catch it here than pass it downstream
+        if (c.grades is null || c.type is null)
             return false;
-        if (ShouldTest(options.MinFont, c.grades.font) && !AboveMin(c.grades.font, options.MinFont, _ranges.Font))
-            return false;
-        if (ShouldTest(options.MaxFont, c.grades.font) && !BelowMax(c.grades.font, options.MaxFont, _ranges.Font))
-            return false;
-        if (ShouldTest(options.MinFrench, c.grades.french) && !AboveMin(c.grades.french, options.MinFrench, _ranges.French))
-            return false;
-        if (ShouldTest(options.MaxFrench, c.grades.french) && !BelowMax(c.grades.french, options.MaxFrench, _ranges.French))
-            return false;
-        if (ShouldTest(options.MinVscale, c.grades.vscale) && !AboveMin(c.grades.vscale, options.MinVscale, _ranges.Vscale))
-            return false;
-        if (ShouldTest(options.MaxVscale, c.grades.vscale) && !BelowMax(c.grades.vscale, options.MaxVscale, _ranges.Vscale))
-            return false;
+
+        var anyGradeFiltered = false;
+
+        //options.MinFont <= c.grades.font <= options.MaxFont
+        var passesMinFont = false;
+        var passesMaxFont = false;
+        var fontFiltered = false;
+        if (ShouldTest(options.MinFont, c.grades.font))
+        {
+            passesMinFont = AboveMin(c.grades.font, options.MinFont, _ranges.Font);
+            fontFiltered = true;
+            anyGradeFiltered = true;
+        }
+        if (ShouldTest(options.MaxFont, c.grades.font))
+        {
+            passesMaxFont = BelowMax(c.grades.font, options.MaxFont, _ranges.Font);
+            fontFiltered = true;
+            anyGradeFiltered = true;
+        }
+
+        //options.MinFrench <= c.grades.french <= options.MaxFrench
+        var passesMinFrench = false;
+        var passesMaxFrench = false;
+        var frenchFiltered = false;
+        if (ShouldTest(options.MinFrench, c.grades.french))
+        {
+            passesMinFrench = AboveMin(c.grades.french, options.MinFrench, _ranges.French);
+            frenchFiltered = true;
+            anyGradeFiltered = true;
+        }
+        if (ShouldTest(options.MaxFrench, c.grades.french))
+        {
+            passesMaxFrench = BelowMax(c.grades.french, options.MaxFrench, _ranges.French);
+            frenchFiltered = true;
+            anyGradeFiltered = true;
+        }
+
+        //options.MinVscale <= c.grades.vscale <= options.MaxVscale
+        var passesMinVscale = false;
+        var passesMaxVscale = false;
+        var vscaleFiltered = false;
+        if (ShouldTest(options.MinVscale, c.grades.vscale))
+        {
+            passesMinVscale = AboveMin(c.grades.vscale, options.MinVscale, _ranges.Vscale);
+            vscaleFiltered = true;
+            anyGradeFiltered = true;
+        }
+        if (ShouldTest(options.MaxVscale, c.grades.vscale))
+        {
+            passesMaxVscale = BelowMax(c.grades.vscale, options.MaxVscale, _ranges.Vscale);
+            vscaleFiltered = true;
+            anyGradeFiltered = true;
+        }
+
+        //options.MinYDS <= c.grades.yds <= options.MaxYDS
+        var passesMinYDS = false;
+        var passesMaxYDS = false;
+        var ydsFiltered = false;
         if (ShouldTest(options.MinYDS, c.grades.yds) && !c.grades.yds.StartsWith("V"))
         {
             //sometimes OpenBeta data's YDS grade has a "-" or "+", which isn't valid for YDS format
             if (c.grades.yds.EndsWith("-") || c.grades.yds.EndsWith("+"))
                 c.grades.yds = c.grades.yds.Substring(0, c.grades.yds.Length - 1);
 
-            if (!AboveMin(c.grades.yds, options.MinYDS, _ranges.Yds))
-                return false;
+            passesMinYDS = AboveMin(c.grades.yds, options.MinYDS, _ranges.Yds);
+            ydsFiltered = true;
+            anyGradeFiltered = true;
         }
         if (ShouldTest(options.MaxYDS, c.grades.yds) && !c.grades.yds.StartsWith("V"))
         {
@@ -168,19 +217,30 @@ public class SearchController : ControllerBase
             if (c.grades.yds.EndsWith("-") || c.grades.yds.EndsWith("+"))
                 c.grades.yds = c.grades.yds.Substring(0, c.grades.yds.Length - 1);
 
-            if (!BelowMax(c.grades.yds, options.MaxYDS, _ranges.Yds))
-                return false;
+            passesMaxYDS = BelowMax(c.grades.yds, options.MaxYDS, _ranges.Yds);
+            ydsFiltered = true;
+            anyGradeFiltered = true;
         }
 
-        if (c.type is null)
-            return false;
-        if (options.IsAidType is not null && options.IsAidType != c.type.aid)
-            return false;
-        if (options.IsAlpineType is not null && options.IsAlpineType != c.type.alpine)
-            return false;
-        if (options.IsBoulderingType is not null && options.IsBoulderingType != c.type.bouldering)
-            return false;
-        if (options.IsIceType is not null && options.IsIceType != c.type.ice)
+        //treat min and max of same kind of grade as AND expression
+        var passesFont = passesMinFont && passesMaxFont;
+        var passesFrench = passesMinFrench && passesMaxFrench;
+        var passesVscale = passesMinVscale && passesMaxVscale;
+        var passesYDS = passesMinYDS && passesMaxYDS;
+
+        //treat different kinds of grade as OR expression
+        var passesGradeFilters = false;
+        if (fontFiltered)
+            passesGradeFilters |= passesFont;
+        if (frenchFiltered)
+            passesGradeFilters |= passesFrench;
+        if (vscaleFiltered)
+            passesGradeFilters |= passesVscale;
+        if (ydsFiltered)
+            passesGradeFilters |= passesYDS;
+
+        //fail filter when at least one grade was checked (options for grade was specified) and we didn't pass any grade
+        if (anyGradeFiltered && !passesGradeFilters)
             return false;
         if (options.IsMixedType is not null && options.IsMixedType != c.type.mixed)
             return false;
