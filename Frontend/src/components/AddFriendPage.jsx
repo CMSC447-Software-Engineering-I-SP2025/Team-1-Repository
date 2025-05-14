@@ -1,22 +1,27 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { useLocation } from 'react-router-dom';
 
-const AddFriendPage = ({ userId }) => {  // Assuming userId is passed as a prop or from context
+const AddFriendPage = () => {  // Assuming userId is passed as a prop or from context
 
     const [receiver, setReceiver] = useState('');
+    const location = useLocation();
+    const userID = location.state?.userID;
 
     const sendFriendRequest = async (e) => {
         e.preventDefault();
 
         // Prepare the data for the review
+        /*
         const requestData = {
             Receiver: receiver,
-            Sender: 1 //change this to userID
-        };
+            Sender: userID //change this to userID
+        };*/
 
         try {
-            //const response = await axios.post('https://localhost:7195/api/Database/review', reviewData);
-            //console.log('Friend request created successfully:', response.data);
+            const url = `https://localhost:7195/api/Database/sendFriendRequest?receiverUserName=${encodeURIComponent(receiver)}&senderUserId=${encodeURIComponent(userID)}`;
+            const response = await axios.post(url);
+            console.log('Friend request created successfully:', response.data);
         } catch (error) {
             console.error('Error sending friend request:', error);
         }
@@ -25,7 +30,7 @@ const AddFriendPage = ({ userId }) => {  // Assuming userId is passed as a prop 
     return (
         <div className="login-container">
             <form className="login-form" onSubmit={sendFriendRequest}>
-                <h2>Send friend request</h2>
+                <h2>Send friend request from: {userID} to:</h2>
                 <div className="form-group">
                     <input
                         type="text"

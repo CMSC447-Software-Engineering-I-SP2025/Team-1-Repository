@@ -81,8 +81,8 @@ namespace BoulderBuddyAPI.Services
 
         public Task InsertIntoClimbGroupTable(object parameters) =>
             ExecuteInsertCommand(@"
-                INSERT INTO ClimbGroup (GroupId, GroupName, GroupDescription, JoinRequirements, Price, GroupType, GroupOwner, GroupImage) 
-                VALUES (@GroupId, @GroupName, @GroupDescription, @JoinRequirements, @Price, @GroupType, @GroupOwner, @GroupImage);", parameters);
+                INSERT INTO ClimbGroup (GroupName, GroupDescription, JoinRequirements, Price, GroupType, GroupOwner, GroupImage) 
+                VALUES (@GroupName, @GroupDescription, @JoinRequirements, @Price, @GroupType, @GroupOwner, @GroupImage);", parameters);
 
         public Task InsertIntoClimbGroupRelationTable(object parameters) =>
             ExecuteInsertCommand(@"
@@ -91,8 +91,8 @@ namespace BoulderBuddyAPI.Services
 
         public Task InsertIntoClimbGroupEventTable(object parameters) =>
             ExecuteInsertCommand(@"
-                INSERT INTO ClimbGroupEvent (GroupId, EventName, EventDescription, EventDate, EventTime, EventLocation, EventImage) 
-                VALUES (@GroupId, @EventName, @EventDescription, @EventDate, @EventTime, @EventLocation, @EventImage);", parameters);
+                INSERT INTO ClimbGroupEvent (EventName, GroupId, EventDescription, EventDate, EventTime, EventLocation, EventImage) 
+                VALUES (@EventName, @GroupId, @EventDescription, @EventDate, @EventTime, @EventLocation, @EventImage);", parameters);
 
         public Task InsertIntoBadgeTable(object parameters) =>
             ExecuteInsertCommand(@"
@@ -867,8 +867,7 @@ namespace BoulderBuddyAPI.Services
                     EventLocation, 
                     EventImage
                 FROM ClimbGroupEvent
-                WHERE GroupId = @GroupId
-                ORDER BY EventDate ASC;",
+                WHERE GroupId = @GroupId;",
                 new { GroupId = groupId });
         }
 
