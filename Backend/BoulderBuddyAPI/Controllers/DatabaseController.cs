@@ -3,6 +3,8 @@ using BoulderBuddyAPI.Services;
 using Microsoft.Extensions.Configuration;
 using System;
 using BoulderBuddyAPI.Models.DatabaseModels;
+using BoulderBuddyAPI.Models;
+
 
 namespace BoulderBuddyAPI.Controllers
 {
@@ -35,7 +37,7 @@ namespace BoulderBuddyAPI.Controllers
                 {
                     user.UserId,
                     user.UserName,
-                    user.ProfileImage, 
+                    user.ProfileImage,
                     user.FirstName,
                     user.LastName,
                     user.Email,
@@ -44,7 +46,8 @@ namespace BoulderBuddyAPI.Controllers
                     user.BoulderGradeUpperLimit,
                     user.RopeClimberLowerLimit,
                     user.RopeClimberUpperLimit,
-                    user.Bio
+                    user.Bio,
+                    user.AccountType
                 });
                 return Ok(new { message = "User created successfully" });
             }
@@ -71,6 +74,30 @@ namespace BoulderBuddyAPI.Controllers
             {
                 return StatusCode(500, new { message = ex.Message });
             }
+        }
+
+        [HttpPost("UpdateUserSettings")]
+        public async Task<IActionResult> PostUserSettings(UserSettingsUpdate newSettings)
+        {
+            //validate expected values
+            if (newSettings.AccountType is not null)
+            {
+                if (newSettings.AccountType != "public" && newSettings.AccountType != "private")
+                    return BadRequest("Invalid AccountType");
+            }
+            if (newSettings.EnableGroupInviteNotifications is not null)
+            {
+                if (newSettings.EnableGroupInviteNotifications != "enable" && newSettings.EnableGroupInviteNotifications != "disable")
+                    return BadRequest("Invalid EnableGroupInviteNotifications");
+            }
+            if (newSettings.EnableReviewCommentNotifications is not null)
+            {
+                if (newSettings.EnableReviewCommentNotifications != "enable" && newSettings.EnableReviewCommentNotifications != "disable")
+                    return BadRequest("Invalid EnableReviewCommentNotifications");
+            }
+
+            await _databaseService.UpdateUserSettings(newSettings);
+            return Ok();
         }
 
         [HttpPost("review")]
@@ -213,6 +240,20 @@ namespace BoulderBuddyAPI.Controllers
         }
 
         // GET methods for getting data from the database
+
+        [HttpPost("FavoriteClimb")]
+        public async Task<IActionResult> PostFavoriteClimb(FavoriteClimb favorite)
+        {
+            try
+            {
+                await _databaseService.InsertIntoFavoriteClimbTable(favorite);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
 
         [HttpGet("user")]
         public async Task<IActionResult> GetUsers()
@@ -383,6 +424,20 @@ namespace BoulderBuddyAPI.Controllers
             {
                 var badgeRelations = await _databaseService.GetBadgeRelations();
                 return Ok(badgeRelations);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        [HttpGet("FavoriteClimb")]
+        public async Task<IActionResult> GetFavoriteClimbs(string userID)
+        {
+            try
+            {
+                var favorites = await _databaseService.GetFavoriteClimbs(userID);
+                return Ok(favorites);
             }
             catch (Exception ex)
             {
@@ -591,7 +646,7 @@ namespace BoulderBuddyAPI.Controllers
 
             try
             {
-                
+
                 await _databaseService.UpdateUser(userId, new
                 {
                     user.UserName,
@@ -773,10 +828,28 @@ namespace BoulderBuddyAPI.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
-        
-        
+
+
+
+
+
+        [HttpDelete("FavoriteClimb")]
+        public async Task<IActionResult> DeleteFavoriteClimb(ClimbAndUserIDs favorite)
+        {
+            try
+            {
+                await _databaseService.DeleteFromFavoriteClimbTable(favorite);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
     }
 }
+
+
 
 namespace BoulderBuddyAPI.Services
 {
@@ -814,6 +887,7 @@ namespace BoulderBuddyAPI.Services
         Task UpdatePicture(int pictureId, object parameters);
 
         //methods for getting data from the database
+        Task InsertIntoFavoriteClimbTable(object parameters);
         Task<List<User>> GetUsers();
         Task<List<Review>> GetReviews();
         Task<List<Review>> GetTenReviews(string RouteID);
@@ -838,7 +912,7 @@ namespace BoulderBuddyAPI.Services
 
         //method for joining a group
         Task JoinGroup(string userId, string groupName);
-        
+
         //method for getting group members
         Task<List<User>> GetGroupMembers(string groupId);
 
@@ -850,6 +924,10 @@ namespace BoulderBuddyAPI.Services
 
         //method for getting user by ID
         Task<User> GetUserById(string userId);
+
+        Task<List<ClimbAndParentAreaIDs>> GetFavoriteClimbs(string UserID);
+        Task UpdateUserSettings(object parameters);
+        Task DeleteFromFavoriteClimbTable(ClimbAndUserIDs favorite);
 
         //method for getting events by group ID
         Task<List<ClimbGroupEvent>> GetEventsByGroupId(string groupId);

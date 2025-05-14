@@ -32,7 +32,13 @@ namespace BoulderBuddyAPI.Services
                         BoulderGradeUpperLimit TEXT,
                         RopeClimberLowerLimit TEXT,
                         RopeClimberUpperLimit TEXT,
-                        Bio TEXT
+                        Bio TEXT,
+                        AccountType TEXT NOT NULL,
+                        EnableReviewCommentNotifications TEXT NOT NULL DEFAULT ""enable"",
+                        EnableGroupInviteNotifications TEXT NOT NULL DEFAULT ""enable"",
+                        CHECK (AccountType IN (""public"", ""private"")),
+                        CHECK (EnableReviewCommentNotifications IN (""enable"", ""disable"")),
+                        CHECK (EnableGroupInviteNotifications IN (""enable"", ""disable""))
                     );
 
                     CREATE TABLE IF NOT EXISTS Review (
@@ -54,6 +60,13 @@ namespace BoulderBuddyAPI.Services
                         FOREIGN KEY (User1Id) REFERENCES User(UserId) ON DELETE CASCADE,
                         FOREIGN KEY (User2Id) REFERENCES User(UserId) ON DELETE CASCADE,
                         CHECK (RelationType IN (""friends"", ""user1_blocked"", ""user2_blocked"", ""both_blocked"", ""pending_user1"", ""pending_user2""))
+                    );
+                    CREATE TABLE IF NOT EXISTS FavoriteClimb (
+                        UserId TEXT NOT NULL,
+                        ClimbId TEXT NOT NULL,
+                        ParentAreaID TEXT NOT NULL,
+                        PRIMARY KEY (UserId, ClimbId),
+                        FOREIGN KEY (UserId) REFERENCES User(UserId)
                     );
 
                     CREATE TABLE IF NOT EXISTS ClimbGroup (

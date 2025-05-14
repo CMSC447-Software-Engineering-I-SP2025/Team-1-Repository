@@ -16,9 +16,9 @@ export const UserProvider = ({ children }) => {
         error,
       } = await supabase.auth.getSession();
       if (error) console.error("Failed to get session:", error);
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
+        setSession(session);
+        setUser(session?.user ?? null);
+        setLoading(false);
     };
 
     loadSession(); // Listen for session changes (login, logout, token refresh)

@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { useUser } from "./UserProvider";
 import { supabase } from "../lib/supabaseClient";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const SettingsPage = () => {
   const { user } = useUser();
@@ -24,19 +25,42 @@ const SettingsPage = () => {
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false);
   const [showDeletePassword, setShowDeletePassword] = React.useState(false);
   const [isDeleteConfirmed, setIsDeleteConfirmed] = React.useState(false); // Track secondary confirmation
-
-  useEffect(() => {
-    localStorage.setItem("theme", theme);
-    if (theme === "dark") {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, [theme]);
+  const [accountType, setAccountType] = React.useState("public"); // Track account type
+  const [reviewComments, setReviewComments] = React.useState("enable"); // Track review comments setting
+  const [groupInvites, setGroupInvites] = React.useState("enable"); // Initialize groupInvites state
 
   useEffect(() => {
     localStorage.setItem("fontSize", fontSize);
-  }, [fontSize]);
+  }, [fontSize]);  
+
+  const fetchSettings = async () => {
+      if (!user?.id) return;
+
+      try {
+          const response = await axios.get(`https://localhost:7195/api/Database/user/${user.id}`);
+
+          if (response.status === 200) {
+              const settings = response.data;
+              setAccountType(settings.accountType || "public");
+              setReviewComments(settings.enableReviewCommentNotifications || "enable");
+              setGroupInvites(settings.enableGroupInviteNotifications || "enable");
+
+              // Log the fetched settings to the console
+              console.log("Fetched user settings:", settings);
+              console.log("Raw fetched groupInvites from backend:", settings.enableGroupInviteNotifications);
+              console.log("Raw fetched reviewComments from backend:", settings.enableReviewCommentNotifications);
+              console.log("Raw fetched accountType from backend:", settings.accountType);
+          } else {
+              console.error("Failed to fetch settings: Unexpected response status", response.status);
+          }
+      } catch (error) {
+          console.error("Failed to fetch settings:", error);
+      }
+  };
+
+  useEffect(() => {
+    fetchSettings();
+  }, [user]);
 
   const handleDeleteAccount = async () => {
     setDeleteMessage("");
@@ -85,8 +109,35 @@ const SettingsPage = () => {
       setShowDeleteModal(false);
       setDeletePassword("");
       setIsDeleteConfirmed(false); // Reset confirmation state
+
+    
+      navigate("/signup");
     } catch (error) {
       setDeleteMessage(error.message || "An error occurred while deleting the account.");
+    }
+  };
+
+  const handleSaveSettings = async () => {
+    if (!user?.id) return;
+
+    const settings = {
+      userID: user.id,
+      accountType: accountType,
+      enableReviewCommentNotifications: reviewComments,
+      enableGroupInviteNotifications: groupInvites 
+    };
+
+    console.log("Settings payload:", settings); // Log the payload being sent
+
+    try {
+      const response = await axios.post("https://localhost:7195/api/Database/UpdateUserSettings", settings);
+
+      if (response.status !== 200) throw new Error("Failed to save settings.");
+      
+      alert("Settings saved successfully!");
+      
+    } catch (err) {
+      alert(err.message || "An error occurred while saving settings.");
     }
   };
 
@@ -94,7 +145,6 @@ const SettingsPage = () => {
     { key: "account", label: "Account & Security" },
     { key: "appearance", label: "Appearance" },
     { key: "notifications", label: "Notifications" },
-    //{ key: "support", label: "Feedback & Support" },
   ];
 
   const checkPasswordRules = (password) => {
@@ -168,7 +218,11 @@ const SettingsPage = () => {
             {/* Privacy Settings */}
             <div className="mb-6">
                 <label className="block mb-2 text-sm font-medium text-gray-700">Privacy Settings</label>
-                <select className="w-full px-4 py-2 border border-gray-300 rounded">
+                <select
+                  className="w-full px-4 py-2 border border-gray-300 rounded"
+                  value={accountType}
+                  onChange={(e) => setAccountType(e.target.value)}
+                >
                   <option value="public">Public</option>
                   <option value="private">Private</option>
                 </select>
@@ -312,18 +366,6 @@ const SettingsPage = () => {
         return (
           <>
             <div className="mb-6">
-              <label className="block mb-2 text-sm font-medium text-gray-700">Theme</label>
-              <select
-                className="w-full px-4 py-2 border border-gray-300 rounded"
-                onChange={(e) => setTheme(e.target.value)}
-                value={theme}
-              >
-                <option value="light">Light</option>
-                <option value="dark">Dark</option>
-                <option value="system">System Default</option>
-              </select>
-            </div>
-            <div className="mb-6">
               <label className="block mb-2 text-sm font-medium text-gray-700">Font Size</label>
               <select
                 className="w-full px-4 py-2 border border-gray-300 rounded"
@@ -340,25 +382,28 @@ const SettingsPage = () => {
       case "notifications":
         return (
           <>
-            <div className="mb-6">
-              <label className="block mb-2 text-sm font-medium text-gray-700">Email Notifications</label>
-              <select className="w-full px-4 py-2 border border-gray-300 rounded">
-                <option value="enabled">Enabled</option>
-                <option value="disabled">Disabled</option>
-              </select>
-            </div>
+            {/* Group Invite Notifications */}
             <div className="mb-6">
               <label className="block mb-2 text-sm font-medium text-gray-700">Group Invite Notifications</label>
-              <select className="w-full px-4 py-2 border border-gray-300 rounded">
-                <option value="enabled">Enabled</option>
-                <option value="disabled">Disabled</option>
+              <select
+                className="w-full px-4 py-2 border border-gray-300 rounded"
+                value={groupInvites}
+                onChange={(e) => setGroupInvites(e.target.value)}
+              >
+                <option value="enable">Enabled</option>
+                <option value="disable">Disabled</option>
               </select>
             </div>
+            {/* Review Comments Notifications */}
             <div className="mb-6">
               <label className="block mb-2 text-sm font-medium text-gray-700">Receive Review Comments Notifications</label>
-              <select className="w-full px-4 py-2 border border-gray-300 rounded">
-                <option value="enabled">Enabled</option>
-                <option value="disabled">Disabled</option>
+              <select
+                className="w-full px-4 py-2 border border-gray-300 rounded"
+                value={reviewComments}
+                onChange={(e) => setReviewComments(e.target.value)}
+              >
+                <option value="enable">Enabled</option>
+                <option value="disable">Disabled</option>
               </select>
             </div>
           </>
@@ -410,7 +455,8 @@ const SettingsPage = () => {
           {renderContent()}
           <div className="flex justify-end mt-10">
             <button
-              type="submit"
+              type="button"
+              onClick={handleSaveSettings}
               className="px-6 py-2 text-sm font-medium text-white bg-green-500 rounded hover:bg-green-600"
             >
               Save Changes
