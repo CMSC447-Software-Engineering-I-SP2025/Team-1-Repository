@@ -1,20 +1,27 @@
-import React, { useState, useEffect, use } from "react";
+import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { supabase } from "./lib/supabaseClient";
-import { UserProvider } from "./components/UserProvider"; // Import UserProvider if needed
+import { UserProvider } from "./components/UserProvider";
 import LoginPage from "./components/LoginPage";
 import CreateReview from "./components/CreateReview";
+import AddFriendPage from "./components/AddFriendPage";
+import AddGroupPage from "./components/AddGroupPage";
 import CreateAccountPage from "./components/CreateAccountPage";
 import Header from "./components/Header";
 import HeroSection from "./components/HeroSection";
 import WorldMap from "./components/WorldMap";
 import ClimbPage from "./components/ClimbPage";
 import AreaPage from "./components/AreaPage";
+import GroupPage from "./components/GroupPage";
+import MyProfilePage from "./components/MyProfilePage";
+import SettingsPage from "./components/SettingsPage";
 import ForgotPassword from "./components/ForgotPassword";
 import ViewReviewsPage from "./components/ViewReviewsPage";
+import CreateEventPage from "./components/CreateEventPage";
 
 const App = () => {
   const [user, setUser] = useState(null);
+
   const [selectedClimb, setSelectedClimb] = useState(null);
   const [currentPage, setCurrentPage] = useState("home");
   const [selectedArea, setSelectedArea] = useState(null);
@@ -22,12 +29,30 @@ const App = () => {
   const [allClimbs, setAllClimbs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [recommendedClimbs, setRecommendedClimbs] = useState([]);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [currentUser, setCurrentUser] = useState({
+    id: "12345",
+    firstName: "John",
+    lastName: "Doe",
+    email: "johndoe@example.com",
+    phone: "1234567890",
+    phoneCountry: "+1",
+    boulderGradeRange: { min: "V0", max: "V5" },
+    ropeGradeRange: { min: "5.8", max: "5.12" },
+  });
+  const [stateName, setStateName] = useState("Maryland");
+
+  const handleSaveUser = (updatedUser) => {
+    setCurrentUser(updatedUser);
+  };
 
   useEffect(() => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch("/Search/State?state=Maryland", { 
+        console.log("Areas:", areas);
+        console.log("State name:", stateName);
+        const response = await fetch(`/Search/State?state=${stateName}`, {
           method: "POST",
         });
         if (!response.ok) {
@@ -43,6 +68,39 @@ const App = () => {
     };
 
     fetchData();
+  }, [stateName]);
+
+  useEffect(() => {
+    if (areas.length > 0) {
+      const allClimbs = areas.flatMap((area) => area.climbs);
+      const selectedClimbs = allClimbs
+        .sort(() => 0.5 - Math.random())
+        .slice(0, 10);
+      setRecommendedClimbs(selectedClimbs);
+    }
+  }, [areas]);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      setUser(session?.user || null);
+      setIsLoggedIn(!!session?.user);
+    };
+
+    fetchUser();
+
+    const { data: subscription } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setUser(session?.user || null);
+        setIsLoggedIn(!!session?.user);
+      }
+    );
+
+    return () => {
+      subscription.unsubscribe(); // Correctly call unsubscribe
+    };
   }, []);
 
   const handleHomeClick = () => {
@@ -50,7 +108,19 @@ const App = () => {
     setSelectedClimb(null);
     setSelectedArea(null);
   };
-  
+
+  const handleProfileClick = () => {
+    setCurrentPage("profile");
+  };
+
+  const handleSettingsClick = () => {
+    setCurrentPage("settings");
+  };
+
+  const handleLoginClick = () => {
+    setCurrentPage("login");
+  };
+
   useEffect(() => {
     if (selectedClimb) {
       setCurrentPage("climb");
@@ -73,20 +143,37 @@ const App = () => {
   }, [areas]);
 
   return (
-    <UserProvider> 
+    <UserProvider>
       <Router>
         <div>
-          <Header onHomeClick={handleHomeClick} />
+          <Header
+            onHomeClick={handleHomeClick}
+            onProfileClick={handleProfileClick}
+            onSettingsClick={handleSettingsClick}
+            isLoggedIn={!!user}
+            setUser={setUser}
+            setIsLoggedIn={setIsLoggedIn}
+            setCurrentPage={setCurrentPage} // Pass setCurrentPage to Header
+          />
           <Routes>
             <Route path="/signup" element={<CreateAccountPage />} />
-            <Route path="/login" element={<LoginPage onLogin={setUser} />} />
+            <Route
+              path="/login"
+              element={<LoginPage OnLoginClick={setCurrentPage} />} // Pass setCurrentPage as OnLoginClick
+            />
+            <Route path="/profile" element={<MyProfilePage />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/create-account" element={<CreateAccountPage />} />
             <Route path="/view-reviews" element={<ViewReviewsPage selectedClimb={selectedClimb} />} />
             <Route path="/create-review" element={<CreateReview selectedClimb={selectedClimb} />} /> 
+            <Route path="/add-friend" element={<AddFriendPage />} /> 
+                      <Route path="/add-group" element={<AddGroupPage />} />
+                      <Route path="/group" element={<GroupPage />} />
+                      <Route path="/create-event" element={<CreateEventPage />} /> 
 
-            <Route path="/" element={
-              (() => {
+            <Route
+              path="/"
+              element={(() => {
                 if (currentPage === "home") {
                   return (
                     <div className="flex">
@@ -96,7 +183,8 @@ const App = () => {
                           setSelectedClimb={setSelectedClimb}
                           allClimbs={allClimbs}
                           isLoading={isLoading}
-                          recommendedClimbs={recommendedClimbs} 
+                          recommendedClimbs={recommendedClimbs}
+                          isLoggedIn={isLoggedIn}
                         />
                       </div>
                       <div className="w-3/4">
@@ -105,12 +193,13 @@ const App = () => {
                           area={selectedArea}
                           setSelectedArea={setSelectedArea}
                           isLoading={isLoading}
+                          setStateName={setStateName}
                         />
                       </div>
                     </div>
                   );
                 } else if (currentPage === "climb") {
-                  return <ClimbPage selectedClimb={selectedClimb} />;
+                    return <ClimbPage selectedClimb={selectedClimb} isLoggedIn = {isLoggedIn} />;
                 } else if (currentPage === "area") {
                   return (
                     <AreaPage
@@ -118,11 +207,21 @@ const App = () => {
                       setSelectedClimb={setSelectedClimb}
                     />
                   );
+                } else if (currentPage === "profile") {
+                  return (
+                    <MyProfilePage user={currentUser} onSave={handleSaveUser} />
+                  );
+                } else if (currentPage === "settings") {
+                  return <SettingsPage />;
+                } else if (currentPage === "login") {
+                  return <LoginPage OnLoginClick={setCurrentPage} />;
+                } else if (currentPage === "signup") {
+                  return <CreateAccountPage />;
                 } else {
                   return null;
                 }
-              })()
-            } />
+              })()}
+            />
           </Routes>
         </div>
       </Router>

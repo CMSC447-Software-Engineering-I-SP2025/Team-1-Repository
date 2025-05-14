@@ -1,69 +1,58 @@
-import React, { useEffect } from "react";
+import React, { use, useEffect, useState } from "react";
 import ReactDOMServer from "react-dom/server";
 import ClimbInfoBox from "./ClimbInfoBox";
 
-const WorldMap = ({ areas, area, setSelectedArea, isLoading }) => {
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="w-32 h-32 border-t-2 border-b-2 border-blue-500 rounded-full animate-spin"></div>
-      </div>
-    );
-  }
+const WorldMap = ({
+  areas,
+  area,
+  setSelectedArea,
+  isLoading,
+  setStateName,
+}) => {
+  const [mapCenter, setMapCenter] = useState({ lat: 0, lng: 0 });
+  const [map, setMap] = useState(null);
+  const [markers, setMarkers] = useState([]);
+  const [currentStateName, setCurrentStateName] = useState("");
 
   useEffect(() => {
-    const loadScript = (url) => {
-      const existingScript = document.querySelector(`script[src="${url}"]`);
-      if (!existingScript) {
-        const script = document.createElement("script");
-        script.src = url;
-        script.async = true;
-        script.defer = true;
-        document.head.appendChild(script);
-        script.onload = () => {
-          if (window.google) {
-            initMap();
+    // Fetch state name based on map center
+    const fetchStateName = async () => {
+      try {
+        const response = await fetch(
+          `https://maps.googleapis.com/maps/api/geocode/json?latlng=${mapCenter.lat},${mapCenter.lng}&key=AIzaSyAwR8VfIU19NHVjF1mMR2cInjKNG9OLFzQ`
+        );
+        const data = await response.json();
+        if (data.results && data.results.length > 0) {
+          const addressComponents = data.results[0].address_components;
+          const stateComponent = addressComponents.find((component) =>
+            component.types.includes("administrative_area_level_1")
+          );
+          if (stateComponent) {
+            setStateName(stateComponent.long_name);
+            setCurrentStateName(stateComponent.long_name); // Update state name for display
           }
-        };
-      } else {
-        if (window.google) {
-          initMap();
         }
+      } catch (error) {
+        console.error("Failed to fetch state name:", error);
       }
     };
 
-    // when the map is initialized
-    const initMap = () => {
-      // initialize the map
-      const map = new window.google.maps.Map(document.getElementById("map"), {
-        center: { lat: 0, lng: 0 },
-        zoom: 2,
-      });
+    fetchStateName();
+  }, [mapCenter]);
 
-      // Create a marker for each area
-      areas.forEach((area) => {
+  useEffect(() => {
+    if (map && areas) {
+      // Clear existing markers
+      markers.forEach((marker) => marker.setMap(null));
+      setMarkers([]);
+
+      // Add new markers
+      const newMarkers = areas.map((area) => {
         const marker = new window.google.maps.Marker({
           position: { lat: area.metadata.lat, lng: area.metadata.lng },
           map,
           title: area.areaName,
         });
-
-        if (area) {
-          map.setCenter({ lat: area.metadata.lat, lng: area.metadata.lng });
-          map.setZoom(12);
-        } else if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(
-            (position) => {
-              const { latitude, longitude } = position.coords;
-              map.setCenter({ lat: latitude, lng: longitude });
-              map.setZoom(12);
-            },
-            () => {
-              map.setCenter({ lat: 0, lng: 0 });
-              map.setZoom(2);
-            }
-          );
-        }
 
         const infoWindow = new window.google.maps.InfoWindow({
           content: ReactDOMServer.renderToString(
@@ -94,16 +83,78 @@ const WorldMap = ({ areas, area, setSelectedArea, isLoading }) => {
         marker.addListener("click", () => {
           setSelectedArea(area);
         });
+
+        return marker;
       });
+
+      setMarkers(newMarkers);
+    }
+  }, [areas, map]);
+
+  useEffect(() => {
+    const loadScript = (url) => {
+      const existingScript = document.querySelector(`script[src="${url}"]`);
+      if (!existingScript) {
+        const script = document.createElement("script");
+        script.src = url;
+        script.async = true;
+        script.defer = true;
+        document.head.appendChild(script);
+        script.onload = () => {
+          if (window.google) {
+            initMap();
+          }
+        };
+      } else {
+        if (window.google) {
+          initMap();
+        }
+      }
+    };
+
+    const initMap = () => {
+      const mapInstance = new window.google.maps.Map(
+        document.getElementById("map"),
+        {
+          center: mapCenter,
+          zoom: 2,
+        }
+      );
+
+      // Add a listener to update mapCenter when dragging ends
+      mapInstance.addListener("dragend", () => {
+        const newCenter = mapInstance.getCenter();
+        setMapCenter({ lat: newCenter.lat(), lng: newCenter.lng() });
+      });
+
+      setMap(mapInstance); // Store map instance
     };
 
     window.initMap = initMap;
     loadScript(
       `https://maps.googleapis.com/maps/api/js?key=AIzaSyAwR8VfIU19NHVjF1mMR2cInjKNG9OLFzQ&callback=initMap`
     );
-  }, [area]);
+  }, []);
 
-  return <div id="map" className="w-full h-screen"></div>;
+  if (!areas || !Array.isArray(areas)) {
+    return null;
+  }
+
+  return (
+    <div className="relative w-full h-screen">
+      <div id="map" className="w-full h-full"></div>
+      {isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-75">
+          <div className="w-16 h-16 border-t-2 border-b-2 border-blue-500 rounded-full animate-spin"></div>
+        </div>
+      )}
+      <div className="absolute p-2 bg-white rounded shadow-md bottom-4 left-4">
+        <p className="text-sm font-medium">
+          State: {currentStateName || "Loading..."}
+        </p>
+      </div>
+    </div>
+  );
 };
 
 export default WorldMap;
