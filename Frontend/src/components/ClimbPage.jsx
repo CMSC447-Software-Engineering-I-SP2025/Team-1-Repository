@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, use } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import { useUser } from "./UserProvider";
@@ -7,6 +7,16 @@ const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
   const { user: currentUser } = useUser(); // Access currentUser using useUser hook
   const [favoriteClimbs, setFavoriteClimbs] = useState([]);
   const [isFavorite, setIsFavorite] = useState(false); // State for heart icon
+  const [favButtonText, setFavButtonText] = useState("♡");
+
+  useEffect(() => {
+    if (isFavorite) {
+      setFavButtonText("♥");
+    } else {
+      setFavButtonText("♡");
+    }
+  }),
+    [isFavorite];
 
   useEffect(() => {
     const fetchFavoriteClimbs = async () => {
@@ -23,11 +33,12 @@ const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
           }
         );
 
-        console.log("Fetched response.data climbs:", response.data);
+        console.log("Fetched favorite climbs:", response.data);
         setFavoriteClimbs(response.data);
 
         if (response.data.some((fav) => fav.climbId === selectedClimb?.id)) {
-          console.log("Selected climb is a favorite.");
+          setIsFavorite(true);
+          console.log("Climb is a favorite:", selectedClimb.name);
         }
       } catch (error) {
         console.error("Error fetching favorite climbs:", error);
@@ -35,22 +46,9 @@ const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
     };
 
     fetchFavoriteClimbs();
-  }, [currentUser]);
-
-  useEffect(() => {
-    if (selectedClimb) {
-      const isFavoriteClimb = favoriteClimbs.some(
-        (fav) => fav.id === selectedClimb.id
-      );
-      setIsFavorite(isFavoriteClimb); // Update the heart icon state
-    }
-  }, [selectedClimb, favoriteClimbs]);
+  }, [currentUser, selectedClimb]);
 
   const areaId = selectedClimb?.area?.metadata?.areaId;
-  console.log("Area ID in ClimbPage:", areaId);
-  console.log("Climb object in ClimbPage:", selectedClimb);
-  console.log("Simplified favorite climbs:", favoriteClimbs);
-
   const addFavoriteClimb = async (climb) => {
     if (!currentUser?.id) {
       console.error("User is not logged in. Cannot add favorite climb.");
@@ -104,11 +102,12 @@ const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
   const toggleFavoriteClimb = async (climb) => {
     if (!currentUser?.id) return;
 
-    const isFavorite = favoriteClimbs.some((fav) => fav.id === climb.id);
-
     if (isFavorite) {
-      setFavoriteClimbs((prev) => prev.filter((fav) => fav.climbId !== climb.id));
+      setFavoriteClimbs((prev) =>
+        prev.filter((fav) => fav.climbId !== climb.id)
+      );
       await removeFavoriteClimb(climb.id);
+      setIsFavorite(false);
     } else {
       const newClimb = {
         id: climb.id,
@@ -117,6 +116,7 @@ const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
       };
       setFavoriteClimbs((prev) => [...prev, newClimb]);
       await addFavoriteClimb(newClimb);
+      setIsFavorite(true);
     }
   };
 
@@ -280,7 +280,6 @@ const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
     };
 
     if (isLoggedIn && currentUser) {
-      console.log("Debugging currentUser in ClimbPage:", currentUser);
       checkIfReviewed();
     }
   }, [reviews, currentUser, isLoggedIn]);
@@ -471,17 +470,17 @@ const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
         <div className="flex flex-col gap-8 lg:flex-row">
           {/* Climb Info */}
           <div className="flex-1">
-            <div className="flex justify-center items-center mb-4">
-              <h1 className="text-4xl font-bold text-gray-900 mr-4">
+            <div className="flex items-center justify-center mb-4">
+              <h1 className="mr-4 text-4xl font-bold text-gray-900">
                 {selectedClimb.name}
               </h1>
               {isLoggedIn && (
                 <button
                   onClick={() => toggleFavoriteClimb(selectedClimb)}
-                  className="text-red-500 hover:text-red-700 text-6xl"
+                  className="text-6xl text-red-500 hover:text-red-700"
                   aria-label="Toggle Favorite"
                 >
-                  {isFavorite ? "♥" : "♡"}
+                  {favButtonText}
                 </button>
               )}
             </div>
