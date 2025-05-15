@@ -37,7 +37,7 @@ namespace BoulderBuddyAPI.Controllers
                 {
                     user.UserId,
                     user.UserName,
-                    user.ProfileImage, 
+                    user.ProfileImage,
                     user.FirstName,
                     user.LastName,
                     user.Email,
@@ -664,7 +664,6 @@ namespace BoulderBuddyAPI.Controllers
 
             try
             {
-                
                 await _databaseService.UpdateUser(userId, new
                 {
                     user.UserName,
@@ -846,10 +845,6 @@ namespace BoulderBuddyAPI.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
-        
-        
-    
-
 
         [HttpDelete("FavoriteClimb")]
         public async Task<IActionResult> DeleteFavoriteClimb(ClimbAndUserIDs favorite)
@@ -930,7 +925,7 @@ namespace BoulderBuddyAPI.Services
 
         //method for joining a group
         Task JoinGroup(string userId, string groupName);
-        
+
         //method for getting group members
         Task<List<User>> GetGroupMembers(string groupId);
 
@@ -943,6 +938,10 @@ namespace BoulderBuddyAPI.Services
         //method for getting user by ID
         Task<User> GetUserById(string userId);
 
+        Task<List<ClimbAndParentAreaIDs>> GetFavoriteClimbs(string UserID);
+        Task UpdateUserSettings(object parameters);
+        Task DeleteFromFavoriteClimbTable(ClimbAndUserIDs favorite);
+
         //method for getting events by group ID
         Task<List<ClimbGroupEvent>> GetEventsByGroupId(string groupId);
 
@@ -951,9 +950,5 @@ namespace BoulderBuddyAPI.Services
 
         //method for getting groups owned by user ID
         Task<List<ClimbGroup>> GetGroupsOwnedByUser(string userId);
-        
-        Task<List<ClimbAndParentAreaIDs>> GetFavoriteClimbs(string UserID);
-        Task UpdateUserSettings(object parameters);
-        Task DeleteFromFavoriteClimbTable(ClimbAndUserIDs favorite);
     }
 }

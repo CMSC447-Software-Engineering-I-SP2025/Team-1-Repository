@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 import axios from "axios";
 
-const CreateAccountPage = ({ setCurrentPage }) => {
+const CreateAccountPage = ({ setCurrentPage, setCurrentUser }) => {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -78,19 +78,6 @@ const CreateAccountPage = ({ setCurrentPage }) => {
     const user = data.user;
 
     if (user) {
-      // Insert user data into the "users" table
-      const { error: insertError } = await supabase.from('users').insert({
-        user_id: user.id,
-        name: username,
-        email: email,
-        account_type: "public", 
-      });
-      if (insertError) {
-        console.error("Error inserting user into 'users' table:", insertError);
-        alert("Error saving user data. Please try again.");
-        return;
-      }
-
       const userData = {
         UserId: user.id,
         UserName: username,
@@ -106,11 +93,12 @@ const CreateAccountPage = ({ setCurrentPage }) => {
         Bio: "",
         AccountType: "public",
         EnableReviewCommentNotifications: "enable",
-        EnableGroupInviteNotifications: "enable"
+        EnableGroupInviteNotifications: "enable",
       };
-
+      console.log("User data to be sent:", userData);
       try {
         await axios.post("https://localhost:7195/api/Database/user", userData);
+        setCurrentUser(userData);
         setCurrentPage("profile");
       } catch (error) {
         console.error("Error adding user to Database:", error);

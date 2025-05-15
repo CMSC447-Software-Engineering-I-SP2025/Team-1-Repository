@@ -3,12 +3,13 @@ import { Link } from "react-router-dom";
 import axios from "axios";
 import { useUser } from "./UserProvider";
 import { useLocation } from "react-router-dom";
+import defaultProfileImage from "../../assets/default-profile.jpg";
 
-const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
-  const { user: currentUser } = useUser(); // Access currentUser using useUser hook
+const ClimbPage = ({ selectedClimb, isLoggedIn, currentUser }) => {
   const [favoriteClimbs, setFavoriteClimbs] = useState([]);
   const [isFavorite, setIsFavorite] = useState(false); // State for heart icon
   const [favButtonText, setFavButtonText] = useState("♡");
+  const [climbTypes, setClimbTypes] = useState({});
 
   useEffect(() => {
     if (isFavorite) {
@@ -20,17 +21,14 @@ const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
     [isFavorite];
 
   useEffect(() => {
+    console.log("Current user:", currentUser);
+    if (!currentUser) return;
     const fetchFavoriteClimbs = async () => {
-      if (!currentUser?.id) {
-        console.error("User is not logged in. Cannot fetch favorite climbs.");
-        return;
-      }
-
       try {
         const response = await axios.get(
           "https://localhost:7195/api/Database/FavoriteClimb",
           {
-            params: { userId: currentUser.id },
+            params: { userId: currentUser?.UserId },
           }
         );
 
@@ -51,7 +49,7 @@ const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
 
   const areaId = selectedClimb?.area?.metadata?.areaId;
   const addFavoriteClimb = async (climb) => {
-    if (!currentUser?.id) {
+    if (!currentUser?.UserId) {
       console.error("User is not logged in. Cannot add favorite climb.");
       return;
     }
@@ -64,13 +62,13 @@ const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
 
     try {
       console.log("Adding favorite climb with payload:", {
-        userId: currentUser.id,
+        userId: currentUser.UserId,
         climbId: climb.id,
         parentAreaId: selectedClimb?.area?.metadata?.areaId,
       });
 
       await axios.post("https://localhost:7195/api/Database/FavoriteClimb", {
-        userId: currentUser.id,
+        userId: currentUser.UserId,
         climbId: climb.id,
         parentAreaId: selectedClimb?.area?.metadata?.areaId,
       });
@@ -83,12 +81,12 @@ const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
   };
 
   const removeFavoriteClimb = async (climbId) => {
-    if (!currentUser?.id) return;
+    if (!currentUser?.UserId) return;
 
     try {
       await axios.delete("https://localhost:7195/api/Database/FavoriteClimb", {
         data: {
-          userId: currentUser.id,
+          userId: currentUser.UserId,
           climbId,
         },
       });
@@ -101,8 +99,8 @@ const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
   };
 
   const toggleFavoriteClimb = async (climb) => {
-    if (!currentUser?.id) return;
-
+    if (!currentUser?.UserId) return;
+    console.log("Toggling favorite climb:", climb);
     if (isFavorite) {
       setFavoriteClimbs((prev) =>
         prev.filter((fav) => fav.climbId !== climb.id)
@@ -191,6 +189,45 @@ const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
     );
   };
 
+  const fetchReviews = async () => {
+    try {
+      const reviewResponse = await axios.get(
+        "https://localhost:7195/api/Database/ReviewsByClimbID",
+        {
+          params: { id: selectedClimb.id },
+        }
+      );
+
+      const reviewsWithProfilePictures = await Promise.all(
+        reviewResponse.data.map(async (review) => {
+          try {
+            const userResponse = await axios.get(
+              `https://localhost:7195/api/Database/user/${review.UserId}`
+            );
+            return {
+              ...review,
+              ProfilePicture:
+                userResponse.data.ProfileImage || defaultProfileImage,
+            };
+          } catch (err) {
+            console.error(
+              `Failed to fetch user data for UserId: ${review.UserId}`,
+              err
+            );
+            return {
+              ...review,
+              ProfilePicture: "https://via.placeholder.com/40",
+            };
+          }
+        })
+      );
+
+      setReviews(reviewsWithProfilePictures);
+    } catch (err) {
+      console.error("Failed to fetch reviews:", err);
+    }
+  };
+
   useEffect(() => {
     if (selectedClimb) {
       console.log("Selected climb ID:", selectedClimb.id);
@@ -244,24 +281,22 @@ const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
       }
     };
 
-    const fetchReviews = async () => {
-      try {
-        const response = await axios.get(
-          "https://localhost:7195/api/Database/ReviewsByClimbID",
-          {
-            params: { id: selectedClimb.id },
-          }
-        );
-        setReviews(response.data);
-      } catch (err) {
-        console.error("Failed to fetch reviews:", err);
-      }
-    };
-
     fetchClimbPhoto();
     fetchAvg();
     if (selectedClimb) {
       fetchReviews();
+      setClimbTypes({
+        isAidType: selectedClimb.type.aid,
+        isAlpineType: selectedClimb.type.alpine,
+        isBoulderingType: selectedClimb.type.bouldering,
+        isIceType: selectedClimb.type.ice,
+        isMixedType: selectedClimb.type.mixed,
+        isSnowType: selectedClimb.type.snow,
+        isSportType: selectedClimb.type.sport,
+        isTrType: selectedClimb.type.tr,
+        isTradType: selectedClimb.type.trad,
+      });
+      console.log("Climb types:", climbTypes);
     }
   }, [selectedClimb]);
 
@@ -345,7 +380,7 @@ const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
           params: { id: selectedClimb.id },
         }
       );
-      setReviews(updatedReviews.data);
+      fetchReviews();
 
       // Fetch updated average rating
       const avgResponse = await axios.get(
@@ -493,6 +528,17 @@ const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
               <strong>Location:</strong> {selectedClimb.metadata.lat},{" "}
               {selectedClimb.metadata.lng}
             </p>
+            <p className="mb-2 text-lg text-center text-gray-700">
+              <strong>Climb Type:</strong>{" "}
+              {Object.entries(climbTypes)
+                .filter(([key, value]) => value)
+                .map(([key]) =>
+                  key.replace("is", "").replace("Type", "") === "Tr"
+                    ? "Top Rope"
+                    : key.replace("is", "").replace("Type", "")
+                )
+                .join(", ")}
+            </p>
             <div className="mt-6 text-center">
               <h2 className="mb-2 text-2xl font-semibold text-gray-800">
                 Grade
@@ -570,12 +616,20 @@ const ClimbPage = ({ selectedClimb, isLoggedIn }) => {
                     key={index}
                     className="p-4 text-gray-800 bg-white rounded-lg shadow-md"
                   >
-                    <div className="flex">
-                      <strong>{review.UserName || "Anonymous"} </strong> <br />
-                      {renderStars(review.Rating / 2)}{" "}
-                      {/* Display rating as stars */}
+                    <div className="flex items-center">
+                      <img
+                        src={review.ProfilePicture}
+                        alt={`${review.UserName || "Anonymous"}'s profile`}
+                        className="w-10 h-10 rounded-full"
+                      />
+                      <div className="ml-4">
+                        <strong>{review.UserName || "Anonymous"}</strong>
+                        <div className="flex mt-1">
+                          {renderStars(review.Rating / 2)}
+                        </div>
+                      </div>
                     </div>
-                    {review.Text}
+                    <p className="mt-2">{review.Text}</p>
                   </li>
                 ))}
               </ul>
