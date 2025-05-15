@@ -2,11 +2,25 @@ import React, { useEffect, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
 import { useNavigate } from "react-router-dom";
 import { useUser } from "./UserProvider";
+import axios from "axios";
 
-const LoginPage = ({ OnLoginClick, setCurrentPage, setCurrentUser}  ) => {
+const LoginPage = ({
+  OnLoginClick,
+  setCurrentPage,
+  setCurrentUser,
+  setIsLoggedIn,
+}) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+
+  const getUser = async (userId) => {
+    const theCurrentUser = await axios.get(
+      `https://localhost:7195/api/Database/user/${userId}`
+    );
+    console.log("User data:", theCurrentUser.data);
+    return response.data;
+  };
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -19,7 +33,16 @@ const LoginPage = ({ OnLoginClick, setCurrentPage, setCurrentUser}  ) => {
     if (error) {
       alert(`Login failed: ${error.message}`);
     } else {
-      alert("Logged in successfully");
+      try {
+        console.log("User ID:", data.user.id);
+        const theCurrentUser = await axios.get(
+          `https://localhost:7195/api/Database/user/${data.user.id}`
+        );
+        console.log("User data:", theCurrentUser.data);
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+        setIsLoggedIn(false);
+      }
       console.log("User ID:", data.user.id);
       console.log("Session:", data.session);
 
@@ -34,9 +57,10 @@ const LoginPage = ({ OnLoginClick, setCurrentPage, setCurrentUser}  ) => {
       if (profileError) {
         console.error("Error fetching profile:", profileError.message);
       } else {
-        setCurrentUser(profileData); // Update currentUser state
-        setCurrentPage("profile"); // Navigate to the profile page
+        setCurrentUser(userData);
+        setCurrentPage("profile");
       }
+      setCurrentPage("profile");
     }
   };
 

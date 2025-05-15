@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, use } from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import { supabase } from "./lib/supabaseClient";
 import { UserProvider } from "./components/UserProvider";
@@ -32,6 +32,14 @@ const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [stateName, setStateName] = useState("Maryland");
   const [currentUser, setCurrentUser] = useState(null);
+
+  useEffect(() => {
+    if (currentUser) {
+      if (currentUser.UserId) {
+        setIsLoggedIn(true);
+      }
+    }
+  }, [currentUser]);
 
   const handleSaveUser = async (updatedUser) => {
     try {
@@ -149,6 +157,7 @@ const App = () => {
       fetchUser();
     } catch (error) {
       console.error("Error fetching user data:", error);
+      setIsLoggedIn(false);
     }
   }, [user]);
 
@@ -229,7 +238,7 @@ const App = () => {
             onHomeClick={handleHomeClick}
             onProfileClick={handleProfileClick}
             onSettingsClick={handleSettingsClick}
-            isLoggedIn={!!user}
+            isLoggedIn={isLoggedIn}
             setUser={setUser}
             setIsLoggedIn={setIsLoggedIn}
             setCurrentPage={setCurrentPage}
@@ -255,7 +264,12 @@ const App = () => {
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route
               path="/create-account"
-              element={<CreateAccountPage setCurrentPage={setCurrentPage} />}
+              element={
+                <CreateAccountPage
+                  setCurrentPage={setCurrentPage}
+                  setIsLoggedIn={setIsLoggedIn}
+                />
+              }
             />
             <Route
               path="/view-reviews"
@@ -323,25 +337,43 @@ const App = () => {
                       supabaseUser={user}
                       onSave={handleSaveUser}
                       setSelectedClimb={setSelectedClimb}
+                      setCurrentPage={setCurrentPage}
                     />
                   );
                 } else if (currentPage === "settings") {
                   return <SettingsPage />;
                 } else if (currentPage === "login") {
-                  return <LoginPage setCurrentPage={setCurrentPage} />;
+                  return (
+                    <LoginPage
+                      setCurrentPage={setCurrentPage}
+                      setIsLoggedIn={setIsLoggedIn}
+                    />
+                  );
                 } else if (currentPage === "signup") {
                   return (
                     <CreateAccountPage
-                      setCurrentPage={setCurrentPage}
                       setCurrentUser={setCurrentUser}
+                      setCurrentPage={setCurrentPage}
                     />
                   );
                 } else if (currentPage === "forgot-password") {
                   return <ForgotPassword />;
-                } else if (currentPage === "forgot-password") {
-                  return <ForgotPassword />;
+                } else if (currentPage === "add-friend") {
+                  return (
+                    <AddFriendPage
+                      currentUser={currentUser}
+                      setCurrentPage={setCurrentPage}
+                    />
+                  );
+                } else if (currentPage === "add-group") {
+                  return (
+                    <AddGroupPage
+                      currentUser={currentUser}
+                      setCurrentPage={setCurrentPage}
+                    />
+                  );
                 } else {
-                  return null;
+                  return <div>Page not found</div>;
                 }
               })()}
             />

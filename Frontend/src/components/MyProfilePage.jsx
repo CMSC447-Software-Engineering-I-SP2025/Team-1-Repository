@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { use, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLocation } from "react-router-dom";
 import defaultProfilePic from "../../assets/default-profile.jpg";
@@ -19,6 +19,7 @@ const MyProfilePage = ({
   setCurrentUser,
   supabaseUser,
   setSelectedClimb,
+  setCurrentPage,
 }) => {
   const [activeTab, setActiveTab] = useState("editProfile"); // State for active tab
   const [emailError, setEmailError] = useState(""); // State for email error
@@ -39,8 +40,40 @@ const MyProfilePage = ({
   const [bio, setBio] = useState("");
   const [username, setUsername] = useState("");
   const [favoriteClimbs, setFavoriteClimbs] = useState([]); // State for favorite climbs
+  const [friends, setFriends] = useState([]); // State for friends
+  const [friendRequests, setFriendRequests] = useState([]); // State for friend requests
+  const [groups, setGroups] = useState([]); // State for groups
+  const [userRelations, setUserRelations] = useState([]);
+  const [groupRelations, setGroupRelations] = useState([]);
+  const [isAddFriendPopupOpen, setIsAddFriendPopupOpen] = useState(false); // State for popup visibility
+  const [receiver, setReceiver] = useState(""); // State for receiver username
+  const [addFriendError, setAddFriendError] = useState(""); // State for error handling
+  const [user2ProfileImages, setUser2ProfileImages] = useState({}); // Cache for User2 profile images
+
+  const [isAddGroupPopupOpen, setIsAddGroupPopupOpen] = useState(false); // State for group popup visibility
+  const [groupName, setGroupName] = useState("");
+  const [groupDescription, setGroupDescription] = useState("");
+  const [groupRequirements, setGroupRequirements] = useState("open");
+  const [groupPrice, setGroupPrice] = useState(0);
+  const [groupType, setGroupType] = useState("public");
 
   const climbCache = {};
+
+  useEffect(() => {
+    fetchFriends(currentUser.UserId);
+  }, [isAddFriendPopupOpen]);
+
+  const getUser = async (userId) => {
+    try {
+      const response = await axios.get(
+        `https://localhost:7195/api/Database/user/${userId}`
+      );
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+      return null;
+    }
+  };
 
   const fetchReviews = async () => {
     try {
@@ -162,12 +195,122 @@ const MyProfilePage = ({
     }
   }, [activeTab, reviews]);
 
-  console.log("Debugging favoriteClimbs:", favoriteClimbs);
-  console.log("Debugging currentUser in MyProfilePage:", currentUser.UserId);
-  console.log(
-    "Debugging Climb name:",
-    favoriteClimbs.map((climb) => climb.name)
-  );
+  const fetchFriends = async (userID) => {
+    try {
+      console.log("Fetching friends for user ID:", userID);
+      const url = `https://localhost:7195/api/Database/userRelations/${encodeURIComponent(
+        userID
+      )}`;
+      const response = await axios.get(url);
+      console.log("Fetched friends:", response.data);
+      setUserRelations(response.data);
+    } catch (err) {
+      console.error("Failed to fetch friends:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (currentUser) {
+      fetchFriends(currentUser.UserId);
+    }
+  }, [currentUser]);
+
+  useEffect(() => {
+    const fetchGroups = async (userID) => {
+      try {
+        console.log("Fetching groups for user ID:", userID);
+        // const url1 = `https://localhost:7195/api/Database/groupsOwnedByUser/${encodeURIComponent(
+        //   userID
+        // )}`;
+        // const response1 = await axios.get(url1);
+        const url2 = `https://localhost:7195/api/Database/groupsByUser/${encodeURIComponent(
+          userID
+        )}`;
+        const response = await axios.get(url2);
+        //const response = response1.data.concat(response2.data);
+        console.log("Fetched groups:", response);
+        setGroupRelations(response.data);
+      } catch (err) {
+        console.error("Failed to fetch groups:", err);
+      }
+    };
+
+    if (currentUser) {
+      fetchGroups(currentUser.UserId);
+    }
+  }, [currentUser]);
+
+  useEffect(() => {
+    const fetchUser2ProfileImages = async () => {
+      const images = {};
+      for (const relation of userRelations) {
+        const userId =
+          relation.User1Id === currentUser.UserId
+            ? relation.User2Id
+            : relation.User1Id;
+
+        // Only fetch if the image is not already cached
+        if (!user2ProfileImages[userId]) {
+          try {
+            const user = await getUser(userId);
+            console.log("Fetched user:", user);
+            images[userId] = user?.ProfileImage || defaultProfilePic;
+          } catch (error) {
+            console.error(
+              `Error fetching profile image for user ${userId}:`,
+              error
+            );
+            images[userId] = defaultProfilePic; // Fallback to default if error occurs
+          }
+        }
+      }
+
+      console.log("Fetched user2 profile images:", images);
+      setUser2ProfileImages((prev) => ({ ...prev, ...images }));
+    };
+
+    if (userRelations.length > 0) {
+      fetchUser2ProfileImages();
+    }
+  }, [userRelations]);
+
+  const acceptFriendRequest = async (senderID, receiverID) => {
+    try {
+      console.log(
+        "Accepting friend request from:",
+        senderID,
+        "to:",
+        receiverID
+      );
+      const url = `https://localhost:7195/api/Database/acceptFriendRequest?senderUserId=${encodeURIComponent(
+        senderID
+      )}&receiverUserId=${encodeURIComponent(receiverID)}`;
+      await axios.post(url);
+      console.log("Friend request accepted.");
+      fetchFriends(currentUser.UserId); // Refresh friends list
+    } catch (err) {
+      console.error("Failed to accept friend request:", err);
+    }
+  };
+
+  const rejectFriendRequest = async (senderID, receiverID) => {
+    try {
+      console.log(
+        "Rejecting friend request from:",
+        senderID,
+        "to:",
+        receiverID
+      );
+      const url = `https://localhost:7195/api/Database/rejectFriendRequest?senderUserId=${encodeURIComponent(
+        senderID
+      )}&receiverUserId=${encodeURIComponent(receiverID)}`;
+      await axios.delete(url);
+      console.log("Friend request rejected.");
+      fetchFriends(currentUser.UserId); // Refresh friends list
+    } catch (err) {
+      console.error("Failed to reject friend request:", err);
+    }
+  };
 
   const removeFavoriteClimb = async (climbId) => {
     try {
@@ -260,6 +403,57 @@ const MyProfilePage = ({
     }
   };
 
+  const sendFriendRequest = async (e) => {
+    e.preventDefault();
+
+    if (receiver === currentUser.UserName) {
+      setAddFriendError("You cannot send a friend request to yourself.");
+      return;
+    }
+
+    try {
+      const url = `https://localhost:7195/api/Database/sendFriendRequest?receiverUserName=${encodeURIComponent(
+        receiver
+      )}&senderUserId=${encodeURIComponent(currentUser.UserId)}`;
+      await axios.post(url);
+      console.log("Friend request sent successfully.");
+      setIsAddFriendPopupOpen(false); // Close popup on success
+      setReceiver(""); // Reset input field
+      setAddFriendError(""); // Clear any errors
+    } catch (error) {
+      console.error("Error sending friend request:", error);
+      setAddFriendError("Failed to send friend request. Please try again.");
+    }
+  };
+
+  const createGroup = async (e) => {
+    e.preventDefault();
+    const groupData = {
+      GroupId: 0,
+      GroupName: groupName,
+      GroupDescription: groupDescription,
+      JoinRequirements: groupRequirements,
+      Price: groupPrice,
+      GroupType: groupType,
+      GroupOwner: currentUser.UserId,
+      GroupImage: "",
+    };
+    console.log("Creating group with data:", groupData);
+    try {
+      const url = `https://localhost:7195/api/Database/climbGroup`;
+      const response = await axios.post(url, groupData);
+      console.log("Created group successfully:", response.data);
+      setIsAddGroupPopupOpen(false); // Close popup on success
+      setGroupName("");
+      setGroupDescription("");
+      setGroupRequirements("open");
+      setGroupPrice(0);
+      setGroupType("public");
+    } catch (error) {
+      console.error("Error creating group:", error);
+    }
+  };
+
   useEffect(() => {
     if (currentUser) {
       setFirstName(currentUser.FirstName || "");
@@ -270,10 +464,6 @@ const MyProfilePage = ({
       setUsername(currentUser.UserName || "");
       setProfilePic(currentUser.ProfileImage || defaultProfilePic); // Initialize profile picture
     }
-  }, [currentUser]);
-
-  useEffect(() => {
-    console.log("Debugging currentUser in MyProfilePage:", currentUser);
   }, [currentUser]);
 
   const validateEmail = (email) => {
@@ -712,50 +902,334 @@ const MyProfilePage = ({
             <p className="text-gray-600">Gallery of photos will go here.</p>
           </div>
         )}
+
+        {/* Community Tab */}
         {activeTab === "community" && (
           <div>
-            <h2 className="text-xl font-bold text-gray-800">Friends</h2>
-            <Link to="/add-friend" className="px-3">
-              +
-            </Link>
-            {Array.isArray(currentUser.userRelations) ? (
-              currentUser.userRelations.map((userRelation, index) => (
-                <li key={index} style={{ marginBottom: "1rem" }}>
-                  <strong>User1ID:</strong> {userRelation.user1ID} <br />
-                  <strong>User2ID:</strong> {userRelation.user2ID}
-                  <br />
-                  <strong>RelationType:</strong> {userRelation.relationType}
-                </li>
-              ))
-            ) : (
-              <p>No user relations available.</p>
-            )}
-            <h2 className="text-xl font-bold text-gray-800">Groups</h2>
-            <Link to="/add-group" className="px-3">
-              +
-            </Link>
-            {Array.isArray(currentUser.groupRelations) &&
-            currentUser.groupRelations.length === 0 ? (
-              <p>You are in no groups, haha, loser.</p>
-            ) : (
-              Array.isArray(currentUser.groupRelations) && (
-                <ul>
-                  {currentUser.groupRelations.map((groupRelation, index) => (
-                    <li key={index} style={{ marginBottom: "1rem" }}>
-                      <Link
-                        to="/group"
-                        state={{ groupID: groupRelation.groupID }}
-                        className="px-3"
+            <h2 className="mb-6 text-2xl font-bold text-gray-800">Community</h2>
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              {/* Friends Box */}
+              <div className="p-6 bg-white rounded-lg shadow-md">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-semibold text-gray-800">
+                    Friends
+                  </h3>
+                  <button
+                    onClick={() => setIsAddFriendPopupOpen(true)} // Open popup
+                    className="px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded hover:bg-blue-600"
+                  >
+                    Add Friend
+                  </button>
+                </div>
+                {userRelations.length === 0 ? (
+                  <p className="text-gray-600">You have no friends yet.</p>
+                ) : (
+                  <ul className="space-y-4">
+                    {userRelations.map((userRelation, index) => {
+                      const isCurrentUserUser1 =
+                        userRelation.User1Id === currentUser.UserId;
+                      const displayedUserId = isCurrentUserUser1
+                        ? userRelation.User2Id
+                        : userRelation.User1Id;
+                      const displayedUserName = isCurrentUserUser1
+                        ? userRelation.User2Name
+                        : userRelation.User1Name;
+                      const displayedUserProfileImage =
+                        user2ProfileImages[displayedUserId] ||
+                        defaultProfilePic;
+
+                      return (
+                        <li
+                          key={index}
+                          className="flex items-center justify-between p-4 bg-gray-100 rounded shadow"
+                        >
+                          <div className="flex items-center space-x-4">
+                            {/* Display the other user's profile image */}
+                            <img
+                              src={displayedUserProfileImage}
+                              alt="Profile"
+                              className="w-12 h-12 rounded-full"
+                            />
+                            <div>
+                              <p className="text-gray-800">
+                                <strong>{displayedUserName}</strong>
+                              </p>
+                              <p className="text-sm text-gray-600">
+                                {userRelation.RelationType ===
+                                  "pending_user1" && "Pending..."}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex flex-col space-y-2">
+                            {/* If currentUser is the sender (User1), show "Friend Request Sent" */}
+                            {userRelation.User1Id === currentUser.UserId &&
+                              userRelation.RelationType === "pending_user1" && (
+                                <span className="px-3 py-1 text-sm text-center text-gray-700 bg-gray-200 rounded">
+                                  Friend Request Sent
+                                </span>
+                              )}
+
+                            {/* If currentUser is the receiver (User2), allow accept/reject */}
+                            {userRelation.User2Id === currentUser.UserId &&
+                              (userRelation.RelationType === "pending_user1" ||
+                                userRelation.RelationType ===
+                                  "pending_user2") && (
+                                <>
+                                  <button
+                                    onClick={() =>
+                                      acceptFriendRequest(
+                                        userRelation.User1Id,
+                                        userRelation.User2Id
+                                      )
+                                    }
+                                    className="px-3 py-1 text-sm text-white bg-green-500 rounded hover:bg-green-600"
+                                  >
+                                    Accept
+                                  </button>
+                                  <button
+                                    onClick={() =>
+                                      rejectFriendRequest(
+                                        userRelation.User1Id,
+                                        userRelation.User2Id
+                                      )
+                                    }
+                                    className="px-3 py-1 text-sm text-white bg-red-500 rounded hover:bg-red-600"
+                                  >
+                                    Reject
+                                  </button>
+                                </>
+                              )}
+
+                            {/* Unfriend button for existing friends */}
+                            {!(
+                              userRelation.User2Id === currentUser.UserId &&
+                              (userRelation.RelationType === "pending_user1" ||
+                                userRelation.RelationType === "pending_user2")
+                            ) && (
+                              <button
+                                onClick={() =>
+                                  rejectFriendRequest(
+                                    userRelation.User1Id,
+                                    userRelation.User2Id
+                                  )
+                                }
+                                className="px-3 py-1 text-sm text-white bg-red-500 rounded hover:bg-red-600"
+                              >
+                                Unfriend
+                              </button>
+                            )}
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </div>
+
+              {/* Groups Box */}
+              <div className="p-6 bg-white rounded-lg shadow-md">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-xl font-semibold text-gray-800">
+                    Groups
+                  </h3>
+                  <button
+                    onClick={() => setIsAddGroupPopupOpen(true)} // Open popup
+                    className="px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded hover:bg-blue-600"
+                  >
+                    Add Group
+                  </button>
+                </div>
+                {groupRelations.length === 0 ? (
+                  <p className="text-gray-600">
+                    You are not part of any groups yet.
+                  </p>
+                ) : (
+                  <ul className="space-y-4">
+                    {groupRelations.map((groupRelation, index) => (
+                      <li
+                        key={index}
+                        className="flex items-center justify-between p-4 bg-gray-100 rounded shadow"
                       >
-                        <strong>GroupID:</strong> {groupRelation.groupID} <br />
-                        <strong>RelationType:</strong>{" "}
-                        {groupRelation.relationType}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              )
-            )}
+                        <div>
+                          <p className="font-semibold text-gray-800">
+                            {groupRelation.GroupName}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            {groupRelation.GroupDescription}
+                          </p>
+                        </div>
+                        <Link
+                          to="/group"
+                          state={{ group: groupRelation }}
+                          className="px-3 py-1 text-sm text-white bg-blue-500 rounded hover:bg-blue-600"
+                        >
+                          View
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Add Friend Popup */}
+        {isAddFriendPopupOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+            <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-lg">
+              <h2 className="mb-4 text-xl font-bold text-gray-800">
+                Send Friend Request
+              </h2>
+              <form onSubmit={sendFriendRequest}>
+                <div className="mb-4">
+                  <label
+                    htmlFor="receiver"
+                    className="block mb-2 text-sm font-medium text-gray-700"
+                  >
+                    Friend's Username
+                  </label>
+                  <input
+                    type="text"
+                    id="receiver"
+                    value={receiver}
+                    onChange={(e) => setReceiver(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Enter username"
+                  />
+                </div>
+                {addFriendError && (
+                  <p className="mb-4 text-sm text-red-500">{addFriendError}</p>
+                )}
+                <div className="flex justify-end space-x-4">
+                  <button
+                    type="button"
+                    onClick={() => setIsAddFriendPopupOpen(false)} // Close popup
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded hover:bg-gray-300"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded hover:bg-blue-600"
+                  >
+                    Send Request
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* Add Group Popup */}
+        {isAddGroupPopupOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+            <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-lg">
+              <h2 className="mb-4 text-xl font-bold text-gray-800">
+                Create Group
+              </h2>
+              <form onSubmit={createGroup}>
+                <div className="mb-4">
+                  <label
+                    htmlFor="groupName"
+                    className="block mb-2 text-sm font-medium text-gray-700"
+                  >
+                    Group Name
+                  </label>
+                  <input
+                    type="text"
+                    id="groupName"
+                    value={groupName}
+                    onChange={(e) => setGroupName(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Enter group name"
+                  />
+                </div>
+                <div className="mb-4">
+                  <label
+                    htmlFor="groupDescription"
+                    className="block mb-2 text-sm font-medium text-gray-700"
+                  >
+                    Group Description
+                  </label>
+                  <textarea
+                    id="groupDescription"
+                    value={groupDescription}
+                    onChange={(e) => setGroupDescription(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Enter group description"
+                  ></textarea>
+                </div>
+                <div className="mb-4">
+                  <label
+                    htmlFor="groupRequirements"
+                    className="block mb-2 text-sm font-medium text-gray-700"
+                  >
+                    Join Requirements
+                  </label>
+                  <select
+                    id="groupRequirements"
+                    value={groupRequirements}
+                    onChange={(e) => setGroupRequirements(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="open">Open</option>
+                    <option value="invite_only">Invite Only</option>
+                    <option value="paid">Paid</option>
+                  </select>
+                </div>
+                {groupRequirements === "paid" && (
+                  <div className="mb-4">
+                    <label
+                      htmlFor="groupPrice"
+                      className="block mb-2 text-sm font-medium text-gray-700"
+                    >
+                      Price
+                    </label>
+                    <input
+                      type="number"
+                      id="groupPrice"
+                      value={groupPrice}
+                      onChange={(e) => setGroupPrice(e.target.value)}
+                      className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      placeholder="Enter price"
+                    />
+                  </div>
+                )}
+                <div className="mb-4">
+                  <label
+                    htmlFor="groupType"
+                    className="block mb-2 text-sm font-medium text-gray-700"
+                  >
+                    Group Type
+                  </label>
+                  <select
+                    id="groupType"
+                    value={groupType}
+                    onChange={(e) => setGroupType(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="public">Public</option>
+                    <option value="private">Private</option>
+                  </select>
+                </div>
+                <div className="flex justify-end space-x-4">
+                  <button
+                    type="button"
+                    onClick={() => setIsAddGroupPopupOpen(false)} // Close popup
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded hover:bg-gray-300"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded hover:bg-blue-600"
+                  >
+                    Create Group
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         )}
       </div>
