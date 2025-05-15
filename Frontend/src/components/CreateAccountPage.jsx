@@ -92,8 +92,8 @@ const CreateAccountPage = ({ setCurrentPage, setCurrentUser }) => {
         RopeClimberUpperLimit: "",
         Bio: "",
         AccountType: "public",
-        EnableReviewCommentNotifications: "",
-        EnableGroupInviteNotifications: "",
+        EnableReviewCommentNotifications: "enable",
+        EnableGroupInviteNotifications: "enable",
       };
       console.log("User data to be sent:", userData);
       try {
