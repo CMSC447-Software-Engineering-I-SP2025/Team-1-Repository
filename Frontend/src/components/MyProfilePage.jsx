@@ -219,17 +219,18 @@ const MyProfilePage = ({
     const fetchGroups = async (userID) => {
       try {
         console.log("Fetching groups for user ID:", userID);
-        // const url1 = `https://localhost:7195/api/Database/groupsOwnedByUser/${encodeURIComponent(
+        //const url1 = `https://localhost:7195/api/Database/groupsOwnedByUser/${encodeURIComponent(
         //   userID
-        // )}`;
-        // const response1 = await axios.get(url1);
+         //)}`;
+         //const response1 = await axios.get(url1);
         const url2 = `https://localhost:7195/api/Database/groupsByUser/${encodeURIComponent(
           userID
         )}`;
-        const response = await axios.get(url2);
+          const response2 = await axios.get(url2);
+        const response = response2.data;
         //const response = response1.data.concat(response2.data);
         console.log("Fetched groups:", response);
-        setGroupRelations(response.data);
+        setGroupRelations(response);
       } catch (err) {
         console.error("Failed to fetch groups:", err);
       }
@@ -442,7 +443,9 @@ const MyProfilePage = ({
     try {
       const url = `https://localhost:7195/api/Database/climbGroup`;
       const response = await axios.post(url, groupData);
-      console.log("Created group successfully:", response.data);
+        console.log("Created group successfully:", response.data);
+        joinGroup(e);
+        fetchGroups(e);
       setIsAddGroupPopupOpen(false); // Close popup on success
       setGroupName("");
       setGroupDescription("");
@@ -452,7 +455,26 @@ const MyProfilePage = ({
     } catch (error) {
       console.error("Error creating group:", error);
     }
-  };
+    };
+
+    const joinGroup = async (e) => {
+        e.preventDefault();
+
+        // Prepare the data for the review
+        /*
+        const requestData = {
+            Receiver: receiver,
+            Sender: userID //change this to userID
+        };*/
+
+        try {
+            const url = `https://localhost:7195/api/Database/joinGroup?userId=${encodeURIComponent(currentUser.UserId)}&groupName=${encodeURIComponent(groupName)}`;
+            const response = await axios.post(url);
+            console.log('joined group successfully:', response.data);
+        } catch (error) {
+            console.error('Error joining group:', error);
+        }
+    };
 
   useEffect(() => {
     if (currentUser) {
@@ -1124,7 +1146,43 @@ const MyProfilePage = ({
         {/* Add Group Popup */}
         {isAddGroupPopupOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-            <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-lg">
+                      <div className="w-full max-w-md p-6 bg-white rounded-lg shadow-lg">
+                          <h2 className="mb-4 text-xl font-bold text-gray-800">
+                              Join Group
+                          </h2>
+                          <form onSubmit={joinGroup}>
+                              <div className="mb-4">
+                                  <label
+                                      htmlFor="groupName"
+                                      className="block mb-2 text-sm font-medium text-gray-700"
+                                  >
+                                      Group Name
+                                  </label>
+                                  <input
+                                      type="text"
+                                      id="groupName"
+                                      value={groupName}
+                                      onChange={(e) => setGroupName(e.target.value)}
+                                      className="w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                      placeholder="Enter group name"
+                                  />
+                              </div>
+                              <div className="flex justify-end space-x-4">
+                                  <button
+                                      type="button"
+                                      onClick={() => setIsAddGroupPopupOpen(false)} // Close popup
+                                      className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded hover:bg-gray-300"
+                                  >
+                                      Cancel
+                                  </button>
+                                  <button
+                                      type="submit"
+                                      className="px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded hover:bg-blue-600"
+                                  >
+                                      Join Group
+                                  </button>
+                              </div>
+                          </form>
               <h2 className="mb-4 text-xl font-bold text-gray-800">
                 Create Group
               </h2>
@@ -1227,8 +1285,10 @@ const MyProfilePage = ({
                   >
                     Create Group
                   </button>
-                </div>
-              </form>
+                              </div>
+                              
+                          </form>
+                          
             </div>
           </div>
         )}
